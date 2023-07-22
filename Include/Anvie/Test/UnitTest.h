@@ -61,7 +61,8 @@ typedef struct anvie_unit_test_t {
 
 #define BEGIN_UNIT_TESTS()                      \
     int main() {                                \
-    Size failed = 0;
+    Size failed = 0;                            \
+    setbuf(stdout, NULL);
 
 #define END_UNIT_TESTS()                        \
     }
