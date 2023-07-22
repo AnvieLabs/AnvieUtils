@@ -110,8 +110,11 @@
 
 
 #define DEF_ANV_STRUCT_VECTOR_INTERFACE(prefix, type, copy_create, copy_destroy) \
+    typedef void(*Anv##prefix##CreateCopyCallback)(type* dst, type* src);     \
+    typedef void(*Anv##prefix##DestroyCopyCallback)(type* copy);              \
+                                                                        \
     FORCE_INLINE AnvVector* Anv##prefix##Vector_Create() {              \
-        return AnvVector_Create(sizeof(type), (copy_create), (copy_destroy)); \
+        return AnvVector_Create(sizeof(type), (AnvCreateElementCopyCallback)(copy_create), (AnvDestroyElementCopyCallback)(copy_destroy)); \
     }                                                                   \
                                                                         \
     FORCE_INLINE void Anv##prefix##Vector_Destroy(AnvVector* vec) {     \
