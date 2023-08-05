@@ -17,8 +17,8 @@
  * Represents a Dynamic Array.
  *
  * CREATION SEMANTICS
- * Initially the size of AnvVector is some base value which is not 0.
- * This can be set in AnvVector.c and experimented upon.
+ * Initially the size of anv_vector is some base value which is not 0.
+ * This can be set in anv_vector.c and experimented upon.
  *
  * INSERTION SEMANTICS
  * - if @c element_size is less than or equal to 8, then it's treated
@@ -29,7 +29,7 @@
  *   array and data is copied to internal memory using @c memcpy.
  * - if @c pfn_copy is set, it will ALWAYS be used to create copy of data,
  *   else it's one of the methods described above.
- * This means, no matter what, @c AnvVector will always create it's own
+ * This means, no matter what, @c anv_vector will always create it's own
  * copy of data in order to avoid memory errors.
  *
  * RESIZE SEMANTICS
@@ -49,57 +49,57 @@ typedef struct anvie_dynamic_array_t {
     Float32                       resize_factor; /**< percent factor for resizing arrays, by defualt it's 1, this means 2x resize */
 } AnvVector;
 
-#define AnvVector_At(p_vec, type, pos) ((type*)((p_vec)->p_data))[pos]
-#define AnvVector_AddressAt(p_vec, pos) ((p_vec)->p_data + (pos) * (p_vec)->element_size)
-#define AnvVector_Length(p_vec) ((p_vec)->length)
-#define AnvVector_ElementSize(p_vec) ((p_vec)->element_size)
+#define anv_vector_at(p_vec, type, pos) ((type*)((p_vec)->p_data))[pos]
+#define anv_vector_AddressAt(p_vec, pos) ((p_vec)->p_data + (pos) * (p_vec)->element_size)
+#define anv_vector_Length(p_vec) ((p_vec)->length)
+#define anv_vector_ElementSize(p_vec) ((p_vec)->element_size)
 
-AnvVector*  AnvVector_Create(Size element_size,
+AnvVector*  anv_vector_create(Size element_size,
                              AnvCreateElementCopyCallback pfn_create_copy,
                              AnvDestroyElementCopyCallback pfn_destroy_copy);
-void  AnvVector_Destroy(AnvVector* p_vec);
-void  AnvVector_Resize(AnvVector* p_vec, Size new_size);
-void  AnvVector_Clear(AnvVector* p_vec);
+void  anv_vector_destroy(AnvVector* p_vec);
+void  anv_vector_resize(AnvVector* p_vec, Size new_size);
+void  anv_vector_clear(AnvVector* p_vec);
 
-void  AnvVector_Copy(AnvVector* p_vec, Size to, Size from);
-void  AnvVector_Move(AnvVector* p_vec, Size to, Size from);
-void  AnvVector_Overwrite(AnvVector* p_vec, Size pos, void* p_data);
+void  anv_vector_copy(AnvVector* p_vec, Size to, Size from);
+void  anv_vector_move(AnvVector* p_vec, Size to, Size from);
+void  anv_vector_overwrite(AnvVector* p_vec, Size pos, void* p_data);
 
-void  AnvVector_Insert(AnvVector* p_vec, void* p_data, Size pos);
-void  AnvVector_Delete(AnvVector* p_vec, Size pos);
-void* AnvVector_Remove(AnvVector* p_vec, Size pos);
+void  anv_vector_insert(AnvVector* p_vec, void* p_data, Size pos);
+void  anv_vector_delete(AnvVector* p_vec, Size pos);
+void* anv_vector_remove(AnvVector* p_vec, Size pos);
 
-void  AnvVector_InsertFast(AnvVector* p_vec, void* p_data, Size pos);
-void  AnvVector_DeleteFast(AnvVector* p_vec, Size pos);
-void* AnvVector_RemoveFast(AnvVector* p_vec, Size pos);
+void  anv_vector_insert_fast(AnvVector* p_vec, void* p_data, Size pos);
+void  anv_vector_delete_fast(AnvVector* p_vec, Size pos);
+void* anv_vector_remove_fast(AnvVector* p_vec, Size pos);
 
-void  AnvVector_PushFront(AnvVector* p_vec, void* p_data);
-void* AnvVector_PopFront(AnvVector* p_vec);
+void  anv_vector_push_front(AnvVector* p_vec, void* p_data);
+void* anv_vector_pop_front(AnvVector* p_vec);
 
-void  AnvVector_PushFrontFast(AnvVector* p_vec, void* p_data);
-void* AnvVector_PopFrontFast(AnvVector* p_vec);
+void  anv_vector_push_front_fast(AnvVector* p_vec, void* p_data);
+void* anv_vector_pop_front_fast(AnvVector* p_vec);
 
-void  AnvVector_PushBack(AnvVector* p_vec, void* p_data);
-void* AnvVector_PopBack(AnvVector* p_vec);
+void  anv_vector_push_back(AnvVector* p_vec, void* p_data);
+void* anv_vector_pop_back(AnvVector* p_vec);
 
-void* AnvVector_Peek(AnvVector* p_vec, Size pos);
-void* AnvVector_Front(AnvVector* p_vec);
-void* AnvVector_Back(AnvVector* p_vec);
+void* anv_vector_peek(AnvVector* p_vec, Size pos);
+void* anv_vector_front(AnvVector* p_vec);
+void* anv_vector_back(AnvVector* p_vec);
 
-void  AnvVector_Print(AnvVector* p_vec, AnvPrintElementCallback pfn_printer);
+void  anv_vector_print(AnvVector* p_vec, AnvPrintElementCallback pfn_printer);
 
 /*---------------- DEFINE COMMON INTERFACES FOR TYPE-SAFETY-----------------*/
 
 #include <Anvie/Containers/VectorInterface.h>
 
-DEF_ANV_INTEGER_VECTOR_INTERFACE(U8,  Uint8);
-DEF_ANV_INTEGER_VECTOR_INTERFACE(U16, Uint16);
-DEF_ANV_INTEGER_VECTOR_INTERFACE(U32, Uint32);
-DEF_ANV_INTEGER_VECTOR_INTERFACE(U64, Uint64);
+DEF_ANV_INTEGER_VECTOR_INTERFACE(u8,  Uint8);
+DEF_ANV_INTEGER_VECTOR_INTERFACE(u16, Uint16);
+DEF_ANV_INTEGER_VECTOR_INTERFACE(u32, Uint32);
+DEF_ANV_INTEGER_VECTOR_INTERFACE(u64, Uint64);
 
-DEF_ANV_INTEGER_VECTOR_INTERFACE(I8,  Int8);
-DEF_ANV_INTEGER_VECTOR_INTERFACE(I16, Int16);
-DEF_ANV_INTEGER_VECTOR_INTERFACE(I32, Int32);
-DEF_ANV_INTEGER_VECTOR_INTERFACE(I64, Int64);
+DEF_ANV_INTEGER_VECTOR_INTERFACE(i8,  Int8);
+DEF_ANV_INTEGER_VECTOR_INTERFACE(i16, Int16);
+DEF_ANV_INTEGER_VECTOR_INTERFACE(i32, Int32);
+DEF_ANV_INTEGER_VECTOR_INTERFACE(i64, Int64);
 
 #endif // ANV_VECTOR_H

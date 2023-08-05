@@ -34,7 +34,7 @@
  * @param pfn_destroy_copy Copy destructor for elements. Can be NULL.
  * @return AnvVector* or NULL if allocation failed
  * */
-AnvVector* AnvVector_Create(Size element_size,
+AnvVector* anv_vector_create(Size element_size,
                             AnvCreateElementCopyCallback pfn_create_copy,
                             AnvDestroyElementCopyCallback pfn_destroy_copy)
 {
@@ -68,11 +68,11 @@ AnvVector* AnvVector_Create(Size element_size,
  * Destroy given dynamic array.
  * @param p_vec
  * */
-void AnvVector_Destroy(AnvVector* p_vec) {
+void anv_vector_destroy(AnvVector* p_vec) {
     RETURN_IF_FAIL(p_vec, ERR_INVALID_ARGUMENTS);
 
     // destroy all object copies if possible and memset whole array!
-    if(p_vec->length != 0) AnvVector_Clear(p_vec);
+    if(p_vec->length != 0) anv_vector_clear(p_vec);
 
     FREE(p_vec->p_data);
     p_vec->p_data = NULL;
@@ -84,10 +84,10 @@ void AnvVector_Destroy(AnvVector* p_vec) {
  * @param p_vec
  * @param new_size New capacity of this dyn array.
  * */
-FORCE_INLINE void AnvVector_Resize(AnvVector* p_vec, Size new_size) {
+FORCE_INLINE void anv_vector_resize(AnvVector* p_vec, Size new_size) {
     RETURN_IF_FAIL(p_vec && new_size, ERR_INVALID_ARGUMENTS);
 
-    void* p_temp = realloc(p_vec->p_data, new_size * AnvVector_ElementSize(p_vec));
+    void* p_temp = realloc(p_vec->p_data, new_size * anv_vector_ElementSize(p_vec));
     RETURN_IF_FAIL(p_temp, ERR_OUT_OF_MEMORY);
     p_vec->p_data = p_temp;
     p_vec->capacity = new_size;
@@ -101,17 +101,17 @@ FORCE_INLINE void AnvVector_Resize(AnvVector* p_vec, Size new_size) {
  *
  * @param p_vec
  * */
-FORCE_INLINE void AnvVector_Clear(AnvVector* p_vec) {
+FORCE_INLINE void anv_vector_clear(AnvVector* p_vec) {
     RETURN_IF_FAIL(p_vec, ERR_INVALID_ARGUMENTS);
 
     // destroy element copies if we need to
     if(p_vec->pfn_destroy_copy) {
         while(p_vec->length--) {
-            p_vec->pfn_destroy_copy(AnvVector_AddressAt(p_vec, p_vec->length));
+            p_vec->pfn_destroy_copy(anv_vector_AddressAt(p_vec, p_vec->length));
         }
     }
 
-    memset(p_vec->p_data, 0, p_vec->capacity * AnvVector_ElementSize(p_vec));
+    memset(p_vec->p_data, 0, p_vec->capacity * anv_vector_ElementSize(p_vec));
 }
 
 /**
@@ -128,23 +128,23 @@ FORCE_INLINE void AnvVector_Clear(AnvVector* p_vec) {
  * @param to Final move position.
  * @param from Position of element to be moved.
  * */
-FORCE_INLINE void AnvVector_Move(AnvVector* p_vec, Size to, Size from) {
+FORCE_INLINE void anv_vector_move(AnvVector* p_vec, Size to, Size from) {
     if(to == from) return;
     RETURN_IF_FAIL(p_vec && (to < p_vec->capacity) && (from < p_vec->length), ERR_INVALID_ARGUMENTS);
 
     // we need to destroy element if it's being overwritten to
     if((to < p_vec->length) && p_vec->pfn_destroy_copy) {
-        p_vec->pfn_destroy_copy(AnvVector_AddressAt(p_vec, to));
+        p_vec->pfn_destroy_copy(anv_vector_AddressAt(p_vec, to));
     }
 
-    memcpy(AnvVector_AddressAt(p_vec, to), AnvVector_AddressAt(p_vec, from), p_vec->element_size);
-    memset(AnvVector_AddressAt(p_vec, from), 0, AnvVector_ElementSize(p_vec));
+    memcpy(anv_vector_AddressAt(p_vec, to), anv_vector_AddressAt(p_vec, from), p_vec->element_size);
+    memset(anv_vector_AddressAt(p_vec, from), 0, anv_vector_ElementSize(p_vec));
 }
 
 /**
  * Creates a copy of element by destroying whatever is in target position.
  * This results in two different copies of same elment. If a copy constructor
- * is assigned to AnvVector then it's used to create copy of element.
+ * is assigned to anv_vector then it's used to create copy of element.
  *
  * @p from must be less than @c length of vector.
  * @p to must be less than @c capacity of vector.
@@ -154,21 +154,21 @@ FORCE_INLINE void AnvVector_Move(AnvVector* p_vec, Size to, Size from) {
  * @param to Target position of element.
  * @param from Position of element to be copied.
  * */
-FORCE_INLINE void AnvVector_Copy(AnvVector* p_vec, Size to, Size from) {
+FORCE_INLINE void anv_vector_copy(AnvVector* p_vec, Size to, Size from) {
     RETURN_IF_FAIL(p_vec && (to < p_vec->capacity) && (from < p_vec->length) && (to != from), ERR_INVALID_ARGUMENTS);
-    switch(AnvVector_ElementSize(p_vec)) {
-        case 8 : AnvVector_At(p_vec, Uint64, to) = (Uint64)AnvVector_At(p_vec, Uint64, from); break;
-        case 4 : AnvVector_At(p_vec, Uint32, to) = (Uint64)AnvVector_At(p_vec, Uint32, from); break;
-        case 2 : AnvVector_At(p_vec, Uint16, to) = (Uint64)AnvVector_At(p_vec, Uint16, from); break;
-        case 1 : AnvVector_At(p_vec, Uint8, to) = (Uint64)AnvVector_At(p_vec, Uint8, from); break;
+    switch(anv_vector_ElementSize(p_vec)) {
+        case 8 : anv_vector_at(p_vec, Uint64, to) = (Uint64)anv_vector_at(p_vec, Uint64, from); break;
+        case 4 : anv_vector_at(p_vec, Uint32, to) = (Uint64)anv_vector_at(p_vec, Uint32, from); break;
+        case 2 : anv_vector_at(p_vec, Uint16, to) = (Uint64)anv_vector_at(p_vec, Uint16, from); break;
+        case 1 : anv_vector_at(p_vec, Uint8, to) = (Uint64)anv_vector_at(p_vec, Uint8, from); break;
         default : {
-            void* p_elem_to = AnvVector_AddressAt(p_vec, to);
-            void* p_elem_from = AnvVector_AddressAt(p_vec, from);
+            void* p_elem_to = anv_vector_AddressAt(p_vec, to);
+            void* p_elem_from = anv_vector_AddressAt(p_vec, from);
             if(p_vec->pfn_create_copy) {
                 if(to < p_vec->length) p_vec->pfn_destroy_copy(p_elem_to);
                 p_vec->pfn_create_copy(p_elem_to, p_elem_from);
             } else {
-                memcpy(p_elem_to, p_elem_from, AnvVector_ElementSize(p_vec));
+                memcpy(p_elem_to, p_elem_from, anv_vector_ElementSize(p_vec));
             }
         }
     }
@@ -183,42 +183,47 @@ FORCE_INLINE void AnvVector_Copy(AnvVector* p_vec, Size to, Size from) {
  * @param pos Position where this new data
  * @param p_data Data to be moved
  * */
-FORCE_INLINE void AnvVector_Overwrite(AnvVector* p_vec, Size pos, void* p_data) {
+FORCE_INLINE void anv_vector_overwrite(AnvVector* p_vec, Size pos, void* p_data) {
     RETURN_IF_FAIL(p_vec && (pos < p_vec->capacity), ERR_INVALID_ARGUMENTS);
 
     Uint64 value = (Uint64)p_data;
-    switch(AnvVector_ElementSize(p_vec)) {
-        case 8 : AnvVector_At(p_vec, Uint64, pos) = (Uint64)value; break;
-        case 4 : AnvVector_At(p_vec, Uint32, pos) = (Uint32)value; break;
-        case 2 : AnvVector_At(p_vec, Uint16, pos) = (Uint16)value; break;
-        case 1 : AnvVector_At(p_vec, Uint8, pos) = (Uint8)value; break;
+    switch(anv_vector_ElementSize(p_vec)) {
+        case 8 : anv_vector_at(p_vec, Uint64, pos) = (Uint64)value; break;
+        case 4 : anv_vector_at(p_vec, Uint32, pos) = (Uint32)value; break;
+        case 2 : anv_vector_at(p_vec, Uint16, pos) = (Uint16)value; break;
+        case 1 : anv_vector_at(p_vec, Uint8, pos) = (Uint8)value; break;
         default : {
             if(p_vec->pfn_create_copy) {
-                void* p_elem = AnvVector_AddressAt(p_vec, pos);
+                void* p_elem = anv_vector_AddressAt(p_vec, pos);
                 if(pos < p_vec->length) p_vec->pfn_destroy_copy(p_elem);
                 if(p_data) p_vec->pfn_create_copy(p_elem, p_data);
                 else memset(p_elem, 0, p_vec->element_size);
             } else {
-                void* p_elem = AnvVector_AddressAt(p_vec, pos);
-                if(p_data) memcpy(p_elem, p_data, AnvVector_ElementSize(p_vec));
-                else memset(p_elem, 0, AnvVector_ElementSize(p_vec));
+                void* p_elem = anv_vector_AddressAt(p_vec, pos);
+                if(p_data) memcpy(p_elem, p_data, anv_vector_ElementSize(p_vec));
+                else memset(p_elem, 0, anv_vector_ElementSize(p_vec));
             }
         }
     }
 }
 
 /**
- * Insert an element into @c AnvVector.
+ * Insert an element into @c anv_vector.
  * This will insert element at position by creating space.
  * This means order of array will be preserved before and after
  * insertion.
  *
+ * Insert will always create a copy of provided data for itself.
+ * This ensures that anv_vector will never free or misuse given pointer.
+ * This also allows user to have it's own copy of data, by either
+ * creating it on stack and passing pointer or just a heap allocated data.
+ *
  * @param p_vec
  * @param p_data Pointer to memory or just the value to be inserted into
- * contiguous array maintained in @c AnvVector.
+ * contiguous array maintained in @c anv_vector.
  * @param pos Position where insertion will take place.
  * */
-FORCE_INLINE void AnvVector_Insert(AnvVector* p_vec, void *p_data, Size pos) {
+FORCE_INLINE void anv_vector_insert(AnvVector* p_vec, void *p_data, Size pos) {
     RETURN_IF_FAIL(p_vec, ERR_INVALID_ARGUMENTS);
 
     // resize array if insert position is more than capacity
@@ -230,7 +235,7 @@ FORCE_INLINE void AnvVector_Insert(AnvVector* p_vec, void *p_data, Size pos) {
         }
 
         // reallocate if we need to
-        void* p_temp = realloc(p_vec->p_data, new_capacity * AnvVector_ElementSize(p_vec));
+        void* p_temp = realloc(p_vec->p_data, new_capacity * anv_vector_ElementSize(p_vec));
         RETURN_IF_FAIL(p_temp, ERR_OUT_OF_MEMORY);
         p_vec->p_data = p_temp;
         p_vec->capacity = new_capacity;
@@ -240,7 +245,7 @@ FORCE_INLINE void AnvVector_Insert(AnvVector* p_vec, void *p_data, Size pos) {
     // resize array if insert position is in between but array is at capacity
     if(p_vec->length >= p_vec->capacity) {
         Size new_size = p_vec->capacity * (p_vec->resize_factor + 1);
-        void* p_temp = realloc(p_vec->p_data, new_size * AnvVector_ElementSize(p_vec));
+        void* p_temp = realloc(p_vec->p_data, new_size * anv_vector_ElementSize(p_vec));
         RETURN_IF_FAIL(p_temp, ERR_OUT_OF_MEMORY);
         p_vec->p_data = p_temp;
         p_vec->capacity = new_size;
@@ -252,32 +257,32 @@ FORCE_INLINE void AnvVector_Insert(AnvVector* p_vec, void *p_data, Size pos) {
         Size to = shift_index; // at the starting of loop, this is index of position just after last element
         Size from = --shift_index; // at the starting of loop, this is index of last element
 
-        switch(AnvVector_ElementSize(p_vec)) {
-        case 8 : AnvVector_At(p_vec, Uint64, to) = AnvVector_At(p_vec, Uint64, from); break;
-        case 4 : AnvVector_At(p_vec, Uint32, to) = AnvVector_At(p_vec, Uint32, from); break;
-        case 2 : AnvVector_At(p_vec, Uint16, to) = AnvVector_At(p_vec, Uint16, from); break;
-        case 1 : AnvVector_At(p_vec, Uint8, to)  = AnvVector_At(p_vec, Uint8, from); break;
+        switch(anv_vector_ElementSize(p_vec)) {
+        case 8 : anv_vector_at(p_vec, Uint64, to) = anv_vector_at(p_vec, Uint64, from); break;
+        case 4 : anv_vector_at(p_vec, Uint32, to) = anv_vector_at(p_vec, Uint32, from); break;
+        case 2 : anv_vector_at(p_vec, Uint16, to) = anv_vector_at(p_vec, Uint16, from); break;
+        case 1 : anv_vector_at(p_vec, Uint8, to)  = anv_vector_at(p_vec, Uint8, from); break;
         default :
-            void* p_elem_to = AnvVector_AddressAt(p_vec, to);
-            void* p_elem_from = AnvVector_AddressAt(p_vec, from);
-            memcpy(p_elem_to, p_elem_from, AnvVector_ElementSize(p_vec));
+            void* p_elem_to = anv_vector_AddressAt(p_vec, to);
+            void* p_elem_from = anv_vector_AddressAt(p_vec, from);
+            memcpy(p_elem_to, p_elem_from, anv_vector_ElementSize(p_vec));
         }
     }
 
     Uint64 value = (Uint64)p_data;
-    switch(AnvVector_ElementSize(p_vec)) {
-        case 8 : AnvVector_At(p_vec, Uint64, pos) = (Uint64)value; break;
-        case 4 : AnvVector_At(p_vec, Uint32, pos) = (Uint32)value; break;
-        case 2 : AnvVector_At(p_vec, Uint16, pos) = (Uint16)value; break;
-        case 1 : AnvVector_At(p_vec, Uint8, pos)  = (Uint8)value; break;
+    switch(anv_vector_ElementSize(p_vec)) {
+        case 8 : anv_vector_at(p_vec, Uint64, pos) = (Uint64)value; break;
+        case 4 : anv_vector_at(p_vec, Uint32, pos) = (Uint32)value; break;
+        case 2 : anv_vector_at(p_vec, Uint16, pos) = (Uint16)value; break;
+        case 1 : anv_vector_at(p_vec, Uint8, pos)  = (Uint8)value; break;
         default :
-            void* p_elem = AnvVector_AddressAt(p_vec, pos);
+            void* p_elem = anv_vector_AddressAt(p_vec, pos);
             if(p_vec->pfn_create_copy) {
                 if(p_data) p_vec->pfn_create_copy(p_elem, p_data);
                 else memset(p_elem, 0, p_vec->element_size);
             } else {
-                if(p_data) memcpy(p_elem, p_data, AnvVector_ElementSize(p_vec));
-                else memset(p_elem, 0, AnvVector_ElementSize(p_vec));
+                if(p_data) memcpy(p_elem, p_data, anv_vector_ElementSize(p_vec));
+                else memset(p_elem, 0, anv_vector_ElementSize(p_vec));
             }
     }
 
@@ -290,55 +295,55 @@ FORCE_INLINE void AnvVector_Insert(AnvVector* p_vec, void *p_data, Size pos) {
  * @param p_vec
  * @param pos Positon of element to be deleted.
  * */
-FORCE_INLINE void AnvVector_Delete(AnvVector* p_vec, Size pos) {
+FORCE_INLINE void anv_vector_delete(AnvVector* p_vec, Size pos) {
     RETURN_IF_FAIL(p_vec && (pos < p_vec->length), ERR_INVALID_ARGUMENTS);
     RETURN_IF_FAIL(p_vec->length, ERR_CONTAINER_UNDERFLOW);
 
     // destroy element at position if possible
     if(p_vec->pfn_destroy_copy) {
-        p_vec->pfn_destroy_copy(AnvVector_AddressAt(p_vec, pos));
+        p_vec->pfn_destroy_copy(anv_vector_AddressAt(p_vec, pos));
     }
 
     // shift array by one place at pos
     while(++pos < p_vec->length) {
         Size prev = pos-1;
         Size next = pos;
-        memcpy(AnvVector_AddressAt(p_vec, prev), AnvVector_AddressAt(p_vec, next), p_vec->element_size);
+        memcpy(anv_vector_AddressAt(p_vec, prev), anv_vector_AddressAt(p_vec, next), p_vec->element_size);
     }
 
     // memset to avoid data copies
-    memset(AnvVector_AddressAt(p_vec, --p_vec->length), 0, p_vec->element_size);
+    memset(anv_vector_AddressAt(p_vec, --p_vec->length), 0, p_vec->element_size);
 }
 
 /**
  * Remove an element from given position and return it's data.
  * Order will be preserved.
  * This will not result in a new copy of removed element and just
- * copy inside the AnvVector is returned and removed from AnvVector.
+ * copy inside the anv_vector is returned and removed from anv_vector.
  * @param p_vec
  * @param pos Position of element to be removed.
  * */
-FORCE_INLINE void* AnvVector_Remove(AnvVector* p_vec, Size pos) {
+FORCE_INLINE void* anv_vector_remove(AnvVector* p_vec, Size pos) {
     RETURN_VALUE_IF_FAIL(p_vec && (pos < p_vec->length), NULL, ERR_INVALID_ARGUMENTS);
     RETURN_VALUE_IF_FAIL(p_vec->length, NULL, ERR_CONTAINER_UNDERFLOW);
 
     void* p_elem = NULL;
-    switch(AnvVector_ElementSize(p_vec)) {
-    case 8 : p_elem = (void*)(Uint64) AnvVector_At(p_vec, Uint64, pos); break;
-    case 4 : p_elem = (void*)(Uint64) AnvVector_At(p_vec, Uint32, pos); break;
-    case 2 : p_elem = (void*)(Uint64) AnvVector_At(p_vec, Uint16, pos); break;
-    case 1 : p_elem = (void*)(Uint64) AnvVector_At(p_vec, Uint8, pos); break;
+    switch(anv_vector_ElementSize(p_vec)) {
+    case 8 : p_elem = (void*)(Uint64) anv_vector_at(p_vec, Uint64, pos); break;
+    case 4 : p_elem = (void*)(Uint64) anv_vector_at(p_vec, Uint32, pos); break;
+    case 2 : p_elem = (void*)(Uint64) anv_vector_at(p_vec, Uint16, pos); break;
+    case 1 : p_elem = (void*)(Uint64) anv_vector_at(p_vec, Uint8, pos); break;
     default :
         p_elem = ALLOCATE(Uint8, p_vec->element_size);
         RETURN_VALUE_IF_FAIL(p_elem, NULL, ERR_OUT_OF_MEMORY);
-        memcpy(p_elem, AnvVector_AddressAt(p_vec, pos), p_vec->element_size);
+        memcpy(p_elem, anv_vector_AddressAt(p_vec, pos), p_vec->element_size);
     }
 
     // shift array by one place at pos
     while(++pos < p_vec->length) {
         Size prev = pos-1;
         Size next = pos;
-        memcpy(AnvVector_AddressAt(p_vec, prev), AnvVector_AddressAt(p_vec, next), p_vec->element_size);
+        memcpy(anv_vector_AddressAt(p_vec, prev), anv_vector_AddressAt(p_vec, next), p_vec->element_size);
     }
 
     p_vec->length--;
@@ -350,11 +355,17 @@ FORCE_INLINE void* AnvVector_Remove(AnvVector* p_vec, Size pos) {
  * Use this when you don't care about order being preserved or
  * if you can later sort array.
  * Data at insert position will be destroyed if possible.
+ *
+ * Insert will always create a copy of provided data for itself.
+ * This ensures that anv_vector will never free or misuse given pointer.
+ * This also allows user to have it's own copy of data, by either
+ * creating it on stack and passing pointer or just a heap allocated data.
+ *
  * @param p_vec
  * @param p_data Data to be inserted.
  * @param pos Insert position.
  * */
-FORCE_INLINE void AnvVector_InsertFast(AnvVector* p_vec, void* p_data, Size pos) {
+FORCE_INLINE void anv_vector_insert_fast(AnvVector* p_vec, void* p_data, Size pos) {
     RETURN_IF_FAIL(p_vec, ERR_INVALID_ARGUMENTS);
 
     // resize array if insert position is more than capacity
@@ -366,7 +377,7 @@ FORCE_INLINE void AnvVector_InsertFast(AnvVector* p_vec, void* p_data, Size pos)
         }
 
         // reallocate if we need to
-        void* p_temp = realloc(p_vec->p_data, new_capacity * AnvVector_ElementSize(p_vec));
+        void* p_temp = realloc(p_vec->p_data, new_capacity * anv_vector_ElementSize(p_vec));
         RETURN_IF_FAIL(p_temp, ERR_OUT_OF_MEMORY);
         p_vec->p_data = p_temp;
         p_vec->capacity = new_capacity;
@@ -376,7 +387,7 @@ FORCE_INLINE void AnvVector_InsertFast(AnvVector* p_vec, void* p_data, Size pos)
     // resize array if insert position is in between but array is at capacity
     if(p_vec->length >= p_vec->capacity) {
         Size new_size = p_vec->capacity * (p_vec->resize_factor + 1);
-        void* p_temp = realloc(p_vec->p_data, new_size * AnvVector_ElementSize(p_vec));
+        void* p_temp = realloc(p_vec->p_data, new_size * anv_vector_ElementSize(p_vec));
         RETURN_IF_FAIL(p_temp, ERR_OUT_OF_MEMORY);
         p_vec->p_data = p_temp;
         p_vec->capacity = new_size;
@@ -385,23 +396,23 @@ FORCE_INLINE void AnvVector_InsertFast(AnvVector* p_vec, void* p_data, Size pos)
     // NOTE: No shift operation required here!
 
     if(pos < p_vec->length) {
-        memcpy(AnvVector_AddressAt(p_vec, p_vec->length), AnvVector_AddressAt(p_vec, pos), p_vec->element_size);
+        memcpy(anv_vector_AddressAt(p_vec, p_vec->length), anv_vector_AddressAt(p_vec, pos), p_vec->element_size);
     }
 
     Uint64 value = (Uint64)p_data;
-    switch(AnvVector_ElementSize(p_vec)) {
-    case 8 : AnvVector_At(p_vec, Uint64, pos) = (Uint64)value; break;
-    case 4 : AnvVector_At(p_vec, Uint32, pos) = (Uint32)value; break;
-    case 2 : AnvVector_At(p_vec, Uint16, pos) = (Uint16)value; break;
-    case 1 : AnvVector_At(p_vec, Uint8, pos) = (Uint8)value; break;
+    switch(anv_vector_ElementSize(p_vec)) {
+    case 8 : anv_vector_at(p_vec, Uint64, pos) = (Uint64)value; break;
+    case 4 : anv_vector_at(p_vec, Uint32, pos) = (Uint32)value; break;
+    case 2 : anv_vector_at(p_vec, Uint16, pos) = (Uint16)value; break;
+    case 1 : anv_vector_at(p_vec, Uint8, pos) = (Uint8)value; break;
     default :
-        void* p_elem = AnvVector_AddressAt(p_vec, pos);
+        void* p_elem = anv_vector_AddressAt(p_vec, pos);
         if(p_vec->pfn_create_copy) {
             if(p_data) p_vec->pfn_create_copy(p_elem, p_data);
             else memset(p_elem, 0, p_vec->element_size);
         } else {
-            if(p_data) memcpy(p_elem, p_data, AnvVector_ElementSize(p_vec));
-            else memset(p_elem, 0, AnvVector_ElementSize(p_vec));
+            if(p_data) memcpy(p_elem, p_data, anv_vector_ElementSize(p_vec));
+            else memset(p_elem, 0, anv_vector_ElementSize(p_vec));
         }
     }
 
@@ -414,15 +425,15 @@ FORCE_INLINE void AnvVector_InsertFast(AnvVector* p_vec, void* p_data, Size pos)
  * @param p_vec
  * @param pos Position of element where delete will happen
  * */
-FORCE_INLINE void AnvVector_DeleteFast(AnvVector* p_vec, Size pos) {
+FORCE_INLINE void anv_vector_delete_fast(AnvVector* p_vec, Size pos) {
     RETURN_IF_FAIL(p_vec && (pos < p_vec->length), ERR_INVALID_ARGUMENTS);
     RETURN_IF_FAIL(p_vec->length, ERR_CONTAINER_UNDERFLOW);
     if(pos != p_vec->length - 1) {
-        AnvVector_Move(p_vec, pos, p_vec->length - 1);
+        anv_vector_move(p_vec, pos, p_vec->length - 1);
     } else {
         if(p_vec->pfn_destroy_copy) {
-            p_vec->pfn_destroy_copy(AnvVector_AddressAt(p_vec, pos));
-        } else memset(AnvVector_AddressAt(p_vec, pos), 0, p_vec->element_size);
+            p_vec->pfn_destroy_copy(anv_vector_AddressAt(p_vec, pos));
+        } else memset(anv_vector_AddressAt(p_vec, pos), 0, p_vec->element_size);
     }
 
     p_vec->length--;
@@ -433,24 +444,24 @@ FORCE_INLINE void AnvVector_DeleteFast(AnvVector* p_vec, Size pos) {
  * @param p_vec
  * @param pos Position of element to be removed
  * */
-FORCE_INLINE void* AnvVector_RemoveFast(AnvVector* p_vec, Size pos) {
+FORCE_INLINE void* anv_vector_remove_fast(AnvVector* p_vec, Size pos) {
     RETURN_VALUE_IF_FAIL(p_vec && (pos < p_vec->length), NULL, ERR_INVALID_ARGUMENTS);
     RETURN_VALUE_IF_FAIL(p_vec->length, NULL, ERR_CONTAINER_UNDERFLOW);
 
     // create element copy without copy constructor
     void* p_elem = NULL;
-    switch(AnvVector_ElementSize(p_vec)) {
-    case 8 : p_elem = (void*)(Uint64) AnvVector_At(p_vec, Uint64, pos); break;
-    case 4 : p_elem = (void*)(Uint64) AnvVector_At(p_vec, Uint32, pos); break;
-    case 2 : p_elem = (void*)(Uint64) AnvVector_At(p_vec, Uint16, pos); break;
-    case 1 : p_elem = (void*)(Uint64) AnvVector_At(p_vec, Uint8, pos); break;
+    switch(anv_vector_ElementSize(p_vec)) {
+    case 8 : p_elem = (void*)(Uint64) anv_vector_at(p_vec, Uint64, pos); break;
+    case 4 : p_elem = (void*)(Uint64) anv_vector_at(p_vec, Uint32, pos); break;
+    case 2 : p_elem = (void*)(Uint64) anv_vector_at(p_vec, Uint16, pos); break;
+    case 1 : p_elem = (void*)(Uint64) anv_vector_at(p_vec, Uint8, pos); break;
     default :
         p_elem = ALLOCATE(Uint8, p_vec->element_size);
         RETURN_VALUE_IF_FAIL(p_elem, NULL, ERR_OUT_OF_MEMORY);
-        memcpy(p_elem, AnvVector_AddressAt(p_vec, pos), p_vec->element_size);
+        memcpy(p_elem, anv_vector_AddressAt(p_vec, pos), p_vec->element_size);
     }
 
-    memcpy(AnvVector_AddressAt(p_vec, pos), AnvVector_AddressAt(p_vec, --p_vec->length), p_vec->element_size);
+    memcpy(anv_vector_AddressAt(p_vec, pos), anv_vector_AddressAt(p_vec, --p_vec->length), p_vec->element_size);
 
     return p_elem;
 }
@@ -460,9 +471,9 @@ FORCE_INLINE void* AnvVector_RemoveFast(AnvVector* p_vec, Size pos) {
  * @param p_vec
  * @param p_data
  * */
-void AnvVector_PushFront(AnvVector* p_vec, void* p_data) {
+void anv_vector_push_front(AnvVector* p_vec, void* p_data) {
     RETURN_IF_FAIL(p_vec, ERR_INVALID_ARGUMENTS);
-    AnvVector_Insert(p_vec, p_data, 0);
+    anv_vector_insert(p_vec, p_data, 0);
 }
 
 /**
@@ -472,9 +483,9 @@ void AnvVector_PushFront(AnvVector* p_vec, void* p_data) {
  * @param p_vec
  * @return Removed element.
  * */
-void* AnvVector_PopFront(AnvVector* p_vec) {
+void* anv_vector_pop_front(AnvVector* p_vec) {
     RETURN_VALUE_IF_FAIL(p_vec && p_vec->length, NULL, ERR_INVALID_ARGUMENTS);
-    return AnvVector_Remove(p_vec, 0);
+    return anv_vector_remove(p_vec, 0);
 }
 
 /**
@@ -482,9 +493,9 @@ void* AnvVector_PopFront(AnvVector* p_vec) {
  * @param p_vec
  * @param p_data
  * */
-void AnvVector_PushFrontFast(AnvVector* p_vec, void* p_data) {
+void anv_vector_push_front_fast(AnvVector* p_vec, void* p_data) {
     RETURN_IF_FAIL(p_vec, ERR_INVALID_ARGUMENTS);
-    AnvVector_Insert(p_vec, p_data, 0);
+    anv_vector_insert(p_vec, p_data, 0);
 }
 
 /**
@@ -494,9 +505,9 @@ void AnvVector_PushFrontFast(AnvVector* p_vec, void* p_data) {
  * @param p_vec
  * @return Removed element.
  * */
-void* AnvVector_PopFrontFast(AnvVector* p_vec) {
+void* anv_vector_pop_front_fast(AnvVector* p_vec) {
     RETURN_VALUE_IF_FAIL(p_vec, NULL, ERR_INVALID_ARGUMENTS);
-    return AnvVector_Remove(p_vec, 0);
+    return anv_vector_remove(p_vec, 0);
 }
 
 /**
@@ -505,9 +516,9 @@ void* AnvVector_PopFrontFast(AnvVector* p_vec) {
  * @param p_vec
  * @param p_data
  * */
-void AnvVector_PushBack(AnvVector* p_vec, void* p_data) {
+void anv_vector_push_back(AnvVector* p_vec, void* p_data) {
     RETURN_IF_FAIL(p_vec, ERR_INVALID_ARGUMENTS);
-    AnvVector_InsertFast(p_vec, p_data, p_vec->length);
+    anv_vector_insert_fast(p_vec, p_data, p_vec->length);
 }
 
 /**
@@ -516,9 +527,9 @@ void AnvVector_PushBack(AnvVector* p_vec, void* p_data) {
  * @param p_vec
  * @return Removed element.
  * */
-FORCE_INLINE void* AnvVector_PopBack(AnvVector* p_vec) {
+FORCE_INLINE void* anv_vector_pop_back(AnvVector* p_vec) {
     RETURN_VALUE_IF_FAIL(p_vec && p_vec->length, NULL, ERR_INVALID_ARGUMENTS);
-    return AnvVector_RemoveFast(p_vec, p_vec->length - 1);
+    return anv_vector_remove_fast(p_vec, p_vec->length - 1);
 }
 
 /**
@@ -528,14 +539,14 @@ FORCE_INLINE void* AnvVector_PopBack(AnvVector* p_vec) {
  * @param pos
  * @return Mutable reference to element at given position.
  * */
-FORCE_INLINE void* AnvVector_Peek(AnvVector* p_vec, Size pos) {
+FORCE_INLINE void* anv_vector_peek(AnvVector* p_vec, Size pos) {
     RETURN_VALUE_IF_FAIL(p_vec, NULL, ERR_INVALID_ARGUMENTS);
     switch(p_vec->element_size) {
-        case 8: return (void*)AnvVector_At(p_vec, Uint64, pos); break;
-        case 4: return (void*)(Uint64)AnvVector_At(p_vec, Uint32, pos); break;
-        case 2: return (void*)(Uint64)AnvVector_At(p_vec, Uint16, pos); break;
-        case 1: return (void*)(Uint64)AnvVector_At(p_vec, Uint8, pos); break;
-        default: return AnvVector_AddressAt(p_vec, pos);
+        case 8: return (void*)anv_vector_at(p_vec, Uint64, pos); break;
+        case 4: return (void*)(Uint64)anv_vector_at(p_vec, Uint32, pos); break;
+        case 2: return (void*)(Uint64)anv_vector_at(p_vec, Uint16, pos); break;
+        case 1: return (void*)(Uint64)anv_vector_at(p_vec, Uint8, pos); break;
+        default: return anv_vector_AddressAt(p_vec, pos);
     }
 }
 
@@ -544,9 +555,9 @@ FORCE_INLINE void* AnvVector_Peek(AnvVector* p_vec, Size pos) {
  * @param p_vec
  * @return Reference of element at front
  * */
-void* AnvVector_Front(AnvVector* p_vec) {
+void* anv_vector_front(AnvVector* p_vec) {
     RETURN_VALUE_IF_FAIL(p_vec, NULL, ERR_INVALID_ARGUMENTS);
-    return AnvVector_Peek(p_vec, 0);
+    return anv_vector_peek(p_vec, 0);
 }
 
 /**
@@ -554,25 +565,25 @@ void* AnvVector_Front(AnvVector* p_vec) {
  * @param p_vec
  * @return Reference to element at back
  * */
-FORCE_INLINE void* AnvVector_Back(AnvVector* p_vec) {
+FORCE_INLINE void* anv_vector_back(AnvVector* p_vec) {
     RETURN_VALUE_IF_FAIL(p_vec, NULL, ERR_INVALID_ARGUMENTS);
-    return AnvVector_Peek(p_vec, p_vec->length-1);
+    return anv_vector_peek(p_vec, p_vec->length-1);
 }
 
 /**
- * Print all elements of this @c AnvVector using given printer.
+ * Print all elements of this @c anv_vector using given printer.
  * @param p_vec
  * @param pfn_printer Function to print each element.
  * */
-void AnvVector_Print(AnvVector* p_vec, AnvPrintElementCallback pfn_printer) {
+void anv_vector_print(AnvVector* p_vec, AnvPrintElementCallback pfn_printer) {
     RETURN_IF_FAIL(p_vec && pfn_printer, ERR_INVALID_ARGUMENTS);
     for(Size iter = 0; iter < p_vec->length; iter++) {
         switch(p_vec->element_size) {
-            case 8 : pfn_printer((void*)AnvVector_At(p_vec, Uint64, iter), iter); break;
-            case 4 : pfn_printer((void*)(Uint64)AnvVector_At(p_vec, Uint32, iter), iter); break;
-            case 2 : pfn_printer((void*)(Uint64)AnvVector_At(p_vec, Uint16, iter), iter); break;
-            case 1 : pfn_printer((void*)(Uint64)AnvVector_At(p_vec, Uint8, iter), iter); break;
-            default: pfn_printer(AnvVector_AddressAt(p_vec, iter), iter);
+            case 8 : pfn_printer((void*)anv_vector_at(p_vec, Uint64, iter), iter); break;
+            case 4 : pfn_printer((void*)(Uint64)anv_vector_at(p_vec, Uint32, iter), iter); break;
+            case 2 : pfn_printer((void*)(Uint64)anv_vector_at(p_vec, Uint16, iter), iter); break;
+            case 1 : pfn_printer((void*)(Uint64)anv_vector_at(p_vec, Uint8, iter), iter); break;
+            default: pfn_printer(anv_vector_AddressAt(p_vec, iter), iter);
         }
     }
 }

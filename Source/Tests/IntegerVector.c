@@ -4,7 +4,7 @@
  * @author Siddharth Mishra (admin@brightprogrammer.in)
  * @copyright Copyright (c) 2023 Anvie Labs
  *
- * Anvie Integer Vector Container Tests
+ * AnvVector Container Tests
  * */
 
 #include <Anvie/Containers/Vector.h>
@@ -28,9 +28,9 @@ void PrintU64(void* value, Size pos) {
  * and destory_copy() are not null or nonnull at the same time.
  * */
 TEST_FN Bool Create1() {
-    AnvVector* vec = AnvVector_Create(sizeof(Uint8), NULL, NULL);
-    RETURN_VALUE_IF_FAIL(vec, False, "FAILED TO CREATE AnvVector\n");
-    AnvVector_Destroy(vec);
+    AnvVector* vec = anv_vector_create(sizeof(Uint8), NULL, NULL);
+    RETURN_VALUE_IF_FAIL(vec, False, "FAILED TO CREATE anv_vector\n");
+    anv_vector_destroy(vec);
     return True;
 }
 
@@ -40,9 +40,9 @@ TEST_FN Bool Create1() {
  * and destory_copy() are not null or nonnull at the same time.
  * */
 TEST_FN Bool Create2() {
-    AnvVector* vec = AnvVector_Create(sizeof(Uint16), (AnvCreateElementCopyCallback)1, (AnvDestroyElementCopyCallback)1);
-    RETURN_VALUE_IF_FAIL(vec, False, "FAILED TO CREATE AnvVector\n");
-    AnvVector_Destroy(vec);
+    AnvVector* vec = anv_vector_create(sizeof(Uint16), (AnvCreateElementCopyCallback)1, (AnvDestroyElementCopyCallback)1);
+    RETURN_VALUE_IF_FAIL(vec, False, "FAILED TO CREATE anv_vector\n");
+    anv_vector_destroy(vec);
     return True;
 }
 
@@ -52,9 +52,9 @@ TEST_FN Bool Create2() {
  * and destory_copy() are not null or nonnull at the same time.
  * */
 TEST_FN Bool Create3() {
-    AnvVector* vec = AnvVector_Create(sizeof(Uint32), NULL, (AnvDestroyElementCopyCallback)1);
-    RETURN_VALUE_IF_FAIL(!vec, False, "AnvVector CREATION SHOULD HAVE FAILED\n");
-    if(vec) AnvVector_Destroy(vec);
+    AnvVector* vec = anv_vector_create(sizeof(Uint32), NULL, (AnvDestroyElementCopyCallback)1);
+    RETURN_VALUE_IF_FAIL(!vec, False, "anv_vector CREATION SHOULD HAVE FAILED\n");
+    if(vec) anv_vector_destroy(vec);
     return True;
 }
 
@@ -64,9 +64,9 @@ TEST_FN Bool Create3() {
  * and destory_copy() are not null or nonnull at the same time.
  * */
 TEST_FN Bool Create4() {
-    AnvVector* vec = AnvVector_Create(sizeof(Uint64), (AnvCreateElementCopyCallback)1, NULL);
-    RETURN_VALUE_IF_FAIL(!vec, False, "AnvVector CREATION SHOULD HAVE FAILED\n");
-    if(vec) AnvVector_Destroy(vec);
+    AnvVector* vec = anv_vector_create(sizeof(Uint64), (AnvCreateElementCopyCallback)1, NULL);
+    RETURN_VALUE_IF_FAIL(!vec, False, "anv_vector CREATION SHOULD HAVE FAILED\n");
+    if(vec) anv_vector_destroy(vec);
     return True;
 }
 
@@ -76,9 +76,9 @@ TEST_FN Bool Create4() {
  * */
 TEST_FN Bool Insert() {
     Bool res = True;
-    AnvU64Vector* vec = AnvU64Vector_Create();
+    AnvVector* vec = anv_u64_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        AnvU32Vector_Insert(vec, iter, iter);
+        anv_u32_vector_insert(vec, iter, iter);
 
         if(vec->length != iter + 1) {
             DBG(__FUNCTION__, "VECTOR LENGTH MISMATCH\n");
@@ -95,14 +95,14 @@ TEST_FN Bool Insert() {
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        if(AnvU64Vector_Peek(vec, iter) != iter) {
+        if(anv_u64_vector_peek(vec, iter) != iter) {
             DBG(__FUNCTION__, "VECTOR INSERTED ELEMENTS MISMATCH AT ENTRY INDEX \"%zu\"\n", iter);
             res = False; goto Exit;
         }
     }
 
 Exit:
-    AnvU64Vector_Destroy(vec);
+    anv_u64_vector_destroy(vec);
     return res;
 }
 
@@ -114,14 +114,14 @@ TEST_FN Bool Delete() {
     Bool res = True;
 
     // first create vector with some valid data
-    AnvU16Vector* vec = AnvU16Vector_Create();
+    AnvVector* vec = anv_u32_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        AnvU16Vector_Insert(vec, iter, iter);
+        anv_u32_vector_insert(vec, iter, iter);
     }
 
     // delete all elements and check size
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        AnvU16Vector_Delete(vec, rand() % vec->length);
+        anv_u32_vector_delete(vec, rand() % vec->length);
 
         if(vec->length != (TEST_DATA_SIZE - iter - 1)) {
             DBG(__FUNCTION__, "VECTOR LENGTH AFTER DELETING EXPECTED TO BE \"%zu\", FOUND \"%zu\"\n", TEST_DATA_SIZE - iter - 1, vec->length);
@@ -135,7 +135,7 @@ TEST_FN Bool Delete() {
         res = False;
     }
 
-    AnvU16Vector_Destroy(vec);
+    anv_u32_vector_destroy(vec);
     return res;
 }
 
@@ -145,20 +145,20 @@ TEST_FN Bool Delete() {
  * */
 TEST_FN Bool Remove() {
     Bool res = True;
-    AnvU32Vector* vec = AnvU32Vector_Create();
+    AnvVector* vec = anv_u32_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        AnvU32Vector_Insert(vec, iter, iter);
+        anv_u32_vector_insert(vec, iter, iter);
     }
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        if(AnvU32Vector_Remove(vec, 0) != iter) {
+        if(anv_u32_vector_remove(vec, 0) != iter) {
             DBG(__FUNCTION__, "VECTOR INSERTED ELEMENTS MISMATCH AT ENTRY INDEX \"%zu\"\n", iter);
             res = False; break;
         }
     }
 
-    AnvU32Vector_Destroy(vec);
+    anv_u32_vector_destroy(vec);
     return res;
 }
 
@@ -168,9 +168,9 @@ TEST_FN Bool Remove() {
  * */
 TEST_FN Bool InsertFast() {
     Bool res = True;
-    AnvU32Vector* vec = AnvU32Vector_Create();
+    AnvVector* vec = anv_u32_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        AnvU32Vector_InsertFast(vec, iter, iter);
+        anv_u32_vector_insert_fast(vec, iter, iter);
     }
 
     if(vec->length != TEST_DATA_SIZE) {
@@ -188,7 +188,7 @@ TEST_FN Bool InsertFast() {
         // since order is not maintained, we just need to check for presence of each element
         Bool b_found = False;
         for(Size k = 0; k < TEST_DATA_SIZE; k++) {
-            if(AnvU32Vector_Peek(vec, k) == iter) {
+            if(anv_u32_vector_peek(vec, k) == iter) {
                 b_found = True;
             }
         }
@@ -201,7 +201,7 @@ TEST_FN Bool InsertFast() {
     }
 
 Exit:
-    AnvU32Vector_Destroy(vec);
+    anv_u32_vector_destroy(vec);
     return res;
 }
 
@@ -213,14 +213,14 @@ TEST_FN Bool DeleteFast() {
     Bool res = True;
 
     // first create vector with some valid data
-    AnvU64Vector* vec = AnvU64Vector_Create();
+    AnvVector* vec = anv_u64_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        AnvU64Vector_InsertFast(vec, iter, iter);
+        anv_u64_vector_insert_fast(vec, iter, iter);
     }
 
     // delete all elements and check size
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        AnvU64Vector_DeleteFast(vec, rand() % vec->length);
+        anv_u64_vector_delete_fast(vec, rand() % vec->length);
 
         if(vec->length != (TEST_DATA_SIZE - iter - 1)) {
             DBG(__FUNCTION__, "VECTOR LENGTH AFTER DELETING EXPECTED TO BE \"%zu\", FOUND \"%zu\"\n", TEST_DATA_SIZE - iter - 1, vec->length);
@@ -234,7 +234,7 @@ TEST_FN Bool DeleteFast() {
         res = False;
     }
 
-    AnvU64Vector_Destroy(vec);
+    anv_u64_vector_destroy(vec);
     return res;
 }
 
@@ -244,16 +244,16 @@ TEST_FN Bool DeleteFast() {
  * */
 TEST_FN Bool RemoveFast() {
     Bool res = True;
-    AnvU32Vector* vec = AnvU32Vector_Create();
+    AnvVector* vec = anv_u32_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        AnvU32Vector_InsertFast(vec, iter, iter);
+        anv_u32_vector_insert_fast(vec, iter, iter);
     }
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
         // since order is not maintained, we just need to check for presence of each element
         Bool b_found = False;
-        Uint32 val = AnvU32Vector_RemoveFast(vec, 0); // always remove from first position
+        Uint32 val = anv_u32_vector_remove_fast(vec, 0); // always remove from first position
         for(Size k = 0; k < TEST_DATA_SIZE; k++) {
             if(val == k) {
                 b_found = True;
@@ -267,7 +267,7 @@ TEST_FN Bool RemoveFast() {
         }
     }
 
-    AnvU32Vector_Destroy(vec);
+    anv_u32_vector_destroy(vec);
     return res;
 }
 
@@ -278,9 +278,9 @@ TEST_FN Bool RemoveFast() {
  * */
 TEST_FN Bool PushBack() {
     Bool res = True;
-    AnvU32Vector* vec = AnvU32Vector_Create();
+    AnvVector* vec = anv_u32_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        AnvU32Vector_PushBack(vec, iter);
+        anv_u32_vector_push_back(vec, iter);
     }
 
     if(vec->length != TEST_DATA_SIZE) {
@@ -295,14 +295,14 @@ TEST_FN Bool PushBack() {
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        if(AnvU32Vector_Peek(vec, iter) != iter) {
+        if(anv_u32_vector_peek(vec, iter) != iter) {
             DBG(__FUNCTION__, "VECTOR INSERTED ELEMENTS MISMATCH AT ENTRY INDEX \"%zu\"\n", iter);
             res = False; goto Exit;
         }
     }
 
 Exit:
-    AnvU32Vector_Destroy(vec);
+    anv_u32_vector_destroy(vec);
     return res;
 }
 
@@ -313,14 +313,14 @@ Exit:
 TEST_FN Bool PopBack() {
     Bool res = True;
     // first create vector with some valid data
-    AnvU32Vector* vec = AnvU32Vector_Create();
+    AnvVector* vec = anv_u32_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        AnvU64Vector_PushBack(vec, iter);
+        anv_u64_vector_push_back(vec, iter);
     }
 
     // delete all elements and check size
     for(Size iter = TEST_DATA_SIZE; iter; iter--) {
-        if(AnvU32Vector_PopBack(vec) != iter-1) {
+        if(anv_u32_vector_pop_back(vec) != iter-1) {
             DBG(__FUNCTION__, "PUSHED DATA MISMATCH AT ENTRY INDEX \"%zu\"\n", iter-1);
             res = False; break;
         }
@@ -331,7 +331,7 @@ TEST_FN Bool PopBack() {
         res = False;
     }
 
-    AnvU32Vector_Destroy(vec);
+    anv_u32_vector_destroy(vec);
     return res;
 }
 
@@ -342,10 +342,10 @@ TEST_FN Bool PopBack() {
  * */
 TEST_FN Bool PushFront() {
     Bool res = True;
-    AnvU32Vector* vec = AnvU32Vector_Create();
+    AnvVector* vec = anv_u32_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
         // insert array backwards
-        AnvU32Vector_PushFront(vec, iter);
+        anv_u32_vector_push_front(vec, iter);
     }
 
     if(vec->length != TEST_DATA_SIZE) {
@@ -360,14 +360,14 @@ TEST_FN Bool PushFront() {
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        if(AnvU32Vector_Peek(vec, iter) != TEST_DATA_SIZE - 1 - iter) {
+        if(anv_u32_vector_peek(vec, iter) != TEST_DATA_SIZE - 1 - iter) {
             DBG(__FUNCTION__, "VECTOR INSERTED ELEMENTS MISMATCH AT ENTRY INDEX \"%zu\"\n", iter);
             res = False; goto Exit;
         }
     }
 
 Exit:
-    AnvU32Vector_Destroy(vec);
+    anv_u32_vector_destroy(vec);
     return res;
 }
 
@@ -378,14 +378,14 @@ Exit:
 TEST_FN Bool PopFront() {
     Bool res = True;
     // first create vector with some valid data
-    AnvU32Vector* vec = AnvU32Vector_Create();
+    AnvVector* vec = anv_u32_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        AnvU64Vector_PushFront(vec, TEST_DATA_SIZE - 1 - iter);
+        anv_u32_vector_push_front(vec, TEST_DATA_SIZE - 1 - iter);
     }
 
     // delete all elements and check size
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        if(AnvU32Vector_PopFront(vec) != iter) {
+        if(anv_u32_vector_pop_front(vec) != iter) {
             DBG(__FUNCTION__, "PUSHED DATA MISMATCH AT ENTRY INDEX \"%zu\"\n", iter);
             res = False; break;
         }
@@ -396,7 +396,7 @@ TEST_FN Bool PopFront() {
         res = False;
     }
 
-    AnvU32Vector_Destroy(vec);
+    anv_u32_vector_destroy(vec);
     return res;
 }
 
