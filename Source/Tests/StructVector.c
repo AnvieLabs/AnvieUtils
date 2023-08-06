@@ -64,7 +64,7 @@ Bool CompareString(StringEntry* s1, StringEntry* s2) {
     return (s1->len == s2->len) && (strcmp(s1->s_name, s1->s_name) == 0);
 }
 
-DEF_ANV_STRUCT_VECTOR_INTERFACE(string, StringEntry, CreateCopy, DestroyCopy);
+DEF_ANV_STRUCT_VECTOR_INTERFACE(string_entry, StringEntry, CreateCopy, DestroyCopy);
 
 /**
  * @TEST
@@ -127,9 +127,9 @@ TEST_FN Bool Insert() {
     };
 
     Bool res = True;
-    AnvVector* vec = anv_string_vector_create();
+    AnvVector* vec = anv_string_entry_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        anv_string_vector_insert(vec, &entry, iter);
+        anv_string_entry_vector_insert(vec, &entry, iter);
     }
 
     if(vec->length != TEST_DATA_SIZE) {
@@ -144,7 +144,7 @@ TEST_FN Bool Insert() {
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        StringEntry* ref = anv_string_vector_peek(vec, iter);
+        StringEntry* ref = anv_string_entry_vector_peek(vec, iter);
 
         if(ref->s_name == entry.s_name) {
             DBG(__FUNCTION__, "BOTH STRINGS MUST NOT POINT TO SAME ADDRESS\n");
@@ -159,7 +159,7 @@ TEST_FN Bool Insert() {
         if(!res) break;
     }
 
-    anv_string_vector_destroy(vec);
+    anv_string_entry_vector_destroy(vec);
     return res;
 }
 
@@ -177,14 +177,14 @@ TEST_FN Bool Delete() {
 
     Bool res = True;
     // first create vector with some valid data
-    AnvVector* vec = anv_string_vector_create();
+    AnvVector* vec = anv_string_entry_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        anv_string_vector_insert(vec, &entry, iter);
+        anv_string_entry_vector_insert(vec, &entry, iter);
     }
 
     // delete all elements and check size
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        anv_string_vector_delete(vec, rand() % vec->length);
+        anv_string_entry_vector_delete(vec, rand() % vec->length);
 
         if(vec->length != (TEST_DATA_SIZE - iter - 1)) {
             DBG(__FUNCTION__, "VECTOR LENGTH AFTER DELETING EXPECTED TO BE \"%zu\", FOUND \"%zu\"\n", TEST_DATA_SIZE - iter - 1, vec->length);
@@ -198,7 +198,7 @@ TEST_FN Bool Delete() {
         res = False;
     }
 
-    anv_string_vector_destroy(vec);
+    anv_string_entry_vector_destroy(vec);
     return res;
 }
 
@@ -215,14 +215,14 @@ TEST_FN Bool Remove() {
     };
 
     Bool res = True;
-    AnvVector* vec = anv_string_vector_create();
+    AnvVector* vec = anv_string_entry_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        anv_string_vector_insert(vec, &entry, iter);
+        anv_string_entry_vector_insert(vec, &entry, iter);
     }
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        StringEntry* ref = anv_string_vector_remove(vec, 0);
+        StringEntry* ref = anv_string_entry_vector_remove(vec, 0);
 
         if(!CompareString(ref, &entry)) {
             DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
@@ -241,7 +241,7 @@ TEST_FN Bool Remove() {
         if(!res) break;
     }
 
-    anv_string_vector_destroy(vec);
+    anv_string_entry_vector_destroy(vec);
     return res;
 }
 
@@ -258,9 +258,9 @@ TEST_FN Bool InsertFast() {
     };
 
     Bool res = True;
-    AnvVector* vec = anv_string_vector_create();
+    AnvVector* vec = anv_string_entry_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        anv_string_vector_insert_fast(vec, &entry, iter);
+        anv_string_entry_vector_insert_fast(vec, &entry, iter);
     }
 
     if(vec->length != TEST_DATA_SIZE) {
@@ -275,7 +275,7 @@ TEST_FN Bool InsertFast() {
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        StringEntry* ref = anv_string_vector_peek(vec, iter);
+        StringEntry* ref = anv_string_entry_vector_peek(vec, iter);
 
         if(!CompareString(ref, &entry)) {
             DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
@@ -290,7 +290,7 @@ TEST_FN Bool InsertFast() {
         if(!res) break;
     }
 
-    anv_string_vector_destroy(vec);
+    anv_string_entry_vector_destroy(vec);
     return res;
 }
 
@@ -308,14 +308,14 @@ TEST_FN Bool DeleteFast() {
 
     Bool res = True;
     // first create vector with some valid data
-    AnvVector* vec = anv_string_vector_create();
+    AnvVector* vec = anv_string_entry_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        anv_string_vector_insert_fast(vec, &entry, iter);
+        anv_string_entry_vector_insert_fast(vec, &entry, iter);
     }
 
     // delete all elements and check size
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        anv_string_vector_delete_fast(vec, rand() % vec->length);
+        anv_string_entry_vector_delete_fast(vec, rand() % vec->length);
 
         if(vec->length != (TEST_DATA_SIZE - iter - 1)) {
             DBG(__FUNCTION__, "VECTOR LENGTH AFTER DELETING EXPECTED TO BE \"%zu\", FOUND \"%zu\"\n", TEST_DATA_SIZE - iter - 1, vec->length);
@@ -330,7 +330,7 @@ TEST_FN Bool DeleteFast() {
 
     }
 
-    anv_string_vector_destroy(vec);
+    anv_string_entry_vector_destroy(vec);
     return res;
 }
 
@@ -347,14 +347,14 @@ TEST_FN Bool RemoveFast() {
     };
 
     Bool res = True;
-    AnvVector* vec = anv_string_vector_create();
+    AnvVector* vec = anv_string_entry_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        anv_string_vector_insert_fast(vec, &entry, iter);
+        anv_string_entry_vector_insert_fast(vec, &entry, iter);
     }
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        StringEntry* ref = anv_string_vector_remove_fast(vec, 0);
+        StringEntry* ref = anv_string_entry_vector_remove_fast(vec, 0);
         if(!CompareString(ref, &entry)) {
 
             DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
@@ -373,7 +373,7 @@ TEST_FN Bool RemoveFast() {
         if(!res) break;
     }
 
-    anv_string_vector_destroy(vec);
+    anv_string_entry_vector_destroy(vec);
     return res;
 }
 
@@ -391,9 +391,9 @@ TEST_FN Bool PushBack() {
     };
 
     Bool res = True;
-    AnvVector* vec = anv_string_vector_create();
+    AnvVector* vec = anv_string_entry_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        anv_string_vector_push_back(vec, &entry);
+        anv_string_entry_vector_push_back(vec, &entry);
     }
 
     if(vec->length != TEST_DATA_SIZE) {
@@ -408,7 +408,7 @@ TEST_FN Bool PushBack() {
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        StringEntry* ref = anv_string_vector_peek(vec, iter);
+        StringEntry* ref = anv_string_entry_vector_peek(vec, iter);
 
         if(!CompareString(ref, &entry)) {
             DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
@@ -423,7 +423,7 @@ TEST_FN Bool PushBack() {
         if(!res) break;
     }
 
-    anv_string_vector_destroy(vec);
+    anv_string_entry_vector_destroy(vec);
     return res;
 }
 
@@ -441,14 +441,14 @@ TEST_FN Bool PopBack() {
 
     Bool res = True;
     // first create vector with some valid data
-    AnvVector* vec = anv_string_vector_create();
+    AnvVector* vec = anv_string_entry_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        anv_string_vector_push_back(vec, &entry);
+        anv_string_entry_vector_push_back(vec, &entry);
     }
 
     // delete all elements and check size
     for(Size iter = TEST_DATA_SIZE; iter; iter--) {
-        StringEntry* ref = anv_string_vector_pop_back(vec);
+        StringEntry* ref = anv_string_entry_vector_pop_back(vec);
 
         if(!CompareString(ref, &entry)) {
             DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
@@ -472,7 +472,7 @@ TEST_FN Bool PopBack() {
         res = False;
     }
 
-    anv_string_vector_destroy(vec);
+    anv_string_entry_vector_destroy(vec);
     return res;
 }
 
@@ -490,10 +490,10 @@ TEST_FN Bool PushFront() {
     };
 
     Bool res = True;
-    AnvVector* vec = anv_string_vector_create();
+    AnvVector* vec = anv_string_entry_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
         // insert array backwards
-        anv_string_vector_push_front(vec, &entry);
+        anv_string_entry_vector_push_front(vec, &entry);
     }
 
     if(vec->length != TEST_DATA_SIZE) {
@@ -508,7 +508,7 @@ TEST_FN Bool PushFront() {
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        StringEntry* ref = anv_string_vector_peek(vec, iter);
+        StringEntry* ref = anv_string_entry_vector_peek(vec, iter);
 
         if(!CompareString(ref, &entry)) {
             DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
@@ -524,7 +524,7 @@ TEST_FN Bool PushFront() {
         if(!res) break;
     }
 
-    anv_string_vector_destroy(vec);
+    anv_string_entry_vector_destroy(vec);
     return res;
 }
 
@@ -542,14 +542,14 @@ TEST_FN Bool PopFront() {
 
     Bool res = True;
     // first create vector with some valid data
-    AnvVector* vec = anv_string_vector_create();
+    AnvVector* vec = anv_string_entry_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        anv_string_vector_push_back(vec, &entry);
+        anv_string_entry_vector_push_back(vec, &entry);
     }
 
     // delete all elements and check size
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        StringEntry* ref = anv_string_vector_pop_front(vec);
+        StringEntry* ref = anv_string_entry_vector_pop_front(vec);
 
         if(!CompareString(ref, &entry)) {
             DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
@@ -573,7 +573,7 @@ TEST_FN Bool PopFront() {
         res = False;
     }
 
-    anv_string_vector_destroy(vec);
+    anv_string_entry_vector_destroy(vec);
     return res;
 }
 
