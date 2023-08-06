@@ -50,20 +50,20 @@ typedef struct anvie_dynamic_array_t {
 } AnvVector;
 
 #define anv_vector_at(p_vec, type, pos) ((type*)((p_vec)->p_data))[pos]
-#define anv_vector_AddressAt(p_vec, pos) ((p_vec)->p_data + (pos) * (p_vec)->element_size)
-#define anv_vector_Length(p_vec) ((p_vec)->length)
-#define anv_vector_ElementSize(p_vec) ((p_vec)->element_size)
+#define anv_vector_address_at(p_vec, pos) ((p_vec)->p_data + (pos) * (p_vec)->element_size)
+#define anv_vector_length(p_vec) ((p_vec)->length)
+#define anv_vector_element_size(p_vec) ((p_vec)->element_size)
 
-AnvVector*  anv_vector_create(Size element_size,
+AnvVector* anv_vector_create(Size element_size,
                              AnvCreateElementCopyCallback pfn_create_copy,
                              AnvDestroyElementCopyCallback pfn_destroy_copy);
-void  anv_vector_destroy(AnvVector* p_vec);
-void  anv_vector_resize(AnvVector* p_vec, Size new_size);
-void  anv_vector_clear(AnvVector* p_vec);
+void anv_vector_destroy(AnvVector* p_vec);
+void anv_vector_resize(AnvVector* p_vec, Size new_size);
+void anv_vector_clear(AnvVector* p_vec);
 
-void  anv_vector_copy(AnvVector* p_vec, Size to, Size from);
-void  anv_vector_move(AnvVector* p_vec, Size to, Size from);
-void  anv_vector_overwrite(AnvVector* p_vec, Size pos, void* p_data);
+void anv_vector_copy(AnvVector* p_vec, Size to, Size from);
+void anv_vector_move(AnvVector* p_vec, Size to, Size from);
+void anv_vector_overwrite(AnvVector* p_vec, Size pos, void* p_data);
 
 void  anv_vector_insert(AnvVector* p_vec, void* p_data, Size pos);
 void  anv_vector_delete(AnvVector* p_vec, Size pos);
@@ -86,7 +86,7 @@ void* anv_vector_peek(AnvVector* p_vec, Size pos);
 void* anv_vector_front(AnvVector* p_vec);
 void* anv_vector_back(AnvVector* p_vec);
 
-void  anv_vector_print(AnvVector* p_vec, AnvPrintElementCallback pfn_printer);
+void anv_vector_print(AnvVector* p_vec, AnvPrintElementCallback pfn_printer);
 
 /*---------------- DEFINE COMMON INTERFACES FOR TYPE-SAFETY-----------------*/
 
