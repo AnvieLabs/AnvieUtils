@@ -51,4 +51,19 @@ typedef void (*AnvDestroyElementCopyCallback)(void* copy);
  * */
 typedef void (*AnvPrintElementCallback)(void* p_element, Size pos);
 
+/**
+ * To filter elements in a container.
+ * @param p_element, Element passed to callback from container.
+ * @param p_user_data User data passed to filter function.
+ * */
+typedef Bool (*AnvFilterElementCallback)(void* p_element, void* p_user_data);
+
+/**
+ * Compare two provided elements.
+ * If return > 1 then first element is greater than second element.
+ * If return < 1 then first element is less than second element.
+ * If return == 0 then first element and second element are equivalent
+ * */
+typedef Int32 (*AnvCompareElementCallback)(void* p1, void* p2);
+
 #endif // ANVIE_UTILS_COMMON_H

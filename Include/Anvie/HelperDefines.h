@@ -19,6 +19,7 @@
 #endif//ANV_MODULE_NAME
 
 #define LINE80() println("================================================================================")
+#define newline() putchar(0xa)
 
 // strings for some error types
 #define ERR_OUT_OF_MEMORY "out of memory (allocation failed)\n"

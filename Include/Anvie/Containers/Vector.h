@@ -88,6 +88,18 @@ void* anv_vector_back(AnvVector* p_vec);
 
 void anv_vector_print(AnvVector* p_vec, AnvPrintElementCallback pfn_printer);
 
+void anv_vector_merge(AnvVector* p_vec, AnvVector* p_vec_other);
+AnvVector* anv_vector_filter(AnvVector* p_vec, AnvFilterElementCallback pfn_filter, void* p_user_data);
+// TODO: accumulate, sort, iterators, intersection, duplicate, slice, insert_range
+
+void anv_vector_swap(AnvVector* p_vec, Size p1, Size p2);
+void anv_vector_sort(AnvVector* p_vec, AnvCompareElementCallback p_compare);
+Bool anv_vector_check_sorted(AnvVector* p_vec, AnvCompareElementCallback p_compare);
+
+// sorting algorithms
+void anv_vector_insertion_sort(AnvVector* p_vec, AnvCompareElementCallback p_compare);
+void anv_vector_bubble_sort(AnvVector* p_vec, AnvCompareElementCallback p_compare);
+
 /*---------------- DEFINE COMMON INTERFACES FOR TYPE-SAFETY-----------------*/
 
 #include <Anvie/Containers/VectorInterface.h>

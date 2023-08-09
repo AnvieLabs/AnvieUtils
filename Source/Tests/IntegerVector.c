@@ -9,6 +9,7 @@
 
 #include <Anvie/Containers/Vector.h>
 #include <Anvie/Test/UnitTest.h>
+#include <Anvie/Chrono/Time.h>
 
 #define TEST_DATA_SIZE ((Size)49)
 
@@ -400,7 +401,121 @@ TEST_FN Bool PopFront() {
     return res;
 }
 
+TEST_FN Bool Merge() {
+    AnvVector* /* String */ vec1 = anv_string_vector_create();
+    AnvVector* /* String */ vec2 = anv_string_vector_create();
+
+    // prepare data
+    // vec1
+    anv_vector_push_back(vec1, "Siddharth");
+    anv_vector_push_back(vec1, "Mishra");
+    // vec2
+    anv_vector_push_back(vec2, "is");
+    anv_vector_push_back(vec2, "@brightprogrammer");
+
+    // merge
+    anv_vector_merge(vec1, vec2);
+
+    // check merge
+    RETURN_VALUE_IF_FAIL(!strcmp(anv_vector_peek(vec1, 2), anv_vector_peek(vec2, 0)), False, "MERGE OPERATION IS INVALID! ELEMENTS DON'T MATCH!\n")
+    RETURN_VALUE_IF_FAIL(!strcmp(anv_vector_peek(vec1, 3), anv_vector_peek(vec2, 1)), False, "MERGE OPERATION IS INVALID! ELEMENTS DON'T MATCH!\n")
+
+    return True;
+}
+
+static inline Bool element_filter(void* x, void* udata) {
+    Int32 v = (Int32)(Int64)x;
+    Bool g0 = (Bool)(Int64)udata;
+
+    return g0 && v > 0;
+}
+
+TEST_FN Bool Filter() {
+    AnvVector* /* Int32 */ vec = anv_i32_vector_create();
+
+    // prepare data
+    for(int i = -10; i < 10; i++) {
+        anv_i32_vector_push_back(vec, i);
+    }
+
+    // all elements greater than 0 and less than equal to zero are filtered
+    AnvVector* /* Int32 */ vec_g0 = anv_i32_vector_filter(vec, element_filter, (void*)True);
+    if(!vec_g0){
+        anv_vector_destroy(vec);
+        DBG(__FUNCTION__, "FAILED TO FILTER ELEMENTS (vec_g0)\n");
+        return False;
+    }
+
+    AnvVector* /* Int32 */ vec_le0 = anv_i32_vector_filter(vec, element_filter, (void*)False);
+    if(!vec_le0){
+        anv_vector_destroy(vec);
+        anv_vector_destroy(vec_g0);
+        DBG(__FUNCTION__, "FAILED TO FILTER ELEMENTS (vec_le0)\n");
+        return False;
+    }
+
+    // check all elements in vec_g0 are greater than 0
+    for(Size s = 0; s < vec_g0->length; s++) {
+        RETURN_VALUE_IF_FAIL(anv_i32_vector_peek(vec_g0, s), False, "FILTERED VECTOR CONTAINS WRONG CONTENT\n");
+    }
+    // check all elements in vec_le0 are greater than 0
+    for(Size s = 0; s < vec_le0->length; s++) {
+        RETURN_VALUE_IF_FAIL(!anv_i32_vector_peek(vec_le0, s), False, "FILTERED VECTOR CONTAINS WRONG CONTENT\n");
+    }
+
+    return True;
+}
+
+static Int32 compare_i32(void* x, void* y) {
+    Int32 vx = (Int32)(Int64)x;
+    Int32 vy = (Int32)(Int64)y;
+    return vx - vy;
+}
+
+static void print_i32(void* x, Size s) {
+    UNUSED(s);
+    Int32 v = (Int32)(Int64)x;
+    printf("%d, ", v);
+}
+
+#define TEST_VECTOR_SORT_FN(TestName, sort_type)                \
+    TEST_FN Bool TestName(void) {                               \
+        AnvVector* /* Int32 */ vec = anv_i32_vector_create();   \
+                                                                \
+        Float32 avg_time = 0;                                           \
+        Size iter_count = 10;                                           \
+        Size arr_size = 1000;                                           \
+        for(Size k = 0; k < iter_count; k++) {                          \
+            for(Size s = 0; s < arr_size; s++) {                        \
+                anv_i32_vector_push_back(vec, s);                       \
+            }                                                           \
+                                                                        \
+            Size start = anv_chrono_get_time_as_microseconds();         \
+            anv_vector_##sort_type##_sort(vec, compare_i32);            \
+            Size stop = anv_chrono_get_time_as_microseconds();          \
+            avg_time += stop - start;                                   \
+            RETURN_VALUE_IF_FAIL(anv_vector_check_sorted(vec, compare_i32), False, "ARRAY NOT SORTED!\n"); \
+            anv_vector_clear(vec);                                      \
+        }                                                               \
+        OK(#TestName, "Average test time for %zu iterations of %zu array size is %f ms\n", iter_count, arr_size, avg_time/iter_count/1000); \
+        UNUSED(print_i32);                                              \
+                                                                        \
+        anv_i32_vector_destroy(vec);                                    \
+        return True;                                                    \
+    }
+
+TEST_VECTOR_SORT_FN(InsertionSort, insertion);
+TEST_VECTOR_SORT_FN(BubbleSort, bubble);
+
 BEGIN_TESTS(AnvIntegerVector)
+    // SORTING
+    TEST(BubbleSort),
+    TEST(InsertionSort),
+
+    // MISC
+    TEST(Filter),
+    TEST(Merge),
+
     // push/pop APIs
     TEST(PopFront),
     TEST(PushFront),

@@ -20,10 +20,17 @@ typedef struct string_entry_t {
     Size len;
 } StringEntry;
 
-static String allocated_strings[TEST_DATA_SIZE] = {0};
+// NOTE: Size of this array might be cause of your segfault if everything seems fine
+static String allocated_strings[TEST_DATA_SIZE*2] = {0};
 static Size strid = 0;
 
-void CreateCopy(void* dst, void* src) {
+static inline void string_entry_init(StringEntry* p_se, String s) {
+    RETURN_IF_FAIL(p_se && s, ERR_INVALID_ARGUMENTS);
+    p_se->s_name = s;
+    p_se->len = strlen(p_se->s_name);
+}
+
+void __StringEntry_CreateCopy___(void* dst, void* src) {
     StringEntry* to = (StringEntry*)dst;
     StringEntry* from = (StringEntry*)src;
     RETURN_IF_FAIL(to && from && from->s_name && from->len , ERR_INVALID_ARGUMENTS);
@@ -36,7 +43,7 @@ void CreateCopy(void* dst, void* src) {
     allocated_strings[strid++] = to->s_name;
 }
 
-void DestroyCopy(void* copy) {
+void __StringEntry_DestroyCopy___(void* copy) {
     StringEntry* s = (StringEntry*)copy;
     RETURN_IF_FAIL(s && s->s_name && s->len , ERR_INVALID_ARGUMENTS);
 
@@ -59,12 +66,12 @@ void DestroyCopy(void* copy) {
     s->s_name = NULL;
 }
 
-Bool CompareString(StringEntry* s1, StringEntry* s2) {
+static inline Bool CompareString(StringEntry* s1, StringEntry* s2) {
     RETURN_VALUE_IF_FAIL(s1 && s2, False, ERR_INVALID_ARGUMENTS);
     return (s1->len == s2->len) && (strcmp(s1->s_name, s1->s_name) == 0);
 }
 
-DEF_ANV_STRUCT_VECTOR_INTERFACE(string_entry, StringEntry, CreateCopy, DestroyCopy);
+DEF_ANV_STRUCT_VECTOR_INTERFACE(string_entry, StringEntry, __StringEntry_CreateCopy___, __StringEntry_DestroyCopy___);
 
 /**
  * @TEST
@@ -84,7 +91,7 @@ TEST_FN Bool Create1() {
  * and destory_copy() are not null or nonnull at the same time.
  * */
 TEST_FN Bool Create2() {
-    AnvVector* vec = anv_vector_create(sizeof(StringEntry), CreateCopy, DestroyCopy);
+    AnvVector* vec = anv_vector_create(sizeof(StringEntry), __StringEntry_CreateCopy___, __StringEntry_DestroyCopy___);
     RETURN_VALUE_IF_FAIL(vec, False, "FAILED TO CREATE anv_vector\n");
     anv_vector_destroy(vec);
     return True;
@@ -96,7 +103,7 @@ TEST_FN Bool Create2() {
  * and destory_copy() are not null or nonnull at the same time.
  * */
 TEST_FN Bool Create3() {
-    AnvVector* vec = anv_vector_create(sizeof(StringEntry), NULL, DestroyCopy);
+    AnvVector* vec = anv_vector_create(sizeof(StringEntry), NULL, __StringEntry_DestroyCopy___);
     RETURN_VALUE_IF_FAIL(!vec, False, "anv_vector CREATION SHOULD HAVE FAILED\n");
     if(vec) anv_vector_destroy(vec); // we don't actually need to destroy, but still...
     return True;
@@ -108,7 +115,7 @@ TEST_FN Bool Create3() {
  * and destory_copy() are not null or nonnull at the same time.
  * */
 TEST_FN Bool Create4() {
-    AnvVector* vec = anv_vector_create(sizeof(StringEntry), CreateCopy, NULL);
+    AnvVector* vec = anv_vector_create(sizeof(StringEntry), __StringEntry_CreateCopy___, NULL);
     RETURN_VALUE_IF_FAIL(!vec, False, "anv_vector CREATION SHOULD HAVE FAILED\n");
     if(vec) anv_vector_destroy(vec); // we don't actually need to destroy, but still...
     return True;
@@ -234,7 +241,7 @@ TEST_FN Bool Remove() {
             res = False;
         }
 
-        DestroyCopy(ref);
+        __StringEntry_DestroyCopy___(ref);
         FREE(ref);
         ref = NULL;
 
@@ -366,7 +373,7 @@ TEST_FN Bool RemoveFast() {
             res = False;
         }
 
-        DestroyCopy(ref);
+        __StringEntry_DestroyCopy___(ref);
         FREE(ref);
         ref = NULL;
 
@@ -460,7 +467,7 @@ TEST_FN Bool PopBack() {
             res = False;
         }
 
-        DestroyCopy(ref);
+        __StringEntry_DestroyCopy___(ref);
         FREE(ref);
         ref = NULL;
 
@@ -561,7 +568,7 @@ TEST_FN Bool PopFront() {
             res = False;
         }
 
-        DestroyCopy(ref);
+        __StringEntry_DestroyCopy___(ref);
         FREE(ref);
         ref = NULL;
 
@@ -577,7 +584,87 @@ TEST_FN Bool PopFront() {
     return res;
 }
 
+TEST_FN Bool Merge() {
+    strid = 0;
+
+    AnvVector* /* String */ vec1 = anv_string_entry_vector_create();
+    AnvVector* /* String */ vec2 = anv_string_entry_vector_create();
+
+    StringEntry se;
+
+    // prepare data
+    // vec1
+    string_entry_init(&se, "Siddharth");
+    anv_string_entry_vector_push_back(vec1, &se);
+
+    string_entry_init(&se, "Mishra");
+    anv_string_entry_vector_push_back(vec1, &se);
+
+    // vec2
+    string_entry_init(&se, "is");
+    anv_string_entry_vector_push_back(vec2, &se);
+
+    string_entry_init(&se, "@brightprogrammer");
+    anv_string_entry_vector_push_back(vec2, &se);
+
+    // merge
+    anv_string_entry_vector_merge(vec1, vec2);
+
+    // check merge
+    RETURN_VALUE_IF_FAIL(!strcmp(anv_string_entry_vector_peek(vec1, 2)->s_name, anv_string_entry_vector_peek(vec2, 0)->s_name), False, "MERGE OPERATION IS INVALID! ELEMENTS DON'T MATCH!\n");
+    RETURN_VALUE_IF_FAIL(!strcmp(anv_string_entry_vector_peek(vec1, 3)->s_name, anv_string_entry_vector_peek(vec2, 1)->s_name), False, "MERGE OPERATION IS INVALID! ELEMENTS DON'T MATCH!\n");
+
+    anv_string_entry_vector_destroy(vec1);
+    anv_string_entry_vector_destroy(vec2);
+
+    return True;
+}
+
+static inline Bool element_filter(void* x, void* udata) {
+    StringEntry* v = (StringEntry*)x;
+    Size sz_limit = (Size)udata;
+
+    return strlen(v->s_name) > sz_limit;
+}
+
+TEST_FN Bool Filter() {
+    strid = 0;
+
+    AnvVector* /* StringEntry */ vec = anv_string_entry_vector_create();
+    char str[11] = {0};
+    StringEntry se;
+
+    // prepare data
+    for(int i = 0; i < 10; i++) {
+        str[i] = 'a';
+        string_entry_init(&se, str);
+        anv_string_entry_vector_push_back(vec, &se);
+    }
+
+    // all elements greater than 0 and less than equal to zero are filtered
+    AnvVector* /* StringEntry */ vec_g5 = anv_string_entry_vector_filter(vec, element_filter, (void*)5);
+    if(!vec_g5){
+        anv_vector_destroy(vec);
+        DBG(__FUNCTION__, "FAILED TO FILTER ELEMENTS (vec_g0)\n");
+        return False;
+    }
+
+    // check length of all elements in vec_g5 are greater than 5
+    for(Size s = 0; s < vec_g5->length; s++) {
+        RETURN_VALUE_IF_FAIL(strlen(anv_string_entry_vector_peek(vec_g5, s)->s_name) > 5, False, "FILTERED VECTOR CONTAINS WRONG CONTENT\n");
+    }
+
+    anv_string_entry_vector_destroy(vec);
+    anv_string_entry_vector_destroy(vec_g5);
+
+    return True;
+}
+
 BEGIN_TESTS(AnvStructVector)
+    // MISC
+    TEST(Filter),
+    TEST(Merge),
+
     // push/pop APIs
     TEST(PopFront),
     TEST(PushFront),

@@ -112,6 +112,7 @@ FORCE_INLINE void anv_vector_clear(AnvVector* p_vec) {
     }
 
     memset(p_vec->p_data, 0, p_vec->capacity * anv_vector_element_size(p_vec));
+    p_vec->length = 0;
 }
 
 /**
@@ -258,14 +259,15 @@ FORCE_INLINE void anv_vector_insert(AnvVector* p_vec, void *p_data, Size pos) {
         Size from = --shift_index; // at the starting of loop, this is index of last element
 
         switch(anv_vector_element_size(p_vec)) {
-        case 8 : anv_vector_at(p_vec, Uint64, to) = anv_vector_at(p_vec, Uint64, from); break;
-        case 4 : anv_vector_at(p_vec, Uint32, to) = anv_vector_at(p_vec, Uint32, from); break;
-        case 2 : anv_vector_at(p_vec, Uint16, to) = anv_vector_at(p_vec, Uint16, from); break;
-        case 1 : anv_vector_at(p_vec, Uint8, to)  = anv_vector_at(p_vec, Uint8, from); break;
-        default :
-            void* p_elem_to = anv_vector_address_at(p_vec, to);
-            void* p_elem_from = anv_vector_address_at(p_vec, from);
-            memcpy(p_elem_to, p_elem_from, anv_vector_element_size(p_vec));
+            case 8 : anv_vector_at(p_vec, Uint64, to) = anv_vector_at(p_vec, Uint64, from); break;
+            case 4 : anv_vector_at(p_vec, Uint32, to) = anv_vector_at(p_vec, Uint32, from); break;
+            case 2 : anv_vector_at(p_vec, Uint16, to) = anv_vector_at(p_vec, Uint16, from); break;
+            case 1 : anv_vector_at(p_vec, Uint8, to)  = anv_vector_at(p_vec, Uint8, from); break;
+            default : {
+                void* p_elem_to = anv_vector_address_at(p_vec, to);
+                void* p_elem_from = anv_vector_address_at(p_vec, from);
+                memcpy(p_elem_to, p_elem_from, anv_vector_element_size(p_vec));
+            }
         }
     }
 
@@ -275,7 +277,7 @@ FORCE_INLINE void anv_vector_insert(AnvVector* p_vec, void *p_data, Size pos) {
         case 4 : anv_vector_at(p_vec, Uint32, pos) = (Uint32)value; break;
         case 2 : anv_vector_at(p_vec, Uint16, pos) = (Uint16)value; break;
         case 1 : anv_vector_at(p_vec, Uint8, pos)  = (Uint8)value; break;
-        default :
+        default : {
             void* p_elem = anv_vector_address_at(p_vec, pos);
             if(p_vec->pfn_create_copy) {
                 if(p_data) p_vec->pfn_create_copy(p_elem, p_data);
@@ -284,6 +286,7 @@ FORCE_INLINE void anv_vector_insert(AnvVector* p_vec, void *p_data, Size pos) {
                 if(p_data) memcpy(p_elem, p_data, anv_vector_element_size(p_vec));
                 else memset(p_elem, 0, anv_vector_element_size(p_vec));
             }
+        }
     }
 
     p_vec->length++;
@@ -401,18 +404,19 @@ FORCE_INLINE void anv_vector_insert_fast(AnvVector* p_vec, void* p_data, Size po
 
     Uint64 value = (Uint64)p_data;
     switch(anv_vector_element_size(p_vec)) {
-    case 8 : anv_vector_at(p_vec, Uint64, pos) = (Uint64)value; break;
-    case 4 : anv_vector_at(p_vec, Uint32, pos) = (Uint32)value; break;
-    case 2 : anv_vector_at(p_vec, Uint16, pos) = (Uint16)value; break;
-    case 1 : anv_vector_at(p_vec, Uint8, pos) = (Uint8)value; break;
-    default :
-        void* p_elem = anv_vector_address_at(p_vec, pos);
-        if(p_vec->pfn_create_copy) {
-            if(p_data) p_vec->pfn_create_copy(p_elem, p_data);
-            else memset(p_elem, 0, p_vec->element_size);
-        } else {
-            if(p_data) memcpy(p_elem, p_data, anv_vector_element_size(p_vec));
-            else memset(p_elem, 0, anv_vector_element_size(p_vec));
+        case 8 : anv_vector_at(p_vec, Uint64, pos) = (Uint64)value; break;
+        case 4 : anv_vector_at(p_vec, Uint32, pos) = (Uint32)value; break;
+        case 2 : anv_vector_at(p_vec, Uint16, pos) = (Uint16)value; break;
+        case 1 : anv_vector_at(p_vec, Uint8, pos) = (Uint8)value; break;
+        default : {
+            void* p_elem = anv_vector_address_at(p_vec, pos);
+            if(p_vec->pfn_create_copy) {
+                if(p_data) p_vec->pfn_create_copy(p_elem, p_data);
+                else memset(p_elem, 0, p_vec->element_size);
+            } else {
+                if(p_data) memcpy(p_elem, p_data, anv_vector_element_size(p_vec));
+                else memset(p_elem, 0, anv_vector_element_size(p_vec));
+            }
         }
     }
 
@@ -585,5 +589,157 @@ void anv_vector_print(AnvVector* p_vec, AnvPrintElementCallback pfn_printer) {
             case 1 : pfn_printer((void*)(Uint64)anv_vector_at(p_vec, Uint8, iter), iter); break;
             default: pfn_printer(anv_vector_address_at(p_vec, iter), iter);
         }
+    }
+}
+
+/**
+ * Merge two vectors into the first vector.
+ * @param p_vec Vector to merge other vector into
+ * @param p_vec_other Vector to be merged
+ * */
+void anv_vector_merge(AnvVector* p_vec, AnvVector* p_vec_other) {
+    RETURN_IF_FAIL(p_vec && p_vec_other, ERR_INVALID_ARGUMENTS);
+    RETURN_IF_FAIL(p_vec->element_size == p_vec_other->element_size, "Arrays of different element sizes cannot be merged\n");
+
+    for(Size s = 0; s < p_vec_other->length; s++) {
+        anv_vector_push_back(p_vec, anv_vector_peek(p_vec_other, s));
+    }
+}
+
+/**
+ * Filter elements from this vector and return a new vector with filtered elements.
+ * @param p_vec Vector to filter elements from.
+ * @param pfn_filter Filter function to filter elements
+ * @return New AnvVector object containing filtered elements on success, NULL otherwise.
+ * */
+AnvVector* anv_vector_filter(AnvVector* p_vec, AnvFilterElementCallback pfn_filter, void* p_user_data) {
+    RETURN_VALUE_IF_FAIL(p_vec && pfn_filter, NULL, ERR_INVALID_ARGUMENTS);
+
+    // create new vector for containing filtered vectors
+    AnvVector* filtered_vec = anv_vector_create(p_vec->element_size, p_vec->pfn_create_copy, p_vec->pfn_destroy_copy);
+    RETURN_VALUE_IF_FAIL(filtered_vec, NULL, "Failed to create new filtered vector\n");
+
+    // filter elements
+    for(Size i = 0; i < p_vec->length; i++) {
+        if(pfn_filter(anv_vector_peek(p_vec, i), p_user_data)) {
+            anv_vector_push_back(filtered_vec, anv_vector_peek(p_vec, i));
+        }
+    }
+
+    return filtered_vec;
+}
+
+/**
+ * Swap two elements in same vector.
+ * @param p_vec Vector in which arrays will be sorted
+ * @param p1 Position of first element
+ * @param p2 Position of second element
+ * */
+FORCE_INLINE void anv_vector_swap(AnvVector* p_vec, Size p1, Size p2) {
+    RETURN_IF_FAIL(p_vec && (p1 < p_vec->length || p2 < p_vec->length), ERR_INVALID_ARGUMENTS);
+
+    switch(p_vec->element_size) {
+        case 8: {
+            Uint64 t = anv_vector_at(p_vec, Uint64, p1);
+            anv_vector_at(p_vec, Uint64, p1) = anv_vector_at(p_vec, Uint64, p2);
+            anv_vector_at(p_vec, Uint64, p2) = t;
+            return;
+        }
+        case 4: {
+            Uint32 t = anv_vector_at(p_vec, Uint32, p1);
+            anv_vector_at(p_vec, Uint32, p1) = anv_vector_at(p_vec, Uint32, p2);
+            anv_vector_at(p_vec, Uint32, p2) = t;
+            return;
+        }
+        case 2: {
+            Uint16 t = anv_vector_at(p_vec, Uint16, p1);
+            anv_vector_at(p_vec, Uint16, p1) = anv_vector_at(p_vec, Uint16, p2);
+            anv_vector_at(p_vec, Uint16, p2) = t;
+            return;
+        }
+        case 1: {
+            Uint8 t = anv_vector_at(p_vec, Uint8, p1);
+            anv_vector_at(p_vec, Uint8, p1) = anv_vector_at(p_vec, Uint8, p2);
+            anv_vector_at(p_vec, Uint8, p2) = t;
+            return;
+        }
+        default: {
+            Byte temp[p_vec->element_size];
+            memcpy(temp, anv_vector_address_at(p_vec, p1), p_vec->element_size);
+            memcpy(anv_vector_address_at(p_vec, p1), anv_vector_address_at(p_vec, p2), p_vec->element_size);
+            memcpy(anv_vector_address_at(p_vec, p2), temp, p_vec->element_size);
+            return;
+        }
+    }
+}
+
+/**
+ * Apply the fastest sort algorithm for given array possible.
+ * @param p_vec Vector to be sorted
+ * @param pfn_cmp Compare function
+ * */
+void anv_vector_sort(AnvVector* p_vec, AnvCompareElementCallback pfn_cmp) {
+    RETURN_IF_FAIL(p_vec && pfn_cmp, ERR_INVALID_ARGUMENTS);
+    anv_vector_insertion_sort(p_vec, pfn_cmp);
+}
+
+/**
+ * Check whether the array is sorted in any manner
+ * By default the algorithm is written for checking array in descending order,
+ * but this can be checked for any array type by modifying the compare method.
+ *
+ * This means if pfn_compare returns > 0 for any comparision then array is not sorted
+ *
+ * @param p_vec
+ * @param pfn_compare
+ * */
+Bool anv_vector_check_sorted(AnvVector* p_vec, AnvCompareElementCallback pfn_compare) {
+    RETURN_VALUE_IF_FAIL(p_vec && pfn_compare, False, ERR_INVALID_ARGUMENTS);
+    for(Size s = 1; s < p_vec->length; s++)
+        if(pfn_compare(anv_vector_peek(p_vec, s), anv_vector_peek(p_vec, s-1)) > 0)
+            return False;
+    return True;
+}
+
+/**
+ * Use insertion sort mechanism to sort this array.
+ * Time complexity:
+ * BEST : O(n)
+ * AVERAGE : O(n^2)
+ * WORST : O(n^2)
+ * @param p_vec
+ * @param pfn_compare Compare function
+ * */
+void anv_vector_insertion_sort(AnvVector* p_vec, AnvCompareElementCallback pfn_compare) {
+    RETURN_IF_FAIL(p_vec && pfn_compare, ERR_INVALID_ARGUMENTS);
+
+    for(Size s = 1; s < p_vec->length; s++) {
+        Size m = 0;
+        // while vec[s] > vec[m]
+        while(m < s && pfn_compare(anv_vector_peek(p_vec, s), anv_vector_peek(p_vec, m))) {
+            anv_vector_swap(p_vec, s, m++);
+        }
+    }
+}
+
+/**
+ * Bubble sort algorithm.
+ * @param p_vec
+ * @param pfn_compare
+ * */
+void anv_vector_bubble_sort(AnvVector* p_vec, AnvCompareElementCallback pfn_compare) {
+    RETURN_IF_FAIL(p_vec && pfn_compare, ERR_INVALID_ARGUMENTS);
+
+    Bool b_swapped;
+    for (Size i = 0; i < p_vec->length - 1; i++) {
+        b_swapped = False;
+        for (Size j = 0; j < p_vec->length - i - 1; j++) {
+            if (pfn_compare(anv_vector_peek(p_vec, j+1), anv_vector_peek(p_vec, j))) {
+                anv_vector_swap(p_vec, j, j+1);
+                b_swapped = True;
+            }
+        }
+        if (!b_swapped)
+            break;
     }
 }
