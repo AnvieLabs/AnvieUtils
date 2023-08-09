@@ -88,14 +88,19 @@
 
 
 // return if condition fails to be true
-#define RETURN_IF_FAIL(cond, ...)                   \
-    FATAL_IF(!(cond), __VA_ARGS__);                    \
-    if(!(cond)) return;
+#define RETURN_IF_FAIL(cond, ...)                      \
+    do {                                               \
+        Bool res = (cond);                             \
+        FATAL_IF(!res, __VA_ARGS__);                   \
+    } while(0)
 
 // return value if condition fails to be true
-#define RETURN_VALUE_IF_FAIL(cond, value, ...)      \
-    FATAL_IF(!(cond), __VA_ARGS__);                    \
-    if(!(cond)) return value;
+#define RETURN_VALUE_IF_FAIL(cond, value, ...)         \
+    do {                                               \
+        Bool res = (cond);                             \
+        FATAL_IF(!res, __VA_ARGS__);                \
+        if(!res) return value;                      \
+    } while(0)
 
 // get array size
 #define ARRAY_SIZE(a) sizeof(a) / sizeof(a[0])
