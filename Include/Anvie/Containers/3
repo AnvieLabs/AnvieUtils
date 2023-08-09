@@ -13,7 +13,9 @@
 
 #include <Anvie/HelperDefines.h>
 
-#define DEF_ANV_INTEGER_VECTOR_INTERFACE(prefix, type)                \
+#define DEF_ANV_INTEGER_VECTOR_INTERFACE(prefix, type, typename)        \
+    typedef Int32 (*AnvCompare##typename##ElementCallback)(type p1, type p2); \
+                                                                        \
     FORCE_INLINE AnvVector* anv_##prefix##_vector_create() {          \
         return anv_vector_create(sizeof(type), NULL, NULL);           \
     }                                                                 \
@@ -114,24 +116,40 @@
         return anv_vector_filter(vec, filter, user_data);               \
     }                                                                   \
                                                                         \
+    FORCE_INLINE void anv_##prefix##_vector_merge(AnvVector* vec, AnvVector* vec_other) { \
+        anv_vector_merge(vec, vec_other);                               \
+    }                                                                   \
+                                                                        \
+    FORCE_INLINE AnvVector* anv_##prefix##_vector_filter(AnvVector* vec, AnvFilterElementCallback filter, void* user_data) { \
+        return anv_vector_filter(vec, filter, user_data);               \
+    }                                                                   \
+                                                                        \
+    FORCE_INLINE void anv_##prefix##_vector_merge(AnvVector* vec, AnvVector* vec_other) { \
+        anv_vector_merge(vec, vec_other);                               \
+    }                                                                   \
+                                                                        \
+    FORCE_INLINE AnvVector* anv_##prefix##_vector_filter(AnvVector* vec, AnvFilterElementCallback filter, void* user_data) { \
+        anv_vector_filter(vec, filter, user_data);                      \
+    }                                                                   \
+                                                                        \
     FORCE_INLINE void anv_##prefix##_vector_swap(AnvVector* vec, Size p1, Size p2) { \
         anv_vector_swap(vec, p1, p2);                                   \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_sort(AnvVector* vec, AnvCompareElementCallback compare) { \
-        anv_vector_sort(vec, compare);                                  \
+    FORCE_INLINE void anv_##prefix##_vector_sort(AnvVector* vec, AnvCompare##type##ElementCallback compare) { \
+        anv_vector_sort(vec, (AnvCompareElementCallback)compare);       \
     }                                                                   \
                                                                         \
-    FORCE_INLINE Bool anv_##prefix##_vector_check_sorted(AnvVector* vec, AnvCompareElementCallback compare) { \
-        return anv_vector_check_sorted(vec, compare);                   \
+    FORCE_INLINE Bool anv_##prefix##_vector_check_sorted(AnvVector* vec, AnvCompare##type##ElementCallback compare) { \
+        anv_vector_check_sorted(vec, (AnvCompareElementCallback)compare); \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_insertion_sort(AnvVector* vec, AnvCompareElementCallback compare) { \
-        anv_vector_insertion_sort(vec, compare);                        \
+    FORCE_INLINE void anv_##prefix##_vector_insertion_sort(AnvVector* vec, AnvCompare##type##ElementCallback compare) { \
+        anv_vector_insertion_sort(vec, (AnvCompareElementCallback)compare); \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_bubble_sort(AnvVector* vec, AnvCompareElementCallback compare) { \
-        anv_vector_bubble_sort(vec, compare);                           \
+    FORCE_INLINE void anv_##prefix##_vector_bubble_sort(AnvVector* vec, AnvCompare##type##ElementCallback compare) { \
+        anv_vector_bubble_sort(vec, (AnvCompareElementCallback)compare); \
     }
 
 #define DEF_ANV_STRUCT_VECTOR_INTERFACE(prefix, type, copy_create, copy_destroy) \
@@ -238,6 +256,14 @@
         return anv_vector_filter(vec, filter, user_data);               \
     }                                                                   \
                                                                         \
+    FORCE_INLINE void anv_##prefix##_vector_merge(AnvVector* vec, AnvVector* vec_other) { \
+        anv_vector_merge(vec, vec_other);                               \
+    }                                                                   \
+                                                                        \
+    FORCE_INLINE AnvVector* anv_##prefix##_vector_filter(AnvVector* vec, AnvFilterElementCallback filter, void* user_data) { \
+        anv_vector_filter(vec, filter, user_data);                      \
+    }                                                                   \
+                                                                        \
     FORCE_INLINE void anv_##prefix##_vector_swap(AnvVector* vec, Size p1, Size p2) { \
         anv_vector_swap(vec, p1, p2);                                   \
     }                                                                   \
@@ -247,13 +273,12 @@
     }                                                                   \
                                                                         \
     FORCE_INLINE Bool anv_##prefix##_vector_check_sorted(AnvVector* vec, AnvCompareElementCallback compare) { \
-        return anv_vector_check_sorted(vec, compare);                   \
+        anv_vector_check_sorted(vec, compare);                          \
     }                                                                   \
                                                                         \
     FORCE_INLINE void anv_##prefix##_vector_insertion_sort(AnvVector* vec, AnvCompareElementCallback compare) { \
         anv_vector_insertion_sort(vec, compare);                        \
     }                                                                   \
-                                                                        \
     FORCE_INLINE void anv_##prefix##_vector_bubble_sort(AnvVector* vec, AnvCompareElementCallback compare) { \
         anv_vector_bubble_sort(vec, compare);                           \
     }
