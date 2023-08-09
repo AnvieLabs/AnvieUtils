@@ -90,16 +90,16 @@
 // return if condition fails to be true
 #define RETURN_IF_FAIL(cond, ...)                      \
     {                                                  \
-        Bool res = !(cond);                            \
-        FATAL_IF(res, __VA_ARGS__);                    \
+        Bool ________res____ = !(cond);                \
+        FATAL_IF(________res____, __VA_ARGS__);        \
     }
 
 // return value if condition fails to be true
-#define RETURN_VALUE_IF_FAIL(cond, value, ...)         \
-    {                                                  \
-        Bool res = !(cond);                            \
-        FATAL_IF(res, __VA_ARGS__);                    \
-        if(res) return value;                          \
+#define RETURN_VALUE_IF_FAIL(cond, value, ...)                       \
+    {                                                                \
+        Bool _________res_____ = !(cond);                            \
+        FATAL_IF(_________res_____, __VA_ARGS__);                    \
+        if(_________res_____) return value;                          \
     }
 
 // get array size
