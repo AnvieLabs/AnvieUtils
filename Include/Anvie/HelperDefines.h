@@ -92,6 +92,7 @@
     {                                                  \
         Bool ________res____ = !(cond);                \
         FATAL_IF(________res____, __VA_ARGS__);        \
+        if(________res____) return;                    \
     }
 
 // return value if condition fails to be true
