@@ -414,9 +414,9 @@ TEST_FN Bool Merge() {
     s = strdup("Mishra");
     anv_string_vector_push_back(vec1, s);
     FREE(s);
+    s = strdup("is");
 
     // vec2
-    s = strdup("is");
     anv_string_vector_push_back(vec2, "is");
     FREE(s);
 
@@ -427,11 +427,22 @@ TEST_FN Bool Merge() {
     // merge
     anv_vector_merge(vec1, vec2);
 
-    // check merge
-    RETURN_VALUE_IF_FAIL(!strcmp(anv_vector_peek(vec1, 2), anv_vector_peek(vec2, 0)), False, "MERGE OPERATION IS INVALID! ELEMENTS DON'T MATCH!\n")
-    RETURN_VALUE_IF_FAIL(!strcmp(anv_vector_peek(vec1, 3), anv_vector_peek(vec2, 1)), False, "MERGE OPERATION IS INVALID! ELEMENTS DON'T MATCH!\n")
+    Bool res = True;
+    if(strcmp(anv_vector_peek(vec1, 2), anv_vector_peek(vec2, 0)) != 0) {
+        ERR(__FUNCTION__, "MERGE OPERATION IS INVALID! ELEMENTS DON'T MATCH!\n");
+        res = False;
+    }
 
-    return True;
+    if(strcmp(anv_vector_peek(vec1, 2), anv_vector_peek(vec2, 0)) != 0) {
+        ERR(__FUNCTION__, "MERGE OPERATION IS INVALID! ELEMENTS DON'T MATCH!\n");
+        res = False;
+    }
+
+    anv_string_vector_destroy(vec1);
+    anv_string_vector_destroy(vec2);
+
+    // check merge
+    return res;
 }
 
 static inline Bool element_filter(void* x, void* udata) {
@@ -466,15 +477,30 @@ TEST_FN Bool Filter() {
     }
 
     // check all elements in vec_g0 are greater than 0
+    Bool res = True;
+
     for(Size s = 0; s < vec_g0->length; s++) {
-        RETURN_VALUE_IF_FAIL(anv_i32_vector_peek(vec_g0, s), False, "FILTERED VECTOR CONTAINS WRONG CONTENT\n");
-    }
-    // check all elements in vec_le0 are greater than 0
-    for(Size s = 0; s < vec_le0->length; s++) {
-        RETURN_VALUE_IF_FAIL(!anv_i32_vector_peek(vec_le0, s), False, "FILTERED VECTOR CONTAINS WRONG CONTENT\n");
+        if(anv_i32_vector_peek(vec_g0, s) <= 0) {
+            ERR(__FUNCTION__, "FILTERED VECTOR (g0) CONTAINS WRONG CONTENT\n");
+            res = False;
+            break;
+        }
     }
 
-    return True;
+    // check all elements in vec_le0 are less than or equal to 0
+    for(Size s = 0; s < vec_le0->length; s++) {
+        if(anv_i32_vector_peek(vec_le0, s) > 0) {
+            ERR(__FUNCTION__, "FILTERED VECTOR (le0) CONTAINS WRONG CONTENT\n");
+            res = False;
+            break;
+        }
+    }
+
+    anv_i32_vector_destroy(vec);
+    anv_i32_vector_destroy(vec_g0);
+    anv_i32_vector_destroy(vec_le0);
+
+    return res;
 }
 
 static Int32 compare_i32(void* x, void* y) {

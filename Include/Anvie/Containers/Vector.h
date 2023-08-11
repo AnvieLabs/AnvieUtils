@@ -105,17 +105,17 @@ void anv_vector_bubble_sort(AnvVector* p_vec, AnvCompareElementCallback p_compar
 
 #include <Anvie/Containers/VectorInterface.h>
 
-inline void anv_print_i8(void* x, Size idx) { UNUSED(idx); printf("%d, ", (Int32)(Int64)x); }
-inline void anv_print_i16(void* x, Size idx) { UNUSED(idx); printf("%d, ", (Int32)(Int64)x); }
-inline void anv_print_i32(void* x, Size idx) { UNUSED(idx); printf("%d, ", (Int32)(Int64)x); }
-inline void anv_print_i64(void* x, Size idx) { UNUSED(idx); printf("%ld, ", (Int64)x); }
+void anv_print_i8(void* x, Size idx);
+void anv_print_i16(void* x, Size idx);
+void anv_print_i32(void* x, Size idx);
+void anv_print_i64(void* x, Size idx);
 
-inline void anv_print_u8(void* x, Size idx) { UNUSED(idx); printf("%u, ", (Uint32)(Uint64)x); }
-inline void anv_print_u16(void* x, Size idx) { UNUSED(idx); printf("%u, ", (Uint32)(Uint64)x); }
-inline void anv_print_u32(void* x, Size idx) { UNUSED(idx); printf("%u, ", (Uint32)(Uint64)x); }
-inline void anv_print_u64(void* x, Size idx) { UNUSED(idx); printf("%lu, ", (Uint64)x); }
+void anv_print_u8(void* x, Size idx);
+void anv_print_u16(void* x, Size idx);
+void anv_print_u32(void* x, Size idx);
+void anv_print_u64(void* x, Size idx);
 
-inline void anv_print_string(void* x, Size idx) { UNUSED(idx); printf("%s ,", (String)x); }
+void anv_print_string(void* x, Size idx);
 
 DEF_ANV_INTEGER_VECTOR_INTERFACE(u8,  Uint8);
 DEF_ANV_INTEGER_VECTOR_INTERFACE(u16, Uint16);
