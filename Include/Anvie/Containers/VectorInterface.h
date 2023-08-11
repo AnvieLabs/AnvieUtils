@@ -13,11 +13,13 @@
 
 #include <Anvie/HelperDefines.h>
 
-#define DEF_ANV_INTEGER_VECTOR_INTERFACE(prefix, type)                \
-    FORCE_INLINE AnvVector* anv_##prefix##_vector_create() {          \
-        return anv_vector_create(sizeof(type), NULL, NULL);           \
-    }                                                                 \
-                                                                      \
+#define DEF_ANV_INTEGER_VECTOR_INTERFACE(prefix, type) DEF_ANV_INTEGER_VECTOR_INTERFACE_WITH_COPY_AND_DESTROY(prefix, type, NULL, NULL)
+
+#define DEF_ANV_INTEGER_VECTOR_INTERFACE_WITH_COPY_AND_DESTROY(prefix, type, copy, destroy) \
+    FORCE_INLINE AnvVector* anv_##prefix##_vector_create() {            \
+        return anv_vector_create(sizeof(type), copy, destroy);          \
+    }                                                                   \
+                                                                        \
     FORCE_INLINE void anv_##prefix##_vector_destroy(AnvVector* vec) {   \
         anv_vector_destroy(vec);                                        \
     }                                                                   \

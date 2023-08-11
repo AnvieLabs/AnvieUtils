@@ -130,7 +130,7 @@ DEF_ANV_INTEGER_VECTOR_INTERFACE(i64, Int64);
 void anv_string_create_copy(void* to, void* p_data);
 void anv_string_destroy_copy(void* p_data);
 
-DEF_ANV_STRUCT_VECTOR_INTERFACE(string, String, anv_string_create_copy, anv_string_destroy_copy);
+DEF_ANV_INTEGER_VECTOR_INTERFACE_WITH_COPY_AND_DESTROY(string, String, anv_string_create_copy, anv_string_destroy_copy);
 DEF_ANV_INTEGER_VECTOR_INTERFACE(voidptr, void*);
 
 #endif // ANV_VECTOR_H
