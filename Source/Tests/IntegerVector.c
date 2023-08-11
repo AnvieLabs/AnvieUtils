@@ -407,11 +407,22 @@ TEST_FN Bool Merge() {
 
     // prepare data
     // vec1
-    anv_vector_push_back(vec1, "Siddharth");
-    anv_vector_push_back(vec1, "Mishra");
+    String s = strdup("Siddharth");
+    anv_string_vector_push_back(vec1, s);
+    FREE(s);
+
+    s = strdup("Mishra");
+    anv_string_vector_push_back(vec1, s);
+    FREE(s);
+
     // vec2
-    anv_vector_push_back(vec2, "is");
-    anv_vector_push_back(vec2, "@brightprogrammer");
+    s = strdup("is");
+    anv_string_vector_push_back(vec2, "is");
+    FREE(s);
+
+    s = strdup("@brightprogrammer");
+    anv_string_vector_push_back(vec2, s);
+    FREE(s);
 
     // merge
     anv_vector_merge(vec1, vec2);
