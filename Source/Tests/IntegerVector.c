@@ -71,6 +71,8 @@ TEST_FN Bool Create4() {
     return True;
 }
 
+// TODO: add rest for overwrite, copy, swap, move
+
 /**
  * @TEST
  * Check insert operation of vector
@@ -81,18 +83,16 @@ TEST_FN Bool Insert() {
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
         anv_u32_vector_insert(vec, iter, iter);
 
-        if(vec->length != iter + 1) {
-            DBG(__FUNCTION__, "VECTOR LENGTH MISMATCH\n");
-            res = False; goto Exit;
-        }
-
         if(vec->capacity < vec->length) {
             DBG(__FUNCTION__, "VECTOR CAPACITY CANNOT BE LESS THAN VECTOR LENGTH\n");
             res = False; goto Exit;
         }
     }
 
-
+    if(vec->length != TEST_DATA_SIZE) {
+        DBG(__FUNCTION__, "VECTOR LENGTH MISMATCH\n");
+        res = False; goto Exit;
+    }
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {

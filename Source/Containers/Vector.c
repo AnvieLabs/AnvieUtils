@@ -24,6 +24,14 @@
 #define AV_DYN_ARRAY_DEFAULT_RESIZE_FACTOR 1
 #define AV_DYN_ARRAY_DEFAULT_FREE_WHEN_POSSIBLE True
 
+void anv_string_create_copy(void* to, void* p_data) {
+    *(String*)to = strdup((String)p_data);
+}
+
+void anv_string_destroy_copy(void* p_data){
+    FREE(*(String*)p_data);
+}
+
 /**
  * Create a new dynamic array.
  * If any one of @c pfn_create_copy or @c pfn_destroy_copy is non null,
