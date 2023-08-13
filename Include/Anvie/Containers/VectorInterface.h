@@ -2,11 +2,24 @@
  * @file VectorInterface.h
  * @date Mon, 14th July, 2023
  * @author Siddharth Mishra (admin@brightprogrammer.in)
- * @copyright Copyright (c) 2023 Anvie Labs
+ * @copyright Copyright 2023 Siddharth Mishra
+ * @copyright Copyright 2023 Anvie Labs
  *
- * Vector Interface Creator.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * @brief Defines macros that'll help in quick creation of vectors for any type.
+ * Take a look at IntegerVectorTests.c and StructVectorTests.c for more insight on how to use these.
  * */
-
 
 #ifndef ANV_UTILS_VECTOR_INTERFACE_H
 #define ANV_UTILS_VECTOR_INTERFACE_H
@@ -220,16 +233,20 @@
         return (type*)(Uint64)anv_vector_pop_back(vec);                 \
     }                                                                   \
                                                                         \
+    FORCE_INLINE type* anv_##prefix##_vector_data(AnvVector* vec) {     \
+        return (type*)vec->p_data;                                      \
+    }                                                                   \
+                                                                        \
     FORCE_INLINE type* anv_##prefix##_vector_peek(AnvVector* vec, Size pos) { \
-        return (type*)(Uint64)anv_vector_peek(vec, pos);                \
+        return (type*)anv_##prefix##_vector_data(vec) + pos;            \
     }                                                                   \
                                                                         \
     FORCE_INLINE type* anv_##prefix##_vector_front(AnvVector* vec) {    \
-        return (type*)(Uint64)anv_vector_front(vec);                    \
+        return (type*)anv_##prefix##_vector_data(vec);                  \
     }                                                                   \
                                                                         \
     FORCE_INLINE type* anv_##prefix##_vector_back(AnvVector* vec) {     \
-        return (type*)(Uint64)anv_vector_back(vec);                     \
+        return (type*)anv_##prefix##_vector_data(vec) + (vec->length - 1); \
     }                                                                   \
                                                                         \
     FORCE_INLINE void anv_##prefix##_vector_print(AnvVector* vec, AnvPrintElementCallback printer) { \
@@ -262,10 +279,7 @@
                                                                         \
     FORCE_INLINE void anv_##prefix##_vector_bubble_sort(AnvVector* vec, AnvCompareElementCallback compare) { \
         anv_vector_bubble_sort(vec, compare);                           \
-    }                                                                   \
-                                                                        \
-    FORCE_INLINE type* anv_##prefix##_vector_data(AnvVector* vec) {     \
-        return (type*)vec->p_data;                                      \
     }
+
 
 #endif // ANV_UTILS_VECTOR_INTERFACE_H
