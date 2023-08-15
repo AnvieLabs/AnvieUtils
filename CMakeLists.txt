@@ -13,3 +13,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 include_directories("Include")
 add_subdirectory("Source")
 #add_subdirectory("Tests")
+
+add_library(anvutils_headers INTERFACE)
+target_include_directories(anvutils_headers INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/Include)
