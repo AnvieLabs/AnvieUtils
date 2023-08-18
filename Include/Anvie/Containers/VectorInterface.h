@@ -151,6 +151,10 @@
                                                                         \
     FORCE_INLINE type* anv_##prefix##_vector_data(AnvVector* vec) {     \
         return (type*)vec->p_data;                                      \
+    }                                                                   \
+                                                                        \
+    FORCE_INLINE type* anv_##prefix##_vector_address_at(AnvVector* vec, Size idx) { \
+        return (type*)anv_vector_address_at(vec, idx);                  \
     }
 
 #define DEF_ANV_STRUCT_VECTOR_INTERFACE(prefix, type, copy_create, copy_destroy) \
@@ -279,7 +283,12 @@
                                                                         \
     FORCE_INLINE void anv_##prefix##_vector_bubble_sort(AnvVector* vec, AnvCompareElementCallback compare) { \
         anv_vector_bubble_sort(vec, compare);                           \
+    }                                                                   \
+                                                                        \
+    FORCE_INLINE type* anv_##prefix##_vector_address_at(AnvVector* vec, Size idx) { \
+        return (type*)anv_vector_address_at(vec, idx);                  \
     }
+
 
 
 #endif // ANV_UTILS_VECTOR_INTERFACE_H
