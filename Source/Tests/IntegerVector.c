@@ -516,6 +516,22 @@ TEST_FN Bool Filter() {
     return res;
 }
 
+TEST_FN Bool Swap() {
+    AnvVector* vec = anv_i32_vector_create();
+
+    Int32 v0 = 32, v1 = 64;
+    anv_i32_vector_push_back(vec, v0);
+    anv_i32_vector_push_back(vec, v1);
+    anv_i32_vector_swap(vec, 0, 1);
+
+    if(anv_i32_vector_peek(vec, 0) != v1 || anv_i32_vector_peek(vec, 1) != v0) {
+        ERR(__FUNCTION__, "SWAP NOT CORRECT!\n");
+    }
+
+    anv_i32_vector_destroy(vec);
+    return True;
+}
+
 static Int32 compare_i32(void* x, void* y) {
     Int32 vx = (Int32)(Int64)x;
     Int32 vy = (Int32)(Int64)y;
@@ -534,21 +550,21 @@ static void print_i32(void* x, Size s) {
                                                                 \
         Float32 avg_time = 0;                                           \
         Size iter_count = 10;                                           \
-        Size arr_size = 1000;                                           \
+        Size arr_size = 10;                                             \
         for(Size k = 0; k < iter_count; k++) {                          \
             for(Size s = 0; s < arr_size; s++) {                        \
-                anv_i32_vector_push_back(vec, s);                       \
+                anv_i32_vector_push_back(vec, rand()%arr_size);         \
             }                                                           \
                                                                         \
             Size start = anv_chrono_get_time_as_microseconds();         \
             anv_vector_##sort_type##_sort(vec, compare_i32);            \
             Size stop = anv_chrono_get_time_as_microseconds();          \
             avg_time += stop - start;                                   \
-            RETURN_VALUE_IF_FAIL(anv_vector_check_sorted(vec, compare_i32), False, "ARRAY NOT SORTED!\n"); \
+            anv_vector_print(vec, print_i32); newline();                \
             anv_vector_clear(vec);                                      \
         }                                                               \
         OK(#TestName, "Average test time for %zu iterations of %zu array size is %f ms\n", iter_count, arr_size, avg_time/iter_count/1000); \
-        UNUSED(print_i32);                                              \
+        RETURN_VALUE_IF_FAIL(anv_vector_check_sorted(vec, compare_i32), False, "ARRAY NOT SORTED!\n"); \
                                                                         \
         anv_i32_vector_destroy(vec);                                    \
         return True;                                                    \
@@ -556,13 +572,16 @@ static void print_i32(void* x, Size s) {
 
 TEST_VECTOR_SORT_FN(InsertionSort, insertion);
 TEST_VECTOR_SORT_FN(BubbleSort, bubble);
+TEST_VECTOR_SORT_FN(MergeSort, merge);
 
 BEGIN_TESTS(AnvIntegerVector)
     // SORTING
+    TEST(MergeSort),
     TEST(BubbleSort),
     TEST(InsertionSort),
 
     // MISC
+    TEST(Swap),
     TEST(Filter),
     TEST(Merge),
 

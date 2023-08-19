@@ -77,7 +77,10 @@ AnvVector* anv_vector_create(Size element_size,
                              AnvDestroyElementCopyCallback pfn_destroy_copy);
 void anv_vector_destroy(AnvVector* p_vec);
 void anv_vector_resize(AnvVector* p_vec, Size new_size);
+void anv_vector_reserve(AnvVector* p_vec, Size capacity);
 void anv_vector_clear(AnvVector* p_vec);
+
+AnvVector* anv_vector_get_subvector(AnvVector* p_vec, Size start, Size size);
 
 void anv_vector_copy(AnvVector* p_vec, Size to, Size from);
 void anv_vector_move(AnvVector* p_vec, Size to, Size from);
@@ -117,6 +120,7 @@ Bool anv_vector_check_sorted(AnvVector* p_vec, AnvCompareElementCallback p_compa
 // sorting algorithms
 void anv_vector_insertion_sort(AnvVector* p_vec, AnvCompareElementCallback p_compare);
 void anv_vector_bubble_sort(AnvVector* p_vec, AnvCompareElementCallback p_compare);
+void anv_vector_merge_sort(AnvVector* p_vec, AnvCompareElementCallback p_compare);
 
 /*---------------- DEFINE COMMON INTERFACES FOR TYPE-SAFETY-----------------*/
 
@@ -143,6 +147,9 @@ DEF_ANV_INTEGER_VECTOR_INTERFACE(i8,  Int8);
 DEF_ANV_INTEGER_VECTOR_INTERFACE(i16, Int16);
 DEF_ANV_INTEGER_VECTOR_INTERFACE(i32, Int32);
 DEF_ANV_INTEGER_VECTOR_INTERFACE(i64, Int64);
+
+DEF_ANV_INTEGER_VECTOR_INTERFACE(f32, Float32);
+DEF_ANV_INTEGER_VECTOR_INTERFACE(f64, Float64);
 
 void anv_string_create_copy(void* to, void* p_data);
 void anv_string_destroy_copy(void* p_data);

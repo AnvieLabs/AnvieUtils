@@ -144,6 +144,17 @@ FORCE_INLINE void anv_vector_resize(AnvVector* p_vec, Size new_size) {
 }
 
 /**
+ * Reserve space for new array. This does not increase length of array.
+ * @param p_vec
+ * @param capacity
+ * */
+FORCE_INLINE void anv_vector_reserve(AnvVector* p_vec, Size capacity) {
+    RETURN_IF_FAIL(p_vec && capacity, ERR_INVALID_ARGUMENTS);
+    anv_vector_resize(p_vec, capacity);
+    p_vec->length = 0;
+}
+
+/**
  * Clear vector.
  * This will destroy all elements and memset whole memory to 0.
  * Capacity is still not 0 after Clear.
@@ -162,6 +173,24 @@ FORCE_INLINE void anv_vector_clear(AnvVector* p_vec) {
 
     memset(p_vec->p_data, 0, p_vec->capacity * anv_vector_element_size(p_vec));
     p_vec->length = 0;
+}
+
+/**
+ * Get subvector of given vector by creating another vector containing copy
+ * of data.
+ * @param p_vec
+ * @param start
+ * @param size
+ * */
+AnvVector* anv_vector_get_subvector(AnvVector* p_vec, Size start, Size size) {
+    RETURN_VALUE_IF_FAIL(p_vec && size, NULL, ERR_INVALID_ARGUMENTS);
+
+    AnvVector* new_vec = anv_vector_create(p_vec->element_size, p_vec->pfn_create_copy, p_vec->pfn_destroy_copy);
+    for(Size s = start; s < size; s++) {
+        anv_vector_push_back(new_vec, anv_vector_peek(p_vec, s));
+    }
+
+    return new_vec;
 }
 
 /**
@@ -789,10 +818,9 @@ void anv_vector_insertion_sort(AnvVector* p_vec, AnvCompareElementCallback pfn_c
     RETURN_IF_FAIL(p_vec && pfn_compare, ERR_INVALID_ARGUMENTS);
 
     for(Size s = 1; s < p_vec->length; s++) {
-        Size m = 0;
-        // while vec[s] > vec[m]
-        while(m < s && pfn_compare(anv_vector_peek(p_vec, s), anv_vector_peek(p_vec, m))) {
-            anv_vector_swap(p_vec, s, m++);
+        Size m = s;
+        while((m > 0) && (pfn_compare(anv_vector_peek(p_vec, m-1), anv_vector_peek(p_vec, m)) > 0)) {
+            anv_vector_swap(p_vec, m, m-1); m--;
         }
     }
 }
@@ -806,10 +834,10 @@ void anv_vector_bubble_sort(AnvVector* p_vec, AnvCompareElementCallback pfn_comp
     RETURN_IF_FAIL(p_vec && pfn_compare, ERR_INVALID_ARGUMENTS);
 
     Bool b_swapped;
-    for (Size i = 0; i < p_vec->length - 1; i++) {
+    for (Size i = 0; i < p_vec->length; i++) {
         b_swapped = False;
-        for (Size j = 0; j < p_vec->length - i - 1; j++) {
-            if (pfn_compare(anv_vector_peek(p_vec, j+1), anv_vector_peek(p_vec, j))) {
+        for (Size j = 0; j < p_vec->length; j++) {
+            if (pfn_compare(anv_vector_peek(p_vec, j+1), anv_vector_peek(p_vec, j)) > 0) {
                 anv_vector_swap(p_vec, j, j+1);
                 b_swapped = True;
             }
@@ -817,4 +845,62 @@ void anv_vector_bubble_sort(AnvVector* p_vec, AnvCompareElementCallback pfn_comp
         if (!b_swapped)
             break;
     }
+}
+
+static inline void print_subarray(AnvVector* p_vec, Size start, Size size) {
+    for(Size s = start; s < size; s++) {
+        printf("%d, ", anv_vector_at(p_vec, Uint32, s));
+    }
+}
+
+static inline void merge_sort(AnvVector* p_vec, AnvCompareElementCallback pfn_compare, Size start, Size size) {
+    if(size == 1) return;
+
+    RETURN_IF_FAIL(p_vec && pfn_compare && (start + size) <= p_vec->length, ERR_INVALID_ARGUMENTS);
+
+    if((size == 2) && (pfn_compare(anv_vector_peek(p_vec, start), anv_vector_peek(p_vec, start + 1)) > 0)) {
+        anv_vector_swap(p_vec, start, start+1);
+        return;
+    }
+
+    Size mid = start + size/2;
+    merge_sort(p_vec, pfn_compare, start, size/2);
+    merge_sort(p_vec, pfn_compare, mid, size - size/2);
+
+    Size s = start;
+    Size m = mid;
+
+    AnvVector* subvec = anv_vector_get_subvector(p_vec, start, size);
+    subvec->pfn_create_copy = NULL; // reduce mempy calls
+    subvec->pfn_destroy_copy = NULL;
+
+    anv_vector_reserve(subvec, size);
+
+    // merge
+    while((s < mid) && (m < start + size - 1)) {
+        Int32 res = pfn_compare(anv_vector_peek(p_vec, s), anv_vector_peek(p_vec, m));
+        if(res > 0) {
+            anv_vector_push_back(subvec, anv_vector_peek(p_vec, s++));
+        } else if (res < 0) {
+            anv_vector_push_back(subvec, anv_vector_peek(p_vec, m++));
+        } else {
+            anv_vector_push_back(subvec, anv_vector_peek(p_vec, s++));
+            anv_vector_push_back(subvec, anv_vector_peek(p_vec, m++));
+        }
+    }
+
+    // copy back sorted array
+    memcpy(anv_vector_address_at(p_vec, start), subvec->p_data, subvec->element_size * subvec->length);
+    anv_vector_destroy(subvec);
+}
+
+
+/**
+ * Merge sort algorithm
+ * @param p_vec
+ * @param pfn_compare
+ * */
+void anv_vector_merge_sort(AnvVector* p_vec, AnvCompareElementCallback pfn_compare) {
+    RETURN_IF_FAIL(p_vec && pfn_compare, ERR_INVALID_ARGUMENTS);
+    merge_sort(p_vec, pfn_compare, 0, p_vec->length);
 }
