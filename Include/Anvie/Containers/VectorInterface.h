@@ -41,8 +41,16 @@
         anv_vector_resize(vec, sz);                                     \
     }                                                                   \
                                                                         \
+    FORCE_INLINE void anv_##prefix##_vector_reserve(AnvVector* vec, Size sz) { \
+        anv_vector_reserve(vec, sz);                                    \
+    }                                                                   \
+                                                                        \
     FORCE_INLINE void anv_##prefix##_vector_clear(AnvVector* vec) {     \
         anv_vector_clear(vec);                                          \
+    }                                                                   \
+                                                                        \
+    FORCE_INLINE void anv_##prefix##_vector_get_subvector(AnvVector* vec, Size start, Size size) { \
+        anv_vector_get_subvector(vec, start, size);                         \
     }                                                                   \
                                                                         \
     FORCE_INLINE void anv_##prefix##_vector_copy(AnvVector* vec, Size to, Size from) { \
@@ -173,8 +181,16 @@
         anv_vector_resize(vec, sz);                                     \
     }                                                                   \
                                                                         \
+    FORCE_INLINE void anv_##prefix##_vector_reserve(AnvVector* vec, Size sz) { \
+        anv_vector_reserve(vec, sz);                                    \
+    }                                                                   \
+                                                                        \
     FORCE_INLINE void anv_##prefix##_vector_clear(AnvVector* vec) {     \
         anv_vector_clear(vec);                                          \
+    }                                                                   \
+                                                                        \
+    FORCE_INLINE void anv_##prefix##_vector_get_subvector(AnvVector* vec, Size start, Size size) { \
+        anv_vector_get_subvector(vec, start, size);                         \
     }                                                                   \
                                                                         \
     FORCE_INLINE void anv_##prefix##_vector_copy(AnvVector* vec, Size to, Size from) { \
