@@ -1,11 +1,14 @@
-#include <Anvie/Math/Vector3f.h>
+#include <Anvie/Maths/Vector3f.h>
+#include <Anvie/HelperDefines.h>
+#include <string.h>
+#include <math.h>
 
 /**
  * Create a new Vector3f
  *
  * @return AnvVector3f* on success, NULL otherwise.
  * */
-AnvVector3f* anv_vector_3f_create(Float32 x, Float32 y, Float32 z) {
+inline AnvVector3f* anv_vector_3f_create(Float32 x, Float32 y, Float32 z) {
     AnvVector3f* p_vec = NEW(AnvVector3f);
     RETURN_VALUE_IF_FAIL(p_vec, NULL, ERR_OUT_OF_MEMORY);
 
@@ -22,7 +25,7 @@ AnvVector3f* anv_vector_3f_create(Float32 x, Float32 y, Float32 z) {
  * @param p_vec
  * */
 void anv_vector_3f_destroy(AnvVector3f* p_vec) {
-    RETURN_VALUE_IF_FAIL(p_vec, ERR_INVALID_ARGUMENTS);
+    RETURN_IF_FAIL(p_vec, ERR_INVALID_ARGUMENTS);
     FREE(p_vec);
 }
 
@@ -32,11 +35,10 @@ void anv_vector_3f_destroy(AnvVector3f* p_vec) {
  * @param p_vec
  * @return AnvVector3f* on success, False otherwise.
  * */
-AnvVector3f* anv_vector_3f_create_copy(AnvVector3f* p_vec) {
-    AnvVector3f* p_copy_vec = anv_vector_3f_create();
+inline AnvVector3f* anv_vector_3f_create_copy(AnvVector3f* p_vec) {
+    AnvVector3f* p_copy_vec = anv_vector_3f_create(p_vec->x, p_vec->y, p_vec->z);
     RETURN_VALUE_IF_FAIL(p_copy_vec, NULL, "Failed to create copy of given vector\n");
-
-    memcpy(p_copy_vec, p_vec, sizeof(AnvVector3f));
+    return p_copy_vec;
 }
 
 /**
@@ -44,8 +46,8 @@ AnvVector3f* anv_vector_3f_create_copy(AnvVector3f* p_vec) {
  *
  * @return AnvVector3f* on success, NULL otherwise.
  * */
-AnvVector3f* anv_vector_3f_origin() {
-    AnvVector3f* p_vec = anv_vector_3f_create();
+inline AnvVector3f* anv_vector_3f_origin() {
+    AnvVector3f* p_vec = anv_vector_3f_create(0, 0, 0);
     RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create X Axis Vector3f\n");
     return p_vec;
 }
@@ -56,9 +58,8 @@ AnvVector3f* anv_vector_3f_origin() {
  * @return AnvVector3f* on success, NULL otherwise.
  * */
 AnvVector3f* anv_vector_3f_x_axis() {
-    AnvVector3f* p_vec = anv_vector_3f_create();
+    AnvVector3f* p_vec = anv_vector_3f_create(1, 0, 0);
     RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create X Axis Vector3f\n");
-    p_vec->x = 1.f;
     return p_vec;
 }
 
@@ -68,9 +69,8 @@ AnvVector3f* anv_vector_3f_x_axis() {
  * @return AnvVector3f* on success, NULL otherwise.
  * */
 AnvVector3f* anv_vector_3f_y_axis() {
-    AnvVector3f* p_vec = anv_vector_3f_create();
+    AnvVector3f* p_vec = anv_vector_3f_create(0, 1, 0);
     RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create X Axis Vector3f\n");
-    p_vec->y = 1.f;
     return p_vec;
 }
 
@@ -80,9 +80,8 @@ AnvVector3f* anv_vector_3f_y_axis() {
  * @return AnvVector3f* on success, NULL otherwise.
  * */
 AnvVector3f* anv_vector_3f_z_axis() {
-    AnvVector3f* p_vec = anv_vector_3f_create();
+    AnvVector3f* p_vec = anv_vector_3f_create(0, 0, 1);
     RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create X Axis Vector3f\n");
-    p_vec->z = 1.f;
     return p_vec;
 }
 
@@ -97,12 +96,12 @@ AnvVector3f* anv_vector_3f_z_axis() {
 AnvVector3f* anv_vector_3f_add(AnvVector3f* p_vec1, AnvVector3f* p_vec2) {
     RETURN_VALUE_IF_FAIL(p_vec1 && p_vec2, NULL, ERR_INVALID_ARGUMENTS);
 
-    AnvVector3f* p_new_vec = anv_vector_3f_create();
+    AnvVector3f* p_new_vec = anv_vector_3f_origin();
     RETURN_VALUE_IF_FAIL(p_new_vec, NULL, "Failed to create new vector for storing result\n");
 
-#define V1(t) p_vec1->##t
-#define V2(t) p_vec2->##t
-#define VN(t) p_new_vec->##t
+#define V1(t) p_vec1->t
+#define V2(t) p_vec2->t
+#define VN(t) p_new_vec->t
 
     VN(x) = V1(x) + V2(x);
     VN(y) = V1(y) + V2(y);
@@ -126,12 +125,12 @@ AnvVector3f* anv_vector_3f_add(AnvVector3f* p_vec1, AnvVector3f* p_vec2) {
 AnvVector3f* anv_vector_3f_sub(AnvVector3f* p_vec1, AnvVector3f* p_vec2) {
     RETURN_VALUE_IF_FAIL(p_vec1 && p_vec2, NULL, ERR_INVALID_ARGUMENTS);
 
-    AnvVector3f* p_new_vec = anv_vector_3f_create();
+    AnvVector3f* p_new_vec = anv_vector_3f_origin();
     RETURN_VALUE_IF_FAIL(p_new_vec, NULL, "Failed to create new vector for storing result\n");
 
-#define V1(t) p_vec1->##t
-#define V2(t) p_vec2->##t
-#define VN(t) p_new_vec->##t
+#define V1(t) p_vec1->t
+#define V2(t) p_vec2->t
+#define VN(t) p_new_vec->t
 
     VN(x) = V1(x) - V2(x);
     VN(y) = V1(y) - V2(y);
@@ -155,11 +154,11 @@ AnvVector3f* anv_vector_3f_sub(AnvVector3f* p_vec1, AnvVector3f* p_vec2) {
 AnvVector3f* anv_vector_3f_scale(AnvVector3f* p_vec, Float32 scale) {
     RETURN_VALUE_IF_FAIL(p_vec, NULL, ERR_INVALID_ARGUMENTS);
 
-    AnvVector3f* p_new_vec = anv_vector_3f_create();
+    AnvVector3f* p_new_vec = anv_vector_3f_origin();
     RETURN_VALUE_IF_FAIL(p_new_vec, NULL, "Failed to create new vector for storing result\n");
 
-#define V(t) p_vec1->##t
-#define VN(t) p_new_vec->##t
+#define V(t) p_vec->t
+#define VN(t) p_new_vec->t
 
     VN(x) = V(x) * scale;
     VN(y) = V(y) * scale;
@@ -179,10 +178,10 @@ AnvVector3f* anv_vector_3f_scale(AnvVector3f* p_vec, Float32 scale) {
  * @return Result of dot product.
  * */
 Float32 anv_vector_3f_dot(AnvVector3f* p_vec1, AnvVector3f* p_vec2) {
-    RETURN_VALUE_IF_FAIL(p_vec1 && p_vec2, NULL, ERR_INVALID_ARGUMENTS);
+    RETURN_VALUE_IF_FAIL(p_vec1 && p_vec2, 0, ERR_INVALID_ARGUMENTS);
 
-#define V1(t) p_vec1->##t
-#define V2(t) p_vec2->##t
+#define V1(t) p_vec1->t
+#define V2(t) p_vec2->t
 
     return V1(x)*V2(x) + V1(y)*V2(y) + V1(z)*V2(z);
 
@@ -201,12 +200,12 @@ Float32 anv_vector_3f_dot(AnvVector3f* p_vec1, AnvVector3f* p_vec2) {
 AnvVector3f* anv_vector_3f_cross(AnvVector3f* p_vec1, AnvVector3f* p_vec2) {
     RETURN_VALUE_IF_FAIL(p_vec1 && p_vec2, NULL, ERR_INVALID_ARGUMENTS);
 
-    AnvVector3f* p_new_vec = anv_vector_3f_create();
+    AnvVector3f* p_new_vec = anv_vector_3f_origin();
     RETURN_VALUE_IF_FAIL(p_new_vec, NULL, "Failed to create new vector for storing result\n");
 
-#define V1(t) p_vec1->##t
-#define V2(t) p_vec2->##t
-#define VN(t) p_new_vec->##t
+#define V1(t) p_vec1->t
+#define V2(t) p_vec2->t
+#define VN(t) p_new_vec->t
 
     VN(x) = V1(y)*V2(z) - V1(z)*V2(y);
     VN(y) = V1(x)*V2(z) - V1(z)*V2(x);
@@ -225,10 +224,10 @@ AnvVector3f* anv_vector_3f_cross(AnvVector3f* p_vec1, AnvVector3f* p_vec2) {
  * @param p_vec
  * @return Float32
  * */
-Float32 anv_vector_3f_compute_norm(AnvVector3f* p_vec) {
+inline Float32 anv_vector_3f_compute_norm(AnvVector3f* p_vec) {
     RETURN_VALUE_IF_FAIL(p_vec, 0, ERR_INVALID_ARGUMENTS);
 
-#define V(t) p_vec->##t
+#define V(t) p_vec->t
     return sqrtf(V(x)*V(x) + V(y)*V(y) + V(z)*V(z));
 #undef V
 }
@@ -241,7 +240,7 @@ Float32 anv_vector_3f_compute_norm(AnvVector3f* p_vec) {
 void anv_vector_3f_normalize(AnvVector3f* p_vec) {
     RETURN_IF_FAIL(p_vec, ERR_INVALID_ARGUMENTS);
 
-#define V(t) p_vec->##t
+#define V(t) p_vec->t
 
     Float32 norm = anv_vector_3f_compute_norm(p_vec);
     V(x) = V(x) / norm;

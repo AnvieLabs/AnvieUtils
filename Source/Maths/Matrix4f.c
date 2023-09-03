@@ -24,6 +24,8 @@
 #include <Anvie/Maths/Vector3f.h>
 #include <math.h>
 
+#include <Anvie/HelperDefines.h>
+
 /**
  * Create a new Matrix4f.
  *
@@ -267,10 +269,10 @@ AnvMatrix4f* anv_matrix_4f_look_at(
     AnvVector3f* up = anv_vector_3f_create(upX, upY, upZ);
 
     AnvVector3f* fwd = anv_vector_3f_sub(eye, target);
-    AnvVector3f* right = anv_vector_3f_corss(up, fwd);
+    AnvVector3f* right = anv_vector_3f_cross(up, fwd);
 
     anv_vector_3f_destroy(up);
-    up = anv_vector_3f_corss(fwd, right);
+    up = anv_vector_3f_cross(fwd, right);
 
     anv_vector_3f_normalize(fwd);
     anv_vector_3f_normalize(right);
@@ -318,7 +320,7 @@ AnvMatrix4f* anv_matrix_4f_translation_matrix(Float32 dx, Float32 dy, Float32 dz
     M(1, 0) = dy;
     M(2, 0) = dz;
     M(4, 0) = 1;
-#undef
+#undef M
 
     return p_mat;
 }
@@ -348,8 +350,8 @@ AnvMatrix4f* anv_matrix_4f_rotation_matrix(Float32 yaw, Float32 pitch, Float32 r
 
     M(2, 0) = -sin(pitch);
     M(2, 1) = sin(roll)*cos(pitch);
-    M(2, 2) = cos(roll)*cols(pitch);
-#undef
+    M(2, 2) = cos(roll)*cos(pitch);
+#undef M
 
     return p_mat;
 }
@@ -371,7 +373,7 @@ AnvMatrix4f* anv_matrix_4f_scale_matrix(Float32 sx, Float32 sy, Float32 sz) {
     M(0, 0) = sx;
     M(1, 1) = sy;
     M(2, 2) = sz;
-#undef
+#undef M
 
     return p_mat;
 }
@@ -385,9 +387,9 @@ AnvMatrix4f* anv_matrix_4f_scale_matrix(Float32 sx, Float32 sy, Float32 sz) {
  * @param dz Change in Z axis
  * */
 void anv_matrix_4f_translate(AnvMatrix4f* p_mat, Float32 dx, Float32 dy, Float32 dz) {
-    RETURN_VALUE_IF_FAIL(p_mat, NULL, "Failed to create translation matrix\n");
-    AnvMatrix* p_trmat = anv_matrix_4f_translation_matrix(dx, dy, dz);
-    RETURN_IF_FAIL("Failed to create translation matrix\n");
+    RETURN_IF_FAIL(p_mat, "Failed to create translation matrix\n");
+    AnvMatrix4f* p_trmat = anv_matrix_4f_translation_matrix(dx, dy, dz);
+    RETURN_IF_FAIL(p_trmat, "Failed to create translation matrix\n");
     anv_matrix_4f_mul(p_mat, p_trmat);
     anv_matrix_4f_destroy(p_trmat);
 }
@@ -402,9 +404,9 @@ void anv_matrix_4f_translate(AnvMatrix4f* p_mat, Float32 dx, Float32 dy, Float32
  * @param roll Rotation about X axis.
  * */
 void anv_matrix_4f_rotate(AnvMatrix4f* p_mat, Float32 yaw, Float32 pitch, Float32 roll) {
-    RETURN_VALUE_IF_FAIL(p_mat, NULL, "Failed to create translation matrix\n");
-    AnvMatrix* p_rotmat = anv_matrix_4f_rotation_matrix(yaw, pitch, roll);
-    RETURN_IF_FAIL("Failed to create rotation matrix\n");
+    RETURN_IF_FAIL(p_mat, "Failed to create translation matrix\n");
+    AnvMatrix4f* p_rotmat = anv_matrix_4f_rotation_matrix(yaw, pitch, roll);
+    RETURN_IF_FAIL(p_rotmat, "Failed to create rotation matrix\n");
     anv_matrix_4f_mul(p_mat, p_rotmat);
     anv_matrix_4f_destroy(p_rotmat);
 }
@@ -419,9 +421,9 @@ void anv_matrix_4f_rotate(AnvMatrix4f* p_mat, Float32 yaw, Float32 pitch, Float3
  * @param sz Scale about Z axis.
  * */
 void anv_matrix_4f_scale(AnvMatrix4f* p_mat, Float32 sx, Float32 sy, Float32 sz) {
-    RETURN_VALUE_IF_FAIL(p_mat, NULL, "Failed to create translation matrix\n");
-    AnvMatrix* p_scalemat = anv_matrix_4f_scale_matrix(sx, sy, sz);
-    RETURN_IF_FAIL("Failed to create scale matrix\n");
+    RETURN_IF_FAIL(p_mat, "Failed to create translation matrix\n");
+    AnvMatrix4f* p_scalemat = anv_matrix_4f_scale_matrix(sx, sy, sz);
+    RETURN_IF_FAIL(p_scalemat, "Failed to create scale matrix\n");
     anv_matrix_4f_mul(p_mat, p_scalemat);
     anv_matrix_4f_destroy(p_scalemat);
 }

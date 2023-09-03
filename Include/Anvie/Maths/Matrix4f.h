@@ -36,6 +36,10 @@ typedef struct anvie_matrix_4f_t {
 AnvMatrix4f* anv_matrix_4f_create();
 void anv_matrix_4f_destroy(AnvMatrix4f* p_mat);
 
+void anv_matrix_4f_mul(AnvMatrix4f* p_mat1, AnvMatrix4f* p_mat2);
+void anv_matrix_4f_add(AnvMatrix4f* p_mat1, AnvMatrix4f* p_mat2);
+void anv_matrix_4f_sub(AnvMatrix4f* p_mat1, AnvMatrix4f* p_mat2);
+
 AnvMatrix4f* anv_matrix_4f_identity();
 AnvMatrix4f* anv_matrix_4f_projection_perspective(
     Float32 aspect, Float32 fov,
