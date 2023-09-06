@@ -173,35 +173,66 @@ AnvMatrix4f* anv_matrix_4f_identity() {
 }
 
 /**
- * Create a new perspective projection matrix
+ * Create a new frustum matrix
  *
- * @param aspect Aspect ratio
- * @param fov Angle of field of view in radians
- * @param far Far plane
- * @param near Near plane
+ * @param right Value between -1 and 0
+ * @param left Value between 0 and 1
+ * @param top Value between -1 and 0
+ * @param bottom Value between 0 and 1
+ * @param far Value between 0 and 1
+ * @param near Value between 0 and 1
  *
  * @return AnvMatrix4f* on success, NULL otherwise.
  * */
-AnvMatrix4f* anv_matrix_4f_projection_perspective(
-    Float32 aspect, Float32 fov,
-    Float32 far, Float32 near) {
+AnvMatrix4f* anv_matrix_4f_frustum(
+    Float32 left, Float32 right,
+    Float32 top, Float32 bottom,
+    Float32 near, Float32 far)
+{
+    RETURN_VALUE_IF_FAIL((left < right) && (top < bottom) && (near < far), NULL, ERR_INVALID_ARGUMENTS);
+
     AnvMatrix4f* p_mat = anv_matrix_4f_create();
     RETURN_VALUE_IF_FAIL(p_mat, NULL, "Failed to create perspective projection matrix\n");
 
 #define M(r, c) p_mat->data[r][c]
 
-    M(0, 0) = 1/(aspect*tan(fov/2));
+    M(0, 0) = 2*near/(right-left);
+    M(0, 2) = (right+left)/(right-left);
 
-    M(1, 1) = 1/tan(fov/2);
+    M(1, 1) = 2*near/(top-bottom);
+    M(1, 2) = (top+bottom)/(top-bottom);
 
-    M(2, 2) = -(far + near)/(far-near);
-    M(2, 3) = -2*far*near/(far-near);
+    M(2, 2) = (far+near)/(near-far);
+    M(2, 3) = 2*far*near/(near-far);
 
     M(3, 2) = -1;
 
 #undef M
 
     return p_mat;
+}
+
+/**
+ * Create a new perspective projection matrix
+ *
+ * @param aspect Widgh:Height aspect reation
+ * @param fov Field of view in degrees
+ * @param near Near plane
+ * @param far Far plane
+ * */
+AnvMatrix4f* anv_matrix_4f_projection_perspective(
+    Float32 aspect, Float32 fov,
+    Float32 near, Float32 far
+) {
+    RETURN_VALUE_IF_FAIL((aspect != 0) && (fov != 0) && (near < far), NULL, ERR_INVALID_ARGUMENTS);
+
+    Float32 scale = tan(fov * 0.5 * M_PI / 180) * near;
+    Float32 r = fov * scale;
+    Float32 l = -r;
+    Float32 t = scale;
+    Float32 b = -t;
+
+    return anv_matrix_4f_frustum(l, r, t, b, near, far);
 }
 
 /**
@@ -221,17 +252,17 @@ AnvMatrix4f* anv_matrix_4f_projection_orthographic(
     Float32 top, Float32 bottom,
     Float32 far, Float32 near) {
     AnvMatrix4f* p_mat = anv_matrix_4f_create();
-    RETURN_VALUE_IF_FAIL(p_mat, NULL, "Failed to create perspective projection matrix\n");
+    RETURN_VALUE_IF_FAIL(p_mat, NULL, "Failed to create orthographic projection matrix\n");
 
 #define M(r, c) p_mat->data[r][c]
 
-    M(0, 0) = 2/(right - left);
+    M(0, 0) = 2*near/(right - left);
     M(0, 3) = -(right + left)/(right - left);
 
-    M(1, 1) = 2/(top - bottom);
-    M(1, 3) = -(top + bottom)/(top - bottom);
+    M(1, 1) = 2*near/(bottom - top);
+    M(1, 3) = -(top + bottom)/(bottom - top);
 
-    M(2, 2) = -2/(far - near);
+    M(2, 2) = -2*far*near/(far - near);
     M(2, 3) = -(far + near)/(far - near);
 
     M(3, 3) = 1;
@@ -316,10 +347,9 @@ AnvMatrix4f* anv_matrix_4f_translation_matrix(Float32 dx, Float32 dy, Float32 dz
     RETURN_VALUE_IF_FAIL(p_mat, NULL, "Failed to create translation matrix\n");
 
 #define M(r, c) p_mat->data[r][c]
-    M(0, 0) = dx;
-    M(1, 0) = dy;
-    M(2, 0) = dz;
-    M(4, 0) = 1;
+    M(0, 3) = dx;
+    M(1, 3) = dy;
+    M(2, 3) = dz;
 #undef M
 
     return p_mat;
