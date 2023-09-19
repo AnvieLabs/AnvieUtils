@@ -48,7 +48,7 @@ inline AnvVector3f* anv_vector_3f_create_copy(AnvVector3f* p_vec) {
  * */
 inline AnvVector3f* anv_vector_3f_origin() {
     AnvVector3f* p_vec = anv_vector_3f_create(0, 0, 0);
-    RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create X Axis Vector3f\n");
+    RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create Origin Vector3f\n");
     return p_vec;
 }
 
@@ -70,7 +70,7 @@ AnvVector3f* anv_vector_3f_x_axis() {
  * */
 AnvVector3f* anv_vector_3f_y_axis() {
     AnvVector3f* p_vec = anv_vector_3f_create(0, 1, 0);
-    RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create X Axis Vector3f\n");
+    RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create Y Axis Vector3f\n");
     return p_vec;
 }
 
@@ -81,7 +81,7 @@ AnvVector3f* anv_vector_3f_y_axis() {
  * */
 AnvVector3f* anv_vector_3f_z_axis() {
     AnvVector3f* p_vec = anv_vector_3f_create(0, 0, 1);
-    RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create X Axis Vector3f\n");
+    RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create Z Axis Vector3f\n");
     return p_vec;
 }
 
