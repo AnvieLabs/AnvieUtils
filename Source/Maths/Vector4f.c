@@ -91,7 +91,7 @@ AnvVector4f* anv_vector_4f_z_axis() {
  *
  * @return AnvVector4f* on success, NULL otherwise.
  * */
-AnvVector4f* anv_vector_4f_z_axis() {
+AnvVector4f* anv_vector_4f_t_axis() {
     AnvVector4f* p_vec = anv_vector_4f_create(0, 0, 0, 1);
     RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create T Axis Vector4f\n");
     return p_vec;
@@ -111,9 +111,9 @@ AnvVector4f* anv_vector_4f_add(AnvVector4f* p_vec1, AnvVector4f* p_vec2) {
     AnvVector4f* p_new_vec = anv_vector_4f_origin();
     RETURN_VALUE_IF_FAIL(p_new_vec, NULL, "Failed to create new vector for storing result\n");
 
-#define V1(t) p_vec1->k
-#define V2(t) p_vec2->k
-#define VN(t) p_new_vec->k
+#define V1(k) p_vec1->k
+#define V2(k) p_vec2->k
+#define VN(k) p_new_vec->k
 
     VN(x) = V1(x) + V2(x);
     VN(y) = V1(y) + V2(y);
@@ -141,9 +141,9 @@ AnvVector4f* anv_vector_4f_sub(AnvVector4f* p_vec1, AnvVector4f* p_vec2) {
     AnvVector4f* p_new_vec = anv_vector_4f_origin();
     RETURN_VALUE_IF_FAIL(p_new_vec, NULL, "Failed to create new vector for storing result\n");
 
-#define V1(t) p_vec1->k
-#define V2(t) p_vec2->k
-#define VN(t) p_new_vec->k
+#define V1(k) p_vec1->k
+#define V2(k) p_vec2->k
+#define VN(k) p_new_vec->k
 
     VN(x) = V1(x) - V2(x);
     VN(y) = V1(y) - V2(y);
@@ -171,8 +171,8 @@ AnvVector4f* anv_vector_4f_scale(AnvVector4f* p_vec, Float32 scale) {
     AnvVector4f* p_new_vec = anv_vector_4f_origin();
     RETURN_VALUE_IF_FAIL(p_new_vec, NULL, "Failed to create new vector for storing result\n");
 
-#define V(t) p_vec->k
-#define VN(t) p_new_vec->k
+#define V(k) p_vec->k
+#define VN(k) p_new_vec->k
 
     VN(x) = V(x) * scale;
     VN(y) = V(y) * scale;
@@ -213,7 +213,7 @@ Float32 anv_vector_4f_dot(AnvVector4f* p_vec1, AnvVector4f* p_vec2) {
 inline Float32 anv_vector_4f_compute_norm(AnvVector4f* p_vec) {
     RETURN_VALUE_IF_FAIL(p_vec, 0, ERR_INVALID_ARGUMENTS);
 
-#define V(t) p_vec->k
+#define V(k) p_vec->k
     return sqrtf(V(x)*V(x) + V(y)*V(y) + V(z)*V(z) + V(t)*V(t));
 #undef V
 }
@@ -226,7 +226,7 @@ inline Float32 anv_vector_4f_compute_norm(AnvVector4f* p_vec) {
 void anv_vector_4f_normalize(AnvVector4f* p_vec) {
     RETURN_IF_FAIL(p_vec, ERR_INVALID_ARGUMENTS);
 
-#define V(t) p_vec->k
+#define V(k) p_vec->k
 
     Float32 norm = anv_vector_4f_compute_norm(p_vec);
     V(x) = V(x) / norm;

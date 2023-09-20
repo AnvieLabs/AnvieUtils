@@ -35,7 +35,7 @@ void anv_vector_2f_destroy(AnvVector2f* p_vec) {
  * @return AnvVector2f* on success, False otherwise.
  * */
 inline AnvVector2f* anv_vector_2f_create_copy(AnvVector2f* p_vec) {
-    AnvVector2f* p_copy_vec = anv_vector_2f_create(p_vec->x, p_vec->y, p_vec->z);
+    AnvVector2f* p_copy_vec = anv_vector_2f_create(p_vec->x, p_vec->y);
     RETURN_VALUE_IF_FAIL(p_copy_vec, NULL, "Failed to create copy of given vector\n");
     return p_copy_vec;
 }
