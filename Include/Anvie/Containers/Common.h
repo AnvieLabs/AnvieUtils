@@ -79,4 +79,18 @@ typedef Bool (*AnvFilterElementCallback)(void* p_element, void* p_user_data);
  * */
 typedef Int32 (*AnvCompareElementCallback)(void* p1, void* p2);
 
+void anv_print_i8(void* x, Size idx);
+void anv_print_i16(void* x, Size idx);
+void anv_print_i32(void* x, Size idx);
+void anv_print_i64(void* x, Size idx);
+
+void anv_print_u8(void* x, Size idx);
+void anv_print_u16(void* x, Size idx);
+void anv_print_u32(void* x, Size idx);
+void anv_print_u64(void* x, Size idx);
+
+void anv_print_string(void* x, Size idx);
+void anv_string_create_copy(void* to, void* p_data);
+void anv_string_destroy_copy(void* p_data);
+
 #endif // ANVIE_UTILS_COMMON_H

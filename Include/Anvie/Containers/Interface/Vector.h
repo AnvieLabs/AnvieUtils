@@ -37,6 +37,10 @@
         anv_vector_destroy(vec);                                        \
     }                                                                   \
                                                                         \
+    FORCE_INLINE AnvVector* anv_##prefix##_vector_clone(AnvVector* vec) { \
+        return anv_vector_clone(vec);                                   \
+    }                                                                   \
+                                                                        \
     FORCE_INLINE void anv_##prefix##_vector_resize(AnvVector* vec, Size sz) { \
         anv_vector_resize(vec, sz);                                     \
     }                                                                   \
@@ -175,6 +179,10 @@
                                                                         \
     FORCE_INLINE void anv_##prefix##_vector_destroy(AnvVector* vec) {   \
         anv_vector_destroy(vec);                                        \
+    }                                                                   \
+                                                                        \
+    FORCE_INLINE AnvVector* anv_##prefix##_vector_clone(AnvVector* vec) { \
+        return anv_vector_clone(vec);                                   \
     }                                                                   \
                                                                         \
     FORCE_INLINE void anv_##prefix##_vector_resize(AnvVector* vec, Size sz) { \
