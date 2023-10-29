@@ -28,18 +28,18 @@
 /**
  * Copy constructor for strings
  * @param to Pointer where new created string will be stored
- * @param p_data String to be copied
+ * @param data String to be copied
  * */
-void string_create_copy(void* to, void* p_data) {
-    if(p_data) *(String*)to = strdup((String)p_data);
+void string_create_copy(void* to, void* data) {
+    if(data) *(String*)to = strdup((String)data);
     else *(String*)to = NULL;
 }
 
 /**
  * Destroy given string
  * */
-void string_destroy_copy(void* p_data){
-    if(p_data) FREE(*(String*)p_data);
+void string_destroy_copy(void* data){
+    if(data) FREE(*(String*)data);
 }
 
 void print_i8(void* x, Size idx) { UNUSED(idx); printf("%d, ", (Int32)(Int64)x); }

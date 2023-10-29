@@ -33,38 +33,38 @@ static void tree_node_decrement_size(TreeNode* node);
 /**
  * Create a copy of given node object.
  *
- * @param p_dst Pointer to destination memory where
+ * @param dst Pointer to destination memory where
  * new copy will be stored.
- * @param p_src Pointer to tree node to create copy of.
+ * @param src Pointer to tree node to create copy of.
  * */
-void tree_node_create_copy(void* p_dst, void* p_src) {
-    RETURN_IF_FAIL(p_dst && p_src, ERR_INVALID_ARGUMENTS);
+void tree_node_create_copy(void* dst, void* src) {
+    RETURN_IF_FAIL(dst && src, ERR_INVALID_ARGUMENTS);
 
-    TreeNode* node_src = TO_TREE_NODE(p_src);
+    TreeNode* node_src = TO_TREE_NODE(src);
     Tree* tree = node_src->tree_parent;
 
     // create a copy of given src node to dst node
-    TreeNode* node_dst = TO_TREE_NODE(p_dst);
+    TreeNode* node_dst = TO_TREE_NODE(dst);
     node_dst->node_parent = node_src->node_parent;
     node_dst->tree_parent = tree;
     node_dst->height = node_src->height;
 
     // allocate space for storing data (if needed)
-    if(tree->pfn_create_copy || (tree->element_size > 8)) {
-        node_dst->p_data = ALLOCATE(Uint8, tree->element_size);
-        if(!node_dst->p_data) {
+    if(tree->create_copy || (tree->element_size > 8)) {
+        node_dst->data = ALLOCATE(Uint8, tree->element_size);
+        if(!node_dst->data) {
             ERR(__FUNCTION__, ERR_OUT_OF_MEMORY);
             return;
         }
     }
 
     // create copy of data stored in node
-    if(tree->pfn_create_copy) {
-        tree->pfn_create_copy(node_dst->p_data, node_src->p_data);
+    if(tree->create_copy) {
+        tree->create_copy(node_dst->data, node_src->data);
     } else if(tree->element_size > 8) {
-        memcpy(node_dst->p_data, node_src->p_data, tree->element_size);
+        memcpy(node_dst->data, node_src->data, tree->element_size);
     } else {
-        node_dst->p_data = node_src->p_data;
+        node_dst->data = node_src->data;
     }
 
     // create clone of all children
@@ -72,8 +72,8 @@ void tree_node_create_copy(void* p_dst, void* p_src) {
         node_dst->vec_children = tree_node_vector_clone(node_src->vec_children);
         if(!node_dst->vec_children) {
             ERR(__FUNCTION__, ERR_OUT_OF_MEMORY);
-            FREE(node_dst->p_data);
-            node_dst->p_data = NULL;
+            FREE(node_dst->data);
+            node_dst->data = NULL;
         }
     }
 }
@@ -81,22 +81,22 @@ void tree_node_create_copy(void* p_dst, void* p_src) {
 /**
  * Destroy the copy of given tree node object.
  *
- * @param p_copy Pointer to copy of TreeNode created
+ * @param copy Pointer to copy of TreeNode created
  * using @c tree_node_create_copy().
  * */
-void tree_node_destroy_copy(void* p_copy) {
-    RETURN_IF_FAIL(p_copy, ERR_INVALID_ARGUMENTS);
+void tree_node_destroy_copy(void* copy) {
+    RETURN_IF_FAIL(copy, ERR_INVALID_ARGUMENTS);
 
-    TreeNode* node = TO_TREE_NODE(p_copy);
+    TreeNode* node = TO_TREE_NODE(copy);
     Tree* tree = TREE_PARENT(node);
 
     // if element was created using a create_copy() or it's size is greater than 8
     // then free it
-    if(tree->pfn_destroy_copy || tree->element_size > 8) {
-        tree->pfn_destroy_copy(node->p_data);
-        FREE(node->p_data);
+    if(tree->destroy_copy || tree->element_size > 8) {
+        tree->destroy_copy(node->data);
+        FREE(node->data);
     }
-    node->p_data = NULL;
+    node->data = NULL;
 
     // TODO: make sure this will destroy the tree recursively!
     if(node->vec_children) {
@@ -190,18 +190,18 @@ TreeNode* tree_node_peek(TreeNode* node, Size idx) {
  * Add a new child node and return the added child node.
  *
  * @param node Parent node to add child node to.
- * @param p_data Data for the new added child node.
+ * @param data Data for the new added child node.
  *
  * @return Pointer to new added child node on success, NULL otherwise.
  * */
 #define TREE_PUSH(place)                                                \
-    TreeNode* tree_node_push_##place(TreeNode* node, void* p_data) { \
+    TreeNode* tree_node_push_##place(TreeNode* node, void* data) { \
         RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);        \
                                                                         \
         TreeNode node_child;                                         \
         node_child.node_parent = node;                                  \
         node_child.tree_parent = TREE_PARENT(node);                     \
-        node_child.p_data = p_data;                                     \
+        node_child.data = data;                                     \
         node_child.height = 1;                                          \
         node_child.size = 1;                                            \
                                                                         \
@@ -227,19 +227,19 @@ TREE_PUSH(back)
  * This method is slower but is order preserving.
  *
  * @param node Parent tree node.
- * @param p_data Data to be stored in node.
+ * @param data Data to be stored in node.
  * @param index Index where node needs to be inserted.
  *
  * @return Pointer to new inserted node.
  * */
-TreeNode* tree_node_insert(TreeNode* node, void* p_data, Size index) {
+TreeNode* tree_node_insert(TreeNode* node, void* data, Size index) {
     RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
 
     // create temporary child node object
     TreeNode node_child;
     node_child.node_parent = node;
     node_child.tree_parent = TREE_PARENT(node);
-    node_child.p_data = p_data;
+    node_child.data = data;
 
     // Note that we're not creating copy of data here.
     // This will automatically happen when this node will be inserted
@@ -310,18 +310,18 @@ void tree_node_delete(TreeNode* node, Size index) {
  * This method is faster, but is NOT order preserving.
  *
  * @param node Parent tree node.
- * @param p_data Data to be stored in node.
+ * @param data Data to be stored in node.
  *
  * @return Pointer to new added node.
  * */
-TreeNode* tree_node_push_front_fast(TreeNode* node, void* p_data) {
+TreeNode* tree_node_push_front_fast(TreeNode* node, void* data) {
     RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
 
     // create temporary child node object
     TreeNode node_child;
     node_child.node_parent = node;
     node_child.tree_parent = TREE_PARENT(node);
-    node_child.p_data = p_data;
+    node_child.data = data;
 
     if(!node->vec_children) {
         node->vec_children = tree_node_vector_create();
@@ -341,19 +341,19 @@ TreeNode* tree_node_push_front_fast(TreeNode* node, void* p_data) {
  * This method is faster but is NOT order preserving.
  *
  * @param node Parent node to insert child node to.
- * @param p_data Data to be set in new child node.
+ * @param data Data to be set in new child node.
  * @param index Index where new child node will be inserted.
  *
  * @return Pointer to removed child node on success, NULL otherwise.
  * */
-TreeNode* tree_node_insert_fast(TreeNode* node, void* p_data, Size index) {
+TreeNode* tree_node_insert_fast(TreeNode* node, void* data, Size index) {
     RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
 
     // create temporary child node object
     TreeNode node_child;
     node_child.node_parent = node;
     node_child.tree_parent = TREE_PARENT(node);
-    node_child.p_data = p_data;
+    node_child.data = data;
 
     // create child vector if not already created and insert
     if(!node->vec_children) {

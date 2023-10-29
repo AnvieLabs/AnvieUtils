@@ -39,23 +39,23 @@
 
 /**
  * Create a new dynamic array.
- * If any one of @c pfn_create_copy or @c pfn_destroy_copy is non null,
+ * If any one of @c create_copy or @c destroy_copy is non null,
  * then both must be non null!
  *
  * @param element_size Size of each element in this dynamic array.
- * @param pfn_create_copy Copy constructor for elements. Can be NULL.
- * @param pfn_destroy_copy Copy destructor for elements. Can be NULL.
+ * @param create_copy Copy constructor for elements. Can be NULL.
+ * @param destroy_copy Copy destructor for elements. Can be NULL.
  * @return Vector* or NULL if allocation failed
  * */
 Vector* vector_create(Size element_size,
-                            CreateElementCopyCallback pfn_create_copy,
-                            DestroyElementCopyCallback pfn_destroy_copy)
+                            CreateElementCopyCallback create_copy,
+                            DestroyElementCopyCallback destroy_copy)
 {
     RETURN_VALUE_IF_FAIL(element_size, NULL, ERR_INVALID_ARGUMENTS);
 
     // both must be null or non null at the same time
-    Bool b1 = pfn_create_copy != NULL;
-    Bool b2 = pfn_destroy_copy != NULL;
+    Bool b1 = create_copy != NULL;
+    Bool b2 = destroy_copy != NULL;
     RETURN_VALUE_IF_FAIL(!(b1 ^ b2), NULL,
                          "Either both copy constructor and destructor should be NULL, "
                          "or both should be non NULL at the same time!");
@@ -65,8 +65,8 @@ Vector* vector_create(Size element_size,
     RETURN_VALUE_IF_FAIL(vec, NULL, ERR_OUT_OF_MEMORY);
 
     // allocate initial memory
-    vec->p_data = ALLOCATE(Uint8, AV_VECTOR_INIT_ELEMENT_COUNT * element_size);
-    if(!vec->p_data) {
+    vec->data = ALLOCATE(Uint8, AV_VECTOR_INIT_ELEMENT_COUNT * element_size);
+    if(!vec->data) {
         WARN_IF(True, ERR_OUT_OF_MEMORY);
         FREE(vec);
         return NULL;
@@ -74,8 +74,8 @@ Vector* vector_create(Size element_size,
     vec->capacity = AV_VECTOR_INIT_ELEMENT_COUNT;
     vec->element_size = element_size;
     vec->resize_factor = AV_VECTOR_DEFAULT_RESIZE_FACTOR;
-    vec->pfn_create_copy = pfn_create_copy;
-    vec->pfn_destroy_copy = pfn_destroy_copy;
+    vec->create_copy = create_copy;
+    vec->destroy_copy = destroy_copy;
     return vec;
 }
 
@@ -89,8 +89,8 @@ void vector_destroy(Vector* vec) {
     // destroy all object copies if possible and memset whole array!
     if(vec->length != 0) vector_clear(vec);
 
-    FREE(vec->p_data);
-    vec->p_data = NULL;
+    FREE(vec->data);
+    vec->data = NULL;
     FREE(vec);
 }
 
@@ -122,16 +122,16 @@ Vector* vector_clone(Vector* vec) {
 FORCE_INLINE void vector_resize(Vector* vec, Size new_size) {
     RETURN_IF_FAIL(vec && new_size, ERR_INVALID_ARGUMENTS);
 
-    void* p_temp = realloc(vec->p_data, new_size * vec->element_size);
-    RETURN_IF_FAIL(p_temp, ERR_OUT_OF_MEMORY);
+    void* temp = realloc(vec->data, new_size * vec->element_size);
+    RETURN_IF_FAIL(temp, ERR_OUT_OF_MEMORY);
 
     // memset to make make new area nullified
     // ref : https://stackoverflow.com/a/32732502
     Size old_size_in_bytes = vec->length * vec->element_size;
     Size new_size_in_bytes = new_size * vec->element_size;
-    memset((UByteArray)p_temp + old_size_in_bytes, 0, new_size_in_bytes - old_size_in_bytes);
+    memset((UByteArray)temp + old_size_in_bytes, 0, new_size_in_bytes - old_size_in_bytes);
 
-    vec->p_data = p_temp;
+    vec->data = temp;
     vec->capacity = new_size;
     vec->length = new_size;
 }
@@ -158,9 +158,9 @@ FORCE_INLINE void vector_clear(Vector* vec) {
     RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
 
     // destroy element copies if we need to
-    if(vec->pfn_destroy_copy) {
+    if(vec->destroy_copy) {
         while(vec->length--) {
-            vec->pfn_destroy_copy(vector_address_at(vec, vec->length));
+            vec->destroy_copy(vector_address_at(vec, vec->length));
         }
     }
 
@@ -177,7 +177,7 @@ FORCE_INLINE void vector_clear(Vector* vec) {
 Vector* vector_get_subvector(Vector* vec, Size start, Size size) {
     RETURN_VALUE_IF_FAIL(vec && size, NULL, ERR_INVALID_ARGUMENTS);
 
-    Vector* new_vec = vector_create(vec->element_size, vec->pfn_create_copy, vec->pfn_destroy_copy);
+    Vector* new_vec = vector_create(vec->element_size, vec->create_copy, vec->destroy_copy);
     for(Size s = start; s < size; s++) {
         vector_push_back(new_vec, vector_peek(vec, s));
     }
@@ -204,8 +204,8 @@ FORCE_INLINE void vector_move(Vector* vec, Size to, Size from) {
     RETURN_IF_FAIL(vec && (to < vec->capacity) && (from < vec->length), ERR_INVALID_ARGUMENTS);
 
     // we need to destroy element if it's being overwritten to
-    if((to < vec->length) && vec->pfn_destroy_copy) {
-        vec->pfn_destroy_copy(vector_address_at(vec, to));
+    if((to < vec->length) && vec->destroy_copy) {
+        vec->destroy_copy(vector_address_at(vec, to));
     }
 
     memcpy(vector_address_at(vec, to), vector_address_at(vec, from), vec->element_size);
@@ -229,20 +229,20 @@ FORCE_INLINE void vector_copy(Vector* vec, Size to, Size from) {
     RETURN_IF_FAIL(vec && (to < vec->capacity) && (from < vec->length) && (to != from), ERR_INVALID_ARGUMENTS);
 
     // use copy constructor whenever possible
-    if(vec->pfn_create_copy) {
-        void* p_elem_to = vector_address_at(vec, to);
-        void* p_elem_from = vector_address_at(vec, from);
-        if(to < vec->length) vec->pfn_destroy_copy(p_elem_to);
-        vec->pfn_create_copy(p_elem_to, p_elem_from);
+    if(vec->create_copy) {
+        void* elem_to = vector_address_at(vec, to);
+        void* elem_from = vector_address_at(vec, from);
+        if(to < vec->length) vec->destroy_copy(elem_to);
+        vec->create_copy(elem_to, elem_from);
     } else switch(vector_element_size(vec)) {
         case 8 : vector_at(vec, Uint64, to) = (Uint64)vector_at(vec, Uint64, from); break;
         case 4 : vector_at(vec, Uint32, to) = (Uint64)vector_at(vec, Uint32, from); break;
         case 2 : vector_at(vec, Uint16, to) = (Uint64)vector_at(vec, Uint16, from); break;
         case 1 : vector_at(vec, Uint8, to) = (Uint64)vector_at(vec, Uint8, from); break;
         default : {
-            void* p_elem_to = vector_address_at(vec, to);
-            void* p_elem_from = vector_address_at(vec, from);
-            memcpy(p_elem_to, p_elem_from, vector_element_size(vec));
+            void* elem_to = vector_address_at(vec, to);
+            void* elem_from = vector_address_at(vec, from);
+            memcpy(elem_to, elem_from, vector_element_size(vec));
         }
     }
 }
@@ -254,27 +254,27 @@ FORCE_INLINE void vector_copy(Vector* vec, Size to, Size from) {
  *
  * @param vec
  * @param pos Position where this new data
- * @param p_data Data to be moved
+ * @param data Data to be moved
  * */
-FORCE_INLINE void vector_overwrite(Vector* vec, Size pos, void* p_data) {
+FORCE_INLINE void vector_overwrite(Vector* vec, Size pos, void* data) {
     RETURN_IF_FAIL(vec && (pos < vec->capacity), ERR_INVALID_ARGUMENTS);
 
-    if(vec->pfn_create_copy) {
-        void* p_elem = vector_address_at(vec, pos);
-        if(pos < vec->length) vec->pfn_destroy_copy(p_elem);
-        if(p_data) vec->pfn_create_copy(p_elem, p_data);
-        else memset(p_elem, 0, vec->element_size);
+    if(vec->create_copy) {
+        void* elem = vector_address_at(vec, pos);
+        if(pos < vec->length) vec->destroy_copy(elem);
+        if(data) vec->create_copy(elem, data);
+        else memset(elem, 0, vec->element_size);
     } else {
-        Uint64 value = (Uint64)p_data;
+        Uint64 value = (Uint64)data;
         switch(vector_element_size(vec)) {
             case 8 : vector_at(vec, Uint64, pos) = (Uint64)value; break;
             case 4 : vector_at(vec, Uint32, pos) = (Uint32)value; break;
             case 2 : vector_at(vec, Uint16, pos) = (Uint16)value; break;
             case 1 : vector_at(vec, Uint8, pos) = (Uint8)value; break;
             default : {
-                void* p_elem = vector_address_at(vec, pos);
-                if(p_data) memcpy(p_elem, p_data, vector_element_size(vec));
-                else memset(p_elem, 0, vector_element_size(vec));
+                void* elem = vector_address_at(vec, pos);
+                if(data) memcpy(elem, data, vector_element_size(vec));
+                else memset(elem, 0, vector_element_size(vec));
             }
         }
     }
@@ -294,11 +294,11 @@ FORCE_INLINE void vector_overwrite(Vector* vec, Size pos, void* p_data) {
  * creating it on stack and passing pointer or just a heap allocated data.
  *
  * @param vec
- * @param p_data Pointer to memory or just the value to be inserted into
+ * @param data Pointer to memory or just the value to be inserted into
  * contiguous array maintained in @c vector.
  * @param pos Position where insertion will take place.
  * */
-FORCE_INLINE void vector_insert(Vector* vec, void *p_data, Size pos) {
+FORCE_INLINE void vector_insert(Vector* vec, void *data, Size pos) {
     RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
 
     // resize array if insert position is more than capacity
@@ -310,9 +310,9 @@ FORCE_INLINE void vector_insert(Vector* vec, void *p_data, Size pos) {
         }
 
         // reallocate if we need to
-        void* p_temp = realloc(vec->p_data, new_capacity * vector_element_size(vec));
-        RETURN_IF_FAIL(p_temp, ERR_OUT_OF_MEMORY);
-        vec->p_data = p_temp;
+        void* temp = realloc(vec->data, new_capacity * vector_element_size(vec));
+        RETURN_IF_FAIL(temp, ERR_OUT_OF_MEMORY);
+        vec->data = temp;
         vec->capacity = new_capacity;
         vec->length = pos;
     }
@@ -320,9 +320,9 @@ FORCE_INLINE void vector_insert(Vector* vec, void *p_data, Size pos) {
     // resize array if insert position is in between but array is at capacity
     if(vec->length >= vec->capacity) {
         Size new_size = vec->capacity * (vec->resize_factor + 1);
-        void* p_temp = realloc(vec->p_data, new_size * vector_element_size(vec));
-        RETURN_IF_FAIL(p_temp, ERR_OUT_OF_MEMORY);
-        vec->p_data = p_temp;
+        void* temp = realloc(vec->data, new_size * vector_element_size(vec));
+        RETURN_IF_FAIL(temp, ERR_OUT_OF_MEMORY);
+        vec->data = temp;
         vec->capacity = new_size;
     }
 
@@ -340,31 +340,31 @@ FORCE_INLINE void vector_insert(Vector* vec, void *p_data, Size pos) {
             case 2 : vector_at(vec, Uint16, to) = vector_at(vec, Uint16, from); break;
             case 1 : vector_at(vec, Uint8, to) = vector_at(vec, Uint8, from); break;
             default: {
-                void* p_elem_to = vector_address_at(vec, to);
-                void* p_elem_from = vector_address_at(vec, from);
-                memcpy(p_elem_to, p_elem_from, vector_element_size(vec));
+                void* elem_to = vector_address_at(vec, to);
+                void* elem_from = vector_address_at(vec, from);
+                memcpy(elem_to, elem_from, vector_element_size(vec));
             }
         }
     }
 
-    Uint64 value = (Uint64)p_data;
+    Uint64 value = (Uint64)data;
 
     // use copy constructor to create a copy for vector
     // this is really useful in case of structures that contain other pointers
     // or strings for eg
-    if(vec->pfn_create_copy) {
-        void* p_elem = vector_address_at(vec, pos);
-        if(p_data) vec->pfn_create_copy(p_elem, p_data);
-        else memset(p_elem, 0, vec->element_size);
+    if(vec->create_copy) {
+        void* elem = vector_address_at(vec, pos);
+        if(data) vec->create_copy(elem, data);
+        else memset(elem, 0, vec->element_size);
     } else switch(vector_element_size(vec)) {
             case 8 : vector_at(vec, Uint64, pos) = (Uint64)value; break;
             case 4 : vector_at(vec, Uint32, pos) = (Uint32)value; break;
             case 2 : vector_at(vec, Uint16, pos) = (Uint16)value; break;
             case 1 : vector_at(vec, Uint8,  pos) = (Uint8) value; break;
             default: {
-                void* p_elem = vector_address_at(vec, pos);
-                if(p_data) memcpy(p_elem, p_data, vector_element_size(vec));
-                else memset(p_elem, 0, vector_element_size(vec));
+                void* elem = vector_address_at(vec, pos);
+                if(data) memcpy(elem, data, vector_element_size(vec));
+                else memset(elem, 0, vector_element_size(vec));
             }
         }
 
@@ -382,8 +382,8 @@ FORCE_INLINE void vector_delete(Vector* vec, Size pos) {
     RETURN_IF_FAIL(vec->length, ERR_CONTAINER_UNDERFLOW);
 
     // destroy element at position if possible
-    if(vec->pfn_destroy_copy) {
-        vec->pfn_destroy_copy(vector_address_at(vec, pos));
+    if(vec->destroy_copy) {
+        vec->destroy_copy(vector_address_at(vec, pos));
     }
 
     // shift array by one place at pos
@@ -412,16 +412,16 @@ FORCE_INLINE void* vector_remove(Vector* vec, Size pos) {
     // create a copy of element out of vector
     // here we can just return the copy that vector has,
     // instead of creating another copy and destroying old one
-    void* p_elem = NULL;
+    void* elem = NULL;
     switch(vector_element_size(vec)) {
-    case 8 : p_elem = (void*)(Uint64) vector_at(vec, Uint64, pos); break;
-    case 4 : p_elem = (void*)(Uint64) vector_at(vec, Uint32, pos); break;
-    case 2 : p_elem = (void*)(Uint64) vector_at(vec, Uint16, pos); break;
-    case 1 : p_elem = (void*)(Uint64) vector_at(vec, Uint8, pos); break;
+    case 8 : elem = (void*)(Uint64) vector_at(vec, Uint64, pos); break;
+    case 4 : elem = (void*)(Uint64) vector_at(vec, Uint32, pos); break;
+    case 2 : elem = (void*)(Uint64) vector_at(vec, Uint16, pos); break;
+    case 1 : elem = (void*)(Uint64) vector_at(vec, Uint8, pos); break;
     default :
-        p_elem = ALLOCATE(Uint8, vec->element_size);
-        RETURN_VALUE_IF_FAIL(p_elem, NULL, ERR_OUT_OF_MEMORY);
-        memcpy(p_elem, vector_address_at(vec, pos), vec->element_size);
+        elem = ALLOCATE(Uint8, vec->element_size);
+        RETURN_VALUE_IF_FAIL(elem, NULL, ERR_OUT_OF_MEMORY);
+        memcpy(elem, vector_address_at(vec, pos), vec->element_size);
     }
 
     // shift array by one place at pos
@@ -439,7 +439,7 @@ FORCE_INLINE void* vector_remove(Vector* vec, Size pos) {
     }
 
     vec->length--;
-    return p_elem;
+    return elem;
 }
 
 /**
@@ -454,10 +454,10 @@ FORCE_INLINE void* vector_remove(Vector* vec, Size pos) {
  * creating it on stack and passing pointer or just a heap allocated data.
  *
  * @param vec
- * @param p_data Data to be inserted.
+ * @param data Data to be inserted.
  * @param pos Insert position.
  * */
-FORCE_INLINE void vector_insert_fast(Vector* vec, void* p_data, Size pos) {
+FORCE_INLINE void vector_insert_fast(Vector* vec, void* data, Size pos) {
     RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
 
     // resize array if insert position is more than capacity
@@ -469,9 +469,9 @@ FORCE_INLINE void vector_insert_fast(Vector* vec, void* p_data, Size pos) {
         }
 
         // reallocate if we need to
-        void* p_temp = realloc(vec->p_data, new_capacity * vector_element_size(vec));
-        RETURN_IF_FAIL(p_temp, ERR_OUT_OF_MEMORY);
-        vec->p_data = p_temp;
+        void* temp = realloc(vec->data, new_capacity * vector_element_size(vec));
+        RETURN_IF_FAIL(temp, ERR_OUT_OF_MEMORY);
+        vec->data = temp;
         vec->capacity = new_capacity;
         vec->length = pos;
     }
@@ -479,9 +479,9 @@ FORCE_INLINE void vector_insert_fast(Vector* vec, void* p_data, Size pos) {
     // resize array if insert position is in between but array is at capacity
     if(vec->length >= vec->capacity) {
         Size new_size = vec->capacity * (vec->resize_factor + 1);
-        void* p_temp = realloc(vec->p_data, new_size * vector_element_size(vec));
-        RETURN_IF_FAIL(p_temp, ERR_OUT_OF_MEMORY);
-        vec->p_data = p_temp;
+        void* temp = realloc(vec->data, new_size * vector_element_size(vec));
+        RETURN_IF_FAIL(temp, ERR_OUT_OF_MEMORY);
+        vec->data = temp;
         vec->capacity = new_size;
     }
 
@@ -491,20 +491,20 @@ FORCE_INLINE void vector_insert_fast(Vector* vec, void* p_data, Size pos) {
         memcpy(vector_address_at(vec, vec->length), vector_address_at(vec, pos), vec->element_size);
     }
 
-    Uint64 value = (Uint64)p_data;
-    if(vec->pfn_create_copy) {
-        void* p_elem = vector_address_at(vec, pos);
-        if(p_data) vec->pfn_create_copy(p_elem, p_data);
-        else memset(p_elem, 0, vec->element_size);
+    Uint64 value = (Uint64)data;
+    if(vec->create_copy) {
+        void* elem = vector_address_at(vec, pos);
+        if(data) vec->create_copy(elem, data);
+        else memset(elem, 0, vec->element_size);
     } else switch(vector_element_size(vec)) {
             case 8 : vector_at(vec, Uint64, pos) = (Uint64)value; break;
             case 4 : vector_at(vec, Uint32, pos) = (Uint32)value; break;
             case 2 : vector_at(vec, Uint16, pos) = (Uint16)value; break;
             case 1 : vector_at(vec, Uint8, pos) = (Uint8)value; break;
             default: {
-                void* p_elem = vector_address_at(vec, pos);
-                if(p_data) memcpy(p_elem, p_data, vector_element_size(vec));
-                else memset(p_elem, 0, vector_element_size(vec));
+                void* elem = vector_address_at(vec, pos);
+                if(data) memcpy(elem, data, vector_element_size(vec));
+                else memset(elem, 0, vector_element_size(vec));
             }
         }
 
@@ -526,8 +526,8 @@ FORCE_INLINE void vector_delete_fast(Vector* vec, Size pos) {
     if(pos != vec->length - 1) {
         vector_move(vec, pos, vec->length - 1);
     } else { // else we destroy copy
-        if(vec->pfn_destroy_copy)
-            vec->pfn_destroy_copy(vector_address_at(vec, pos));
+        if(vec->destroy_copy)
+            vec->destroy_copy(vector_address_at(vec, pos));
         else memset(vector_address_at(vec, pos), 0, vec->element_size);
     }
 
@@ -544,32 +544,32 @@ FORCE_INLINE void* vector_remove_fast(Vector* vec, Size pos) {
     RETURN_VALUE_IF_FAIL(vec->length, NULL, ERR_CONTAINER_UNDERFLOW);
 
     // create element copy without copy constructor
-    void* p_elem = NULL;
+    void* elem = NULL;
     switch(vector_element_size(vec)) {
-        case 8 : p_elem = (void*)(Uint64) vector_at(vec, Uint64, pos); break;
-        case 4 : p_elem = (void*)(Uint64) vector_at(vec, Uint32, pos); break;
-        case 2 : p_elem = (void*)(Uint64) vector_at(vec, Uint16, pos); break;
-        case 1 : p_elem = (void*)(Uint64) vector_at(vec, Uint8, pos); break;
+        case 8 : elem = (void*)(Uint64) vector_at(vec, Uint64, pos); break;
+        case 4 : elem = (void*)(Uint64) vector_at(vec, Uint32, pos); break;
+        case 2 : elem = (void*)(Uint64) vector_at(vec, Uint16, pos); break;
+        case 1 : elem = (void*)(Uint64) vector_at(vec, Uint8, pos); break;
         default :
-            p_elem = ALLOCATE(Uint8, vec->element_size);
-            RETURN_VALUE_IF_FAIL(p_elem, NULL, ERR_OUT_OF_MEMORY);
-            memcpy(p_elem, vector_address_at(vec, pos), vec->element_size);
+            elem = ALLOCATE(Uint8, vec->element_size);
+            RETURN_VALUE_IF_FAIL(elem, NULL, ERR_OUT_OF_MEMORY);
+            memcpy(elem, vector_address_at(vec, pos), vec->element_size);
     }
 
     // then just move last element to position that needs to be removed
     memcpy(vector_address_at(vec, pos), vector_address_at(vec, --vec->length), vec->element_size);
 
-    return p_elem;
+    return elem;
 }
 
 /**
  * Push an element to front by preserving order.
  * @param vec
- * @param p_data
+ * @param data
  * */
-void vector_push_front(Vector* vec, void* p_data) {
+void vector_push_front(Vector* vec, void* data) {
     RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
-    vector_insert(vec, p_data, 0);
+    vector_insert(vec, data, 0);
 }
 
 /**
@@ -579,7 +579,7 @@ void vector_push_front(Vector* vec, void* p_data) {
  * @param vec
  * @return Removed element.
  * */
-void* vector_pop_front(Vector* vec) {
+void* vector_pofront(Vector* vec) {
     RETURN_VALUE_IF_FAIL(vec && vec->length, NULL, ERR_INVALID_ARGUMENTS);
     return vector_remove(vec, 0);
 }
@@ -587,11 +587,11 @@ void* vector_pop_front(Vector* vec) {
 /**
  * Push an element to front by preserving order.
  * @param vec
- * @param p_data
+ * @param data
  * */
-void vector_push_front_fast(Vector* vec, void* p_data) {
+void vector_push_front_fast(Vector* vec, void* data) {
     RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
-    vector_insert(vec, p_data, 0);
+    vector_insert(vec, data, 0);
 }
 
 /**
@@ -601,7 +601,7 @@ void vector_push_front_fast(Vector* vec, void* p_data) {
  * @param vec
  * @return Removed element.
  * */
-void* vector_pop_front_fast(Vector* vec) {
+void* vector_pofront_fast(Vector* vec) {
     RETURN_VALUE_IF_FAIL(vec, NULL, ERR_INVALID_ARGUMENTS);
     return vector_remove(vec, 0);
 }
@@ -610,11 +610,11 @@ void* vector_pop_front_fast(Vector* vec) {
  * Push an element to back. This will internally call
  * the fast insert operation.
  * @param vec
- * @param p_data
+ * @param data
  * */
-void vector_push_back(Vector* vec, void* p_data) {
+void vector_push_back(Vector* vec, void* data) {
     RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
-    vector_insert_fast(vec, p_data, vec->length);
+    vector_insert_fast(vec, data, vec->length);
 }
 
 /**
@@ -623,7 +623,7 @@ void vector_push_back(Vector* vec, void* p_data) {
  * @param vec
  * @return Removed element.
  * */
-FORCE_INLINE void* vector_pop_back(Vector* vec) {
+FORCE_INLINE void* vector_poback(Vector* vec) {
     RETURN_VALUE_IF_FAIL(vec && vec->length, NULL, ERR_INVALID_ARGUMENTS);
     return vector_remove_fast(vec, vec->length - 1);
 }
@@ -669,31 +669,31 @@ FORCE_INLINE void* vector_back(Vector* vec) {
 /**
  * Print all elements of this @c vector using given printer.
  * @param vec
- * @param pfn_printer Function to print each element.
+ * @param printer Function to print each element.
  * */
-void vector_print(Vector* vec, PrintElementCallback pfn_printer) {
-    RETURN_IF_FAIL(vec && pfn_printer, ERR_INVALID_ARGUMENTS);
+void vector_print(Vector* vec, PrintElementCallback printer) {
+    RETURN_IF_FAIL(vec && printer, ERR_INVALID_ARGUMENTS);
 
     switch(vec->element_size) {
         case 8 :
             for(Size iter = 0; iter < vec->length; iter++)
-                pfn_printer((void*)vector_at(vec, Uint64, iter), iter);
+                printer((void*)vector_at(vec, Uint64, iter), iter);
             break;
         case 4 :
             for(Size iter = 0; iter < vec->length; iter++)
-                pfn_printer((void*)(Uint64)vector_at(vec, Uint32, iter), iter);
+                printer((void*)(Uint64)vector_at(vec, Uint32, iter), iter);
             break;
         case 2 :
             for(Size iter = 0; iter < vec->length; iter++)
-                pfn_printer((void*)(Uint64)vector_at(vec, Uint16, iter), iter);
+                printer((void*)(Uint64)vector_at(vec, Uint16, iter), iter);
             break;
         case 1 :
             for(Size iter = 0; iter < vec->length; iter++)
-                pfn_printer((void*)(Uint64)vector_at(vec, Uint8, iter), iter);
+                printer((void*)(Uint64)vector_at(vec, Uint8, iter), iter);
             break;
         default:
             for(Size iter = 0; iter < vec->length; iter++)
-                pfn_printer(vector_address_at(vec, iter), iter);
+                printer(vector_address_at(vec, iter), iter);
             break;
     }
 }
@@ -715,19 +715,19 @@ void vector_merge(Vector* vec, Vector* vec_other) {
 /**
  * Filter elements from this vector and return a new vector with filtered elements.
  * @param vec Vector to filter elements from.
- * @param pfn_filter Filter function to filter elements
+ * @param filter Filter function to filter elements
  * @return New Vector object containing filtered elements on success, NULL otherwise.
  * */
-Vector* vector_filter(Vector* vec, FilterElementCallback pfn_filter, void* p_user_data) {
-    RETURN_VALUE_IF_FAIL(vec && pfn_filter, NULL, ERR_INVALID_ARGUMENTS);
+Vector* vector_filter(Vector* vec, FilterElementCallback filter, void* user_data) {
+    RETURN_VALUE_IF_FAIL(vec && filter, NULL, ERR_INVALID_ARGUMENTS);
 
     // create new vector for containing filtered vectors
-    Vector* filtered_vec = vector_create(vec->element_size, vec->pfn_create_copy, vec->pfn_destroy_copy);
+    Vector* filtered_vec = vector_create(vec->element_size, vec->create_copy, vec->destroy_copy);
     RETURN_VALUE_IF_FAIL(filtered_vec, NULL, "Failed to create new filtered vector\n");
 
     // filter elements
     for(Size i = 0; i < vec->length; i++) {
-        if(pfn_filter(vector_peek(vec, i), p_user_data)) {
+        if(filter(vector_peek(vec, i), user_data)) {
             vector_push_back(filtered_vec, vector_peek(vec, i));
         }
     }
@@ -745,7 +745,7 @@ FORCE_INLINE void vector_swap(Vector* vec, Size p1, Size p2) {
     RETURN_IF_FAIL(vec && (p1 < vec->length || p2 < vec->length), ERR_INVALID_ARGUMENTS);
 
     // define to keep less repetitions
-#define SWAP_INT(type, i1, i2) {                                        \
+#define SWAINT(type, i1, i2) {                                        \
         type t = vector_at(vec, type, p1);                        \
         vector_at(vec, type, p1) = vector_at(vec, type, p2); \
         vector_at(vec, type, p2) = t;                             \
@@ -753,10 +753,10 @@ FORCE_INLINE void vector_swap(Vector* vec, Size p1, Size p2) {
     }
 
     switch(vec->element_size) {
-        case 8: SWAP_INT(Uint64, p1, p2);
-        case 4: SWAP_INT(Uint32, p1, p2);
-        case 2: SWAP_INT(Uint16, p1, p2);
-        case 1: SWAP_INT(Uint8,  p1, p2);
+        case 8: SWAINT(Uint64, p1, p2);
+        case 4: SWAINT(Uint32, p1, p2);
+        case 2: SWAINT(Uint16, p1, p2);
+        case 1: SWAINT(Uint8,  p1, p2);
         default: {
             Byte temp[vec->element_size];
             memcpy(temp, vector_address_at(vec, p1), vec->element_size);
@@ -766,17 +766,17 @@ FORCE_INLINE void vector_swap(Vector* vec, Size p1, Size p2) {
         }
     }
 
-#undef SWAP_INT
+#undef SWAINT
 }
 
 /**
  * Apply the fastest sort algorithm for given array possible.
  * @param vec Vector to be sorted
- * @param pfn_cmp Compare function
+ * @param cmp Compare function
  * */
-void vector_sort(Vector* vec, CompareElementCallback pfn_cmp) {
-    RETURN_IF_FAIL(vec && pfn_cmp, ERR_INVALID_ARGUMENTS);
-    vector_insertion_sort(vec, pfn_cmp);
+void vector_sort(Vector* vec, CompareElementCallback cmp) {
+    RETURN_IF_FAIL(vec && cmp, ERR_INVALID_ARGUMENTS);
+    vector_insertion_sort(vec, cmp);
 }
 
 /**
@@ -784,15 +784,15 @@ void vector_sort(Vector* vec, CompareElementCallback pfn_cmp) {
  * By default the algorithm is written for checking array in descending order,
  * but this can be checked for any array type by modifying the compare method.
  *
- * This means if pfn_compare returns > 0 for any comparision then array is not sorted
+ * This means if compare returns > 0 for any comparision then array is not sorted
  *
  * @param vec
- * @param pfn_compare
+ * @param compare
  * */
-Bool vector_check_sorted(Vector* vec, CompareElementCallback pfn_compare) {
-    RETURN_VALUE_IF_FAIL(vec && pfn_compare, False, ERR_INVALID_ARGUMENTS);
+Bool vector_check_sorted(Vector* vec, CompareElementCallback compare) {
+    RETURN_VALUE_IF_FAIL(vec && compare, False, ERR_INVALID_ARGUMENTS);
     for(Size s = 1; s < vec->length; s++)
-        if(pfn_compare(vector_peek(vec, s), vector_peek(vec, s-1)) > 0)
+        if(compare(vector_peek(vec, s), vector_peek(vec, s-1)) > 0)
             return False;
     return True;
 }
@@ -804,14 +804,14 @@ Bool vector_check_sorted(Vector* vec, CompareElementCallback pfn_compare) {
  * AVERAGE : O(n^2)
  * WORST : O(n^2)
  * @param vec
- * @param pfn_compare Compare function
+ * @param compare Compare function
  * */
-void vector_insertion_sort(Vector* vec, CompareElementCallback pfn_compare) {
-    RETURN_IF_FAIL(vec && pfn_compare, ERR_INVALID_ARGUMENTS);
+void vector_insertion_sort(Vector* vec, CompareElementCallback compare) {
+    RETURN_IF_FAIL(vec && compare, ERR_INVALID_ARGUMENTS);
 
     for(Size s = 1; s < vec->length; s++) {
         Size m = s;
-        while((m > 0) && (pfn_compare(vector_peek(vec, m-1), vector_peek(vec, m)) > 0)) {
+        while((m > 0) && (compare(vector_peek(vec, m-1), vector_peek(vec, m)) > 0)) {
             vector_swap(vec, m, m-1); m--;
         }
     }
@@ -820,16 +820,16 @@ void vector_insertion_sort(Vector* vec, CompareElementCallback pfn_compare) {
 /**
  * Bubble sort algorithm.
  * @param vec
- * @param pfn_compare
+ * @param compare
  * */
-void vector_bubble_sort(Vector* vec, CompareElementCallback pfn_compare) {
-    RETURN_IF_FAIL(vec && pfn_compare, ERR_INVALID_ARGUMENTS);
+void vector_bubble_sort(Vector* vec, CompareElementCallback compare) {
+    RETURN_IF_FAIL(vec && compare, ERR_INVALID_ARGUMENTS);
 
     Bool b_swapped;
     for (Size i = 0; i < vec->length; i++) {
         b_swapped = False;
         for (Size j = 0; j < vec->length; j++) {
-            if (pfn_compare(vector_peek(vec, j+1), vector_peek(vec, j)) > 0) {
+            if (compare(vector_peek(vec, j+1), vector_peek(vec, j)) > 0) {
                 vector_swap(vec, j, j+1);
                 b_swapped = True;
             }
@@ -845,32 +845,32 @@ static inline void print_subarray(Vector* vec, Size start, Size size) {
     }
 }
 
-static inline void merge_sort(Vector* vec, CompareElementCallback pfn_compare, Size start, Size size) {
+static inline void merge_sort(Vector* vec, CompareElementCallback compare, Size start, Size size) {
     if(size == 1) return;
 
-    RETURN_IF_FAIL(vec && pfn_compare && (start + size) <= vec->length, ERR_INVALID_ARGUMENTS);
+    RETURN_IF_FAIL(vec && compare && (start + size) <= vec->length, ERR_INVALID_ARGUMENTS);
 
-    if((size == 2) && (pfn_compare(vector_peek(vec, start), vector_peek(vec, start + 1)) > 0)) {
+    if((size == 2) && (compare(vector_peek(vec, start), vector_peek(vec, start + 1)) > 0)) {
         vector_swap(vec, start, start+1);
         return;
     }
 
     Size mid = start + size/2;
-    merge_sort(vec, pfn_compare, start, size/2);
-    merge_sort(vec, pfn_compare, mid, size - size/2);
+    merge_sort(vec, compare, start, size/2);
+    merge_sort(vec, compare, mid, size - size/2);
 
     Size s = start;
     Size m = mid;
 
     Vector* subvec = vector_get_subvector(vec, start, size);
-    subvec->pfn_create_copy = NULL; // reduce mempy calls
-    subvec->pfn_destroy_copy = NULL;
+    subvec->create_copy = NULL; // reduce mempy calls
+    subvec->destroy_copy = NULL;
 
     vector_reserve(subvec, size);
 
     // merge
     while((s < mid) && (m < start + size - 1)) {
-        Int32 res = pfn_compare(vector_peek(vec, s), vector_peek(vec, m));
+        Int32 res = compare(vector_peek(vec, s), vector_peek(vec, m));
         if(res > 0) {
             vector_push_back(subvec, vector_peek(vec, s++));
         } else if (res < 0) {
@@ -882,7 +882,7 @@ static inline void merge_sort(Vector* vec, CompareElementCallback pfn_compare, S
     }
 
     // copy back sorted array
-    memcpy(vector_address_at(vec, start), subvec->p_data, subvec->element_size * subvec->length);
+    memcpy(vector_address_at(vec, start), subvec->data, subvec->element_size * subvec->length);
     vector_destroy(subvec);
 }
 
@@ -890,38 +890,38 @@ static inline void merge_sort(Vector* vec, CompareElementCallback pfn_compare, S
 /**
  * Merge sort algorithm
  * @param vec
- * @param pfn_compare
+ * @param compare
  * */
-void vector_merge_sort(Vector* vec, CompareElementCallback pfn_compare) {
-    RETURN_IF_FAIL(vec && pfn_compare, ERR_INVALID_ARGUMENTS);
-    merge_sort(vec, pfn_compare, 0, vec->length);
+void vector_merge_sort(Vector* vec, CompareElementCallback compare) {
+    RETURN_IF_FAIL(vec && compare, ERR_INVALID_ARGUMENTS);
+    merge_sort(vec, compare, 0, vec->length);
 }
 
 /**
  * Create a copy of given vector, to a place already
  * allocated for destination (copy) vector.
  *
- * @param p_dst Vector* casted to void* where new vector will be copied.
+ * @param dst Vector* casted to void* where new vector will be copied.
  * Or more precisely, pointer to an already allocated place for new Vector.
- * @param p_src Vector* containing vector data to be copied.
+ * @param src Vector* containing vector data to be copied.
  * */
-void vector_create_copy(void* p_dst, void* p_src) {
-    RETURN_IF_FAIL(p_dst && p_src, ERR_INVALID_ARGUMENTS);
+void vector_create_copy(void* dst, void* src) {
+    RETURN_IF_FAIL(dst && src, ERR_INVALID_ARGUMENTS);
 
-    Vector* vec_dst = (Vector*)(p_dst);
-    Vector* vec_src = (Vector*)(p_src);
+    Vector* vec_dst = (Vector*)(dst);
+    Vector* vec_src = (Vector*)(src);
 
     // allocate space for storing array
-    vec_dst->p_data = ALLOCATE(Uint8, vec_src->element_size * vec_src->length);
-    RETURN_IF_FAIL(vec_dst->p_data, ERR_OUT_OF_MEMORY);
+    vec_dst->data = ALLOCATE(Uint8, vec_src->element_size * vec_src->length);
+    RETURN_IF_FAIL(vec_dst->data, ERR_OUT_OF_MEMORY);
 
     // initialize vector with basic data
     // note how length and capacity are initialized
     vec_dst->length           = 0;
     vec_dst->capacity         = vec_src->length;
     vec_dst->element_size     = vec_src->element_size;
-    vec_dst->pfn_create_copy  = vec_src->pfn_create_copy;
-    vec_dst->pfn_destroy_copy = vec_src->pfn_destroy_copy;
+    vec_dst->create_copy  = vec_src->create_copy;
+    vec_dst->destroy_copy = vec_src->destroy_copy;
     vec_dst->resize_factor    = vec_src->resize_factor;
 
     // insert each element one by one
@@ -934,14 +934,14 @@ void vector_create_copy(void* p_dst, void* p_src) {
 /**
  * Destroy given copy of Vector.
  *
- * @param p_copy Copy of Vector* created using vector_create_copy().
+ * @param copy Copy of Vector* created using vector_create_copy().
  * */
-void vector_destroy_copy(void* p_copy) {
-    RETURN_IF_FAIL(p_copy, ERR_INVALID_ARGUMENTS);
+void vector_destroy_copy(void* copy) {
+    RETURN_IF_FAIL(copy, ERR_INVALID_ARGUMENTS);
 
-    Vector* vec_copy = (Vector*)p_copy;
+    Vector* vec_copy = (Vector*)copy;
 
     if(vec_copy->length) vector_clear(vec_copy);
-    FREE(vec_copy->p_data);
-    vec_copy->p_data = NULL;
+    FREE(vec_copy->data);
+    vec_copy->data = NULL;
 }

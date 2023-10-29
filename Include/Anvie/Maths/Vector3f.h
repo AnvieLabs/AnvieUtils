@@ -32,21 +32,21 @@ typedef struct anvie_vector_3f_t {
 } Vector3f;
 
 Vector3f* vector_3f_create(Float32 x, Float32 y, Float32 z);
-void vector_3f_destroy(Vector3f* p_vec);
-Vector3f* vector_3f_create_copy(Vector3f* p_vec);
+void vector_3f_destroy(Vector3f* vec);
+Vector3f* vector_3f_create_copy(Vector3f* vec);
 
 Vector3f* vector_3f_origin();
 Vector3f* vector_3f_x_axis();
 Vector3f* vector_3f_y_axis();
 Vector3f* vector_3f_z_axis();
 
-Vector3f* vector_3f_add(Vector3f* p_vec1, Vector3f* p_vec2);
-Vector3f* vector_3f_sub(Vector3f* p_vec1, Vector3f* p_vec2);
-Vector3f* vector_3f_scale(Vector3f* p_vec, Float32 scale);
-Float32 vector_3f_dot(Vector3f* p_vec1, Vector3f* p_vec2);
-Vector3f* vector_3f_cross(Vector3f* p_vec1, Vector3f* p_vec2);
+Vector3f* vector_3f_add(Vector3f* vec1, Vector3f* vec2);
+Vector3f* vector_3f_sub(Vector3f* vec1, Vector3f* vec2);
+Vector3f* vector_3f_scale(Vector3f* vec, Float32 scale);
+Float32 vector_3f_dot(Vector3f* vec1, Vector3f* vec2);
+Vector3f* vector_3f_cross(Vector3f* vec1, Vector3f* vec2);
 
-Float32 vector_3f_compute_norm(Vector3f* p_vec);
-void vector_3f_normalize(Vector3f* p_vec);
+Float32 vector_3f_compute_norm(Vector3f* vec);
+void vector_3f_normalize(Vector3f* vec);
 
 #endif // ANVIE_UTILS_MATH_VECTOR3F_H

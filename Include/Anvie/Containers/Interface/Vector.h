@@ -97,24 +97,24 @@
         vector_push_front(vec, (void*)(Uint64)value);               \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type prefix##_vector_pop_front(Vector* vec) { \
-        return (type)(Uint64)vector_pop_front(vec);                 \
+    FORCE_INLINE type prefix##_vector_pofront(Vector* vec) { \
+        return (type)(Uint64)vector_pofront(vec);                 \
     }                                                                   \
                                                                         \
     FORCE_INLINE void prefix##_vector_push_front_fast(Vector* vec, type value) { \
         vector_push_front_fast(vec, (void*)(Uint64)value);          \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type prefix##_vector_pop_front_fast(Vector* vec) { \
-        return (type)(Uint64)vector_pop_front_fast(vec);            \
+    FORCE_INLINE type prefix##_vector_pofront_fast(Vector* vec) { \
+        return (type)(Uint64)vector_pofront_fast(vec);            \
     }                                                                   \
                                                                         \
     FORCE_INLINE void prefix##_vector_push_back(Vector* vec, type value) { \
         vector_push_back(vec, (void*)(Uint64)value);                \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type prefix##_vector_pop_back(Vector* vec) {  \
-        return (type)(Uint64)vector_pop_back(vec);                  \
+    FORCE_INLINE type prefix##_vector_poback(Vector* vec) {  \
+        return (type)(Uint64)vector_poback(vec);                  \
     }                                                                   \
                                                                         \
     FORCE_INLINE type prefix##_vector_peek(Vector* vec, Size pos) { \
@@ -162,7 +162,7 @@
     }                                                                   \
                                                                         \
     FORCE_INLINE type* prefix##_vector_data(Vector* vec) {     \
-        return (type*)vec->p_data;                                      \
+        return (type*)vec->data;                                      \
     }                                                                   \
                                                                         \
     FORCE_INLINE type* prefix##_vector_address_at(Vector* vec, Size idx) { \
@@ -209,12 +209,12 @@
         vector_move(vec, to, from);                                 \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_overwrite(Vector* vec, Size to, type* p_data) { \
-        vector_overwrite(vec, to, (void*)p_data);                   \
+    FORCE_INLINE void prefix##_vector_overwrite(Vector* vec, Size to, type* data) { \
+        vector_overwrite(vec, to, (void*)data);                   \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_insert(Vector* vec, type* p_data, Size pos) { \
-        vector_insert(vec, (void*)p_data, pos);                     \
+    FORCE_INLINE void prefix##_vector_insert(Vector* vec, type* data, Size pos) { \
+        vector_insert(vec, (void*)data, pos);                     \
     }                                                                   \
                                                                         \
     FORCE_INLINE void prefix##_vector_delete(Vector* vec, Size pos) { \
@@ -225,8 +225,8 @@
         return (type*)(Uint64)vector_remove(vec, pos);              \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_insert_fast(Vector* vec, type* p_data, Size pos) { \
-        vector_insert_fast(vec, (void*)p_data, pos);                \
+    FORCE_INLINE void prefix##_vector_insert_fast(Vector* vec, type* data, Size pos) { \
+        vector_insert_fast(vec, (void*)data, pos);                \
     }                                                                   \
                                                                         \
     FORCE_INLINE void prefix##_vector_delete_fast(Vector* vec, Size pos) { \
@@ -237,32 +237,32 @@
         return (type*)(Uint64)vector_remove_fast(vec, pos);         \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_push_front(Vector* vec, type* p_data) { \
-        vector_push_front(vec, (void*)p_data);                      \
+    FORCE_INLINE void prefix##_vector_push_front(Vector* vec, type* data) { \
+        vector_push_front(vec, (void*)data);                      \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* prefix##_vector_pop_front(Vector* vec) { \
-        return (type*)(Uint64)vector_pop_front(vec);                \
+    FORCE_INLINE type* prefix##_vector_pofront(Vector* vec) { \
+        return (type*)(Uint64)vector_pofront(vec);                \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_push_front_fast(Vector* vec, type* p_data) { \
-        vector_push_front_fast(vec, (void*)p_data);                 \
+    FORCE_INLINE void prefix##_vector_push_front_fast(Vector* vec, type* data) { \
+        vector_push_front_fast(vec, (void*)data);                 \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* prefix##_vector_pop_front_fast(Vector* vec) { \
-        return (type*)(Uint64)vector_pop_front_fast(vec);           \
+    FORCE_INLINE type* prefix##_vector_pofront_fast(Vector* vec) { \
+        return (type*)(Uint64)vector_pofront_fast(vec);           \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_push_back(Vector* vec, type* p_data) { \
-        vector_push_back(vec, (void*)p_data);                       \
+    FORCE_INLINE void prefix##_vector_push_back(Vector* vec, type* data) { \
+        vector_push_back(vec, (void*)data);                       \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* prefix##_vector_pop_back(Vector* vec) { \
-        return (type*)(Uint64)vector_pop_back(vec);                 \
+    FORCE_INLINE type* prefix##_vector_poback(Vector* vec) { \
+        return (type*)(Uint64)vector_poback(vec);                 \
     }                                                                   \
                                                                         \
     FORCE_INLINE type* prefix##_vector_data(Vector* vec) {     \
-        return (type*)vec->p_data;                                      \
+        return (type*)vec->data;                                      \
     }                                                                   \
                                                                         \
     FORCE_INLINE type* prefix##_vector_peek(Vector* vec, Size pos) { \

@@ -17,7 +17,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @brief Common typedefs for ieUtils
+ * @brief Common typedefs for AnvieUtils
  * */
 
 #ifndef AVTYPES_H_

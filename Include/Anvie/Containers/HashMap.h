@@ -21,6 +21,6 @@
  * search and insertions.
  * */
 
-typedef struct anvie_hash_map_t {
+typedef struct anvie_hash_mat {
 
 } HashMap;

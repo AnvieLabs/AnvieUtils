@@ -34,11 +34,11 @@ typedef struct anvie_matrix_4f_t {
 } Matrix4f;
 
 Matrix4f* matrix_4f_create();
-void matrix_4f_destroy(Matrix4f* p_mat);
+void matrix_4f_destroy(Matrix4f* mat);
 
-void matrix_4f_mul(Matrix4f* p_mat1, Matrix4f* p_mat2);
-void matrix_4f_add(Matrix4f* p_mat1, Matrix4f* p_mat2);
-void matrix_4f_sub(Matrix4f* p_mat1, Matrix4f* p_mat2);
+void matrix_4f_mul(Matrix4f* mat1, Matrix4f* mat2);
+void matrix_4f_add(Matrix4f* mat1, Matrix4f* mat2);
+void matrix_4f_sub(Matrix4f* mat1, Matrix4f* mat2);
 
 Matrix4f* matrix_4f_identity();
 Matrix4f* matrix_4f_projection_perspective(
@@ -64,8 +64,8 @@ Matrix4f* matrix_4f_translation_matrix(Float32 dx, Float32 dy, Float32 dz);
 Matrix4f* matrix_4f_rotation_matrix(Float32 yaw, Float32 pitch, Float32 roll);
 Matrix4f* matrix_4f_scale_matrix(Float32 sx, Float32 sy, Float32 sz);
 
-void matrix_4f_translate(Matrix4f* p_matrix, Float32 dx, Float32 dy, Float32 dz);
-void matrix_4f_rotate(Matrix4f* p_matrix, Float32 yaw, Float32 pitch, Float32 roll);
-void matrix_4f_scale(Matrix4f* p_matrix, Float32 sx, Float32 sy, Float32 sz);
+void matrix_4f_translate(Matrix4f* matrix, Float32 dx, Float32 dy, Float32 dz);
+void matrix_4f_rotate(Matrix4f* matrix, Float32 yaw, Float32 pitch, Float32 roll);
+void matrix_4f_scale(Matrix4f* matrix, Float32 sx, Float32 sy, Float32 sz);
 
 #endif // ANVIE_UTILS_MATHS_MATRIX4F_H

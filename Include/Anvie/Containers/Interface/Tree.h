@@ -39,16 +39,16 @@
         return tree_get_height(node);                               \
     }                                                                   \
                                                                         \
-    FORCE_INLINE TreeNode* prefix##_tree_push_front(Tree* node, type p_data) { \
-        return tree_push_front(node, (void*)(Uint64)p_data);        \
+    FORCE_INLINE TreeNode* prefix##_tree_push_front(Tree* node, type data) { \
+        return tree_push_front(node, (void*)(Uint64)data);        \
     }                                                                   \
                                                                         \
-    FORCE_INLINE TreeNode* prefix##_tree_push_back(Tree* node, type p_data) { \
-        return tree_push_back(node, (void*)(Uint64)p_data);                 \
+    FORCE_INLINE TreeNode* prefix##_tree_push_back(Tree* node, type data) { \
+        return tree_push_back(node, (void*)(Uint64)data);                 \
     }                                                                   \
                                                                         \
-    FORCE_INLINE TreeNode* prefix##_tree_insert(Tree* node, type p_data, Size index) { \
-        return tree_insert(node, (void*)(Uint64)p_data, index);             \
+    FORCE_INLINE TreeNode* prefix##_tree_insert(Tree* node, type data, Size index) { \
+        return tree_insert(node, (void*)(Uint64)data, index);             \
     }                                                                   \
                                                                         \
     FORCE_INLINE TreeNode* prefix##_tree_remove(Tree* node, Size index) { \
@@ -59,12 +59,12 @@
         tree_delete(node, index);                                   \
     }                                                                   \
                                                                         \
-    FORCE_INLINE TreeNode* prefix##_tree_push_front_fast(Tree* node, type p_data) { \
-        return tree_push_front_fast(node, (void*)(Uint64)p_data);           \
+    FORCE_INLINE TreeNode* prefix##_tree_push_front_fast(Tree* node, type data) { \
+        return tree_push_front_fast(node, (void*)(Uint64)data);           \
     }                                                                   \
                                                                         \
-    FORCE_INLINE TreeNode* prefix##_tree_insert_fast(Tree* node, type p_data, Size index) { \
-        return tree_insert_fast(node, (void*)(Uint64)p_data, index);        \
+    FORCE_INLINE TreeNode* prefix##_tree_insert_fast(Tree* node, type data, Size index) { \
+        return tree_insert_fast(node, (void*)(Uint64)data, index);        \
     }                                                                   \
                                                                         \
     FORCE_INLINE TreeNode* prefix##_tree_remove_fast(Tree* node, Size index) { \
@@ -83,16 +83,16 @@
         return tree_node_get_height(node);                          \
     }                                                                   \
                                                                         \
-    FORCE_INLINE TreeNode* prefix##_tree_node_push_front(TreeNode* node, type p_data) { \
-        return tree_node_push_front(node, (void*)(Uint64)p_data);           \
+    FORCE_INLINE TreeNode* prefix##_tree_node_push_front(TreeNode* node, type data) { \
+        return tree_node_push_front(node, (void*)(Uint64)data);           \
     }                                                                   \
                                                                         \
-    FORCE_INLINE TreeNode* prefix##_tree_node_push_back(TreeNode* node, type p_data) { \
-        return tree_node_push_back(node, (void*)(Uint64)p_data);            \
+    FORCE_INLINE TreeNode* prefix##_tree_node_push_back(TreeNode* node, type data) { \
+        return tree_node_push_back(node, (void*)(Uint64)data);            \
     }                                                                   \
                                                                         \
-    FORCE_INLINE TreeNode* prefix##_tree_node_insert(TreeNode* node, type p_data, Size index) { \
-        return tree_node_insert(node, (void*)(Uint64)p_data, index);        \
+    FORCE_INLINE TreeNode* prefix##_tree_node_insert(TreeNode* node, type data, Size index) { \
+        return tree_node_insert(node, (void*)(Uint64)data, index);        \
     }                                                                   \
                                                                         \
     FORCE_INLINE TreeNode* prefix##_tree_node_remove(TreeNode* node, Size index) { \
@@ -103,12 +103,12 @@
         tree_node_delete(node, index);                              \
     }                                                                   \
                                                                         \
-    FORCE_INLINE TreeNode* prefix##_tree_node_push_front_fast(TreeNode* node, type p_data) { \
-        return tree_node_push_front_fast(node, (void*)(Uint64)p_data);      \
+    FORCE_INLINE TreeNode* prefix##_tree_node_push_front_fast(TreeNode* node, type data) { \
+        return tree_node_push_front_fast(node, (void*)(Uint64)data);      \
     }                                                                   \
                                                                         \
-    FORCE_INLINE TreeNode* prefix##_tree_node_insert_fast(TreeNode* node, type p_data, Size index) { \
-        return tree_node_insert_fast(node, (void*)(Uint64)p_data, index);   \
+    FORCE_INLINE TreeNode* prefix##_tree_node_insert_fast(TreeNode* node, type data, Size index) { \
+        return tree_node_insert_fast(node, (void*)(Uint64)data, index);   \
     }                                                                   \
                                                                         \
     FORCE_INLINE TreeNode* prefix##_tree_node_remove_fast(TreeNode* node, Size index) { \
@@ -132,16 +132,16 @@
         return tree_get_height(node);                               \
     }                                                                   \
                                                                         \
-    FORCE_INLINE TreeNode* prefix##_tree_push_front(Tree* node, type* p_data) { \
-        return tree_push_front(node, (void*)p_data);                \
+    FORCE_INLINE TreeNode* prefix##_tree_push_front(Tree* node, type* data) { \
+        return tree_push_front(node, (void*)data);                \
     }                                                                   \
                                                                         \
-    FORCE_INLINE TreeNode* prefix##_tree_push_back(Tree* node, type* p_data) { \
-        return tree_push_back(node, (void*)p_data);                 \
+    FORCE_INLINE TreeNode* prefix##_tree_push_back(Tree* node, type* data) { \
+        return tree_push_back(node, (void*)data);                 \
     }                                                                   \
                                                                         \
-    FORCE_INLINE TreeNode* prefix##_tree_insert(Tree* node, type* p_data, Size index) { \
-        return tree_insert(node, (void*)p_data, index);             \
+    FORCE_INLINE TreeNode* prefix##_tree_insert(Tree* node, type* data, Size index) { \
+        return tree_insert(node, (void*)data, index);             \
     }                                                                   \
                                                                         \
     FORCE_INLINE TreeNode* prefix##_tree_remove(Tree* node, Size index) { \
@@ -152,12 +152,12 @@
         tree_delete(node, index);                                   \
     }                                                                   \
                                                                         \
-    FORCE_INLINE TreeNode* prefix##_tree_push_front_fast(Tree* node, type* p_data) { \
-        return tree_push_front_fast(node, (void*)p_data);           \
+    FORCE_INLINE TreeNode* prefix##_tree_push_front_fast(Tree* node, type* data) { \
+        return tree_push_front_fast(node, (void*)data);           \
     }                                                                   \
                                                                         \
-    FORCE_INLINE TreeNode* prefix##_tree_insert_fast(Tree* node, type* p_data, Size index) { \
-        return tree_insert_fast(node, (void*)p_data, index);        \
+    FORCE_INLINE TreeNode* prefix##_tree_insert_fast(Tree* node, type* data, Size index) { \
+        return tree_insert_fast(node, (void*)data, index);        \
     }                                                                   \
                                                                         \
     FORCE_INLINE TreeNode* prefix##_tree_remove_fast(Tree* node, Size index) { \
@@ -176,16 +176,16 @@
         return tree_node_get_height(node);                          \
     }                                                                   \
                                                                         \
-    FORCE_INLINE TreeNode* prefix##_tree_node_push_front(TreeNode* node, type* p_data) { \
-        return tree_node_push_front(node, (void*)p_data);           \
+    FORCE_INLINE TreeNode* prefix##_tree_node_push_front(TreeNode* node, type* data) { \
+        return tree_node_push_front(node, (void*)data);           \
     }                                                                   \
                                                                         \
-    FORCE_INLINE TreeNode* prefix##_tree_node_push_back(TreeNode* node, type* p_data) { \
-        return tree_node_push_back(node, (void*)p_data);            \
+    FORCE_INLINE TreeNode* prefix##_tree_node_push_back(TreeNode* node, type* data) { \
+        return tree_node_push_back(node, (void*)data);            \
     }                                                                   \
                                                                         \
-    FORCE_INLINE TreeNode* prefix##_tree_node_insert(TreeNode* node, type* p_data, Size index) { \
-        return tree_node_insert(node, (void*)p_data, index);        \
+    FORCE_INLINE TreeNode* prefix##_tree_node_insert(TreeNode* node, type* data, Size index) { \
+        return tree_node_insert(node, (void*)data, index);        \
     }                                                                   \
                                                                         \
     FORCE_INLINE TreeNode* prefix##_tree_node_remove(TreeNode* node, Size index) { \
@@ -196,12 +196,12 @@
         tree_node_delete(node, index);                              \
     }                                                                   \
                                                                         \
-    FORCE_INLINE TreeNode* prefix##_tree_node_push_front_fast(TreeNode* node, type* p_data) { \
-        return tree_node_push_front_fast(node, (void*)p_data);      \
+    FORCE_INLINE TreeNode* prefix##_tree_node_push_front_fast(TreeNode* node, type* data) { \
+        return tree_node_push_front_fast(node, (void*)data);      \
     }                                                                   \
                                                                         \
-    FORCE_INLINE TreeNode* prefix##_tree_node_insert_fast(TreeNode* node, type* p_data, Size index) { \
-        return tree_node_insert_fast(node, (void*)p_data, index);   \
+    FORCE_INLINE TreeNode* prefix##_tree_node_insert_fast(TreeNode* node, type* data, Size index) { \
+        return tree_node_insert_fast(node, (void*)data, index);   \
     }                                                                   \
                                                                         \
     FORCE_INLINE TreeNode* prefix##_tree_node_remove_fast(TreeNode* node, Size index) { \

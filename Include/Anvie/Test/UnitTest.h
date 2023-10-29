@@ -37,8 +37,8 @@ typedef Bool (*UnitTestCallbackFn)();
  * Test structure to contain test related data.
  * */
 typedef struct anvie_unit_test_t {
-    String s_name;
-    UnitTestCallbackFn pfn_test;
+    String name;
+    UnitTestCallbackFn test_fn;
 } UnitTest;
 
 // begin tests recording
@@ -58,11 +58,11 @@ typedef struct anvie_unit_test_t {
     Size iter = unit_tests_count;                                       \
     Size failed_count = 0;                                              \
     while(iter--) {                                                     \
-        if(!tests[iter].pfn_test()) {                                   \
-            ERR("FAIL", "%s", tests[iter].s_name);                      \
+        if(!tests[iter].test_fn()) {                                    \
+            ERR("FAIL", "%s", tests[iter].name);                        \
             failed_count++;                                             \
         } else {                                                        \
-            OK("PASS", "%s", tests[iter].s_name);                       \
+            OK("PASS", "%s", tests[iter].name);                         \
         }                                                               \
         puts("\n---");                                                  \
     }                                                                   \
@@ -70,7 +70,7 @@ typedef struct anvie_unit_test_t {
     }
 
 // record a test function
-#define TEST(test) {.s_name = #test, .pfn_test = test}
+#define TEST(test) {.name = #test, .test_fn = test}
 
 #define BEGIN_UNIT_TESTS()                      \
     int main() {                                \

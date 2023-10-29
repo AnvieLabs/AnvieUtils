@@ -59,17 +59,17 @@ typedef void (*DestroyElementCopyCallback)(void* copy);
 
 /**
  * Typedef for callback functions that take an element print it.
- * @param p_element Element to be printed.
+ * @param element Element to be printed.
  * @param pos Positon of element in the array.
  * */
-typedef void (*PrintElementCallback)(void* p_element, Size pos);
+typedef void (*PrintElementCallback)(void* element, Size pos);
 
 /**
  * To filter elements in a container.
- * @param p_element, Element passed to callback from container.
- * @param p_user_data User data passed to filter function.
+ * @param element, Element passed to callback from container.
+ * @param user_data User data passed to filter function.
  * */
-typedef Bool (*FilterElementCallback)(void* p_element, void* p_user_data);
+typedef Bool (*FilterElementCallback)(void* element, void* user_data);
 
 /**
  * Compare two provided elements.
@@ -90,7 +90,7 @@ void print_u32(void* x, Size idx);
 void print_u64(void* x, Size idx);
 
 void print_string(void* x, Size idx);
-void string_create_copy(void* to, void* p_data);
-void string_destroy_copy(void* p_data);
+void string_create_copy(void* to, void* data);
+void string_destroy_copy(void* data);
 
 #endif // ANVIE_UTILS_COMMON_H

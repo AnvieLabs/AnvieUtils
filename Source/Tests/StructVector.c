@@ -29,7 +29,7 @@
  * Declare a test struct
  * */
 typedef struct string_entry_t {
-    String s_name;
+    String name;
     Size len;
 } StringEntry;
 
@@ -37,32 +37,32 @@ typedef struct string_entry_t {
 static String allocated_strings[TEST_DATA_SIZE*2] = {0};
 static Size strid = 0;
 
-static inline void string_entry_init(StringEntry* p_se, String s) {
-    RETURN_IF_FAIL(p_se && s, ERR_INVALID_ARGUMENTS);
-    p_se->s_name = s;
-    p_se->len = strlen(p_se->s_name);
+static inline void string_entry_init(StringEntry* se, String s) {
+    RETURN_IF_FAIL(se && s, ERR_INVALID_ARGUMENTS);
+    se->name = s;
+    se->len = strlen(se->name);
 }
 
 void __StringEntry_CreateCopy___(void* dst, void* src) {
     StringEntry* to = (StringEntry*)dst;
     StringEntry* from = (StringEntry*)src;
-    RETURN_IF_FAIL(to && from && from->s_name && from->len , ERR_INVALID_ARGUMENTS);
+    RETURN_IF_FAIL(to && from && from->name && from->len , ERR_INVALID_ARGUMENTS);
 
-    to->s_name = strdup(from->s_name);
-    FATAL_IF(!to->s_name, ERR_OUT_OF_MEMORY);
+    to->name = strdup(from->name);
+    FATAL_IF(!to->name, ERR_OUT_OF_MEMORY);
     to->len = from->len;
 
 //    DBG(__FUNCTION__, "STRID = \"%zu\"\n", strid);
-    allocated_strings[strid++] = to->s_name;
+    allocated_strings[strid++] = to->name;
 }
 
 void __StringEntry_DestroyCopy___(void* copy) {
     StringEntry* s = (StringEntry*)copy;
-    RETURN_IF_FAIL(s && s->s_name && s->len , ERR_INVALID_ARGUMENTS);
+    RETURN_IF_FAIL(s && s->name && s->len , ERR_INVALID_ARGUMENTS);
 
     Bool b_found = False;
     for(Size i = 0; i < TEST_DATA_SIZE; i++) {
-        if(allocated_strings[i] == s->s_name) {
+        if(allocated_strings[i] == s->name) {
             allocated_strings[i] = NULL;
             b_found = True;
             break;
@@ -74,14 +74,14 @@ void __StringEntry_DestroyCopy___(void* copy) {
         return;
     }
 
-    FREE(s->s_name);
+    FREE(s->name);
     s->len = 0;
-    s->s_name = NULL;
+    s->name = NULL;
 }
 
 static inline Bool CompareString(StringEntry* s1, StringEntry* s2) {
     RETURN_VALUE_IF_FAIL(s1 && s2, False, ERR_INVALID_ARGUMENTS);
-    return (s1->len == s2->len) && (strcmp(s1->s_name, s1->s_name) == 0);
+    return (s1->len == s2->len) && (strcmp(s1->name, s1->name) == 0);
 }
 
 DEF_STRUCT_VECTOR_INTERFACE(string_entry, StringEntry, __StringEntry_CreateCopy___, __StringEntry_DestroyCopy___);
@@ -142,8 +142,8 @@ TEST_FN Bool Insert() {
     strid = 0;
 
     StringEntry entry = {
-        .s_name = "ieUtils",
-        .len = strlen("ieUtils")
+        .name = "AnvieUtils",
+        .len = strlen("AnvieUtils")
     };
 
     Bool res = True;
@@ -166,7 +166,7 @@ TEST_FN Bool Insert() {
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
         StringEntry* ref = string_entry_vector_peek(vec, iter);
 
-        if(ref->s_name == entry.s_name) {
+        if(ref->name == entry.name) {
             DBG(__FUNCTION__, "BOTH STRINGS MUST NOT POINT TO SAME ADDRESS\n");
             res = False;
         }
@@ -191,8 +191,8 @@ TEST_FN Bool Delete() {
     strid = 0;
 
     StringEntry entry = {
-        .s_name = "ieUtils",
-        .len = strlen("ieUtils")
+        .name = "AnvieUtils",
+        .len = strlen("AnvieUtils")
     };
 
     Bool res = True;
@@ -230,8 +230,8 @@ TEST_FN Bool Remove() {
     strid = 0;
 
     StringEntry entry = {
-        .s_name = "ieUtils",
-        .len = strlen("ieUtils")
+        .name = "AnvieUtils",
+        .len = strlen("AnvieUtils")
     };
 
     Bool res = True;
@@ -249,7 +249,7 @@ TEST_FN Bool Remove() {
             res = False;
         }
 
-        if(ref->s_name == entry.s_name) {
+        if(ref->name == entry.name) {
             DBG(__FUNCTION__, "BOTH STRINGS MUST NOT POINT TO SAME ADDRESS\n");
             res = False;
         }
@@ -273,8 +273,8 @@ TEST_FN Bool InsertFast() {
     strid = 0;
 
     StringEntry entry = {
-        .s_name = "ieUtils",
-        .len = strlen("ieUtils")
+        .name = "AnvieUtils",
+        .len = strlen("AnvieUtils")
     };
 
     Bool res = True;
@@ -302,7 +302,7 @@ TEST_FN Bool InsertFast() {
             res = False;
         }
 
-        if(ref->s_name == entry.s_name) {
+        if(ref->name == entry.name) {
             DBG(__FUNCTION__, "BOTH STRINGS MUST NOT POINT TO SAME ADDRESS\n");
             res = False;
         }
@@ -322,8 +322,8 @@ TEST_FN Bool DeleteFast() {
     strid = 0;
 
     StringEntry entry = {
-        .s_name = "ieUtils",
-        .len = strlen("ieUtils")
+        .name = "AnvieUtils",
+        .len = strlen("AnvieUtils")
     };
 
     Bool res = True;
@@ -362,8 +362,8 @@ TEST_FN Bool RemoveFast() {
     strid = 0;
 
     StringEntry entry = {
-        .s_name = "ieUtils",
-        .len = strlen("ieUtils")
+        .name = "AnvieUtils",
+        .len = strlen("AnvieUtils")
     };
 
     Bool res = True;
@@ -381,7 +381,7 @@ TEST_FN Bool RemoveFast() {
             res = False;
         }
 
-        if(ref->s_name == entry.s_name) {
+        if(ref->name == entry.name) {
             DBG(__FUNCTION__, "BOTH STRINGS MUST NOT POINT TO SAME ADDRESS\n");
             res = False;
         }
@@ -406,8 +406,8 @@ TEST_FN Bool PushBack() {
     strid = 0;
 
     StringEntry entry = {
-        .s_name = "ieUtils",
-        .len = strlen("ieUtils")
+        .name = "AnvieUtils",
+        .len = strlen("AnvieUtils")
     };
 
     Bool res = True;
@@ -435,7 +435,7 @@ TEST_FN Bool PushBack() {
             res = False;
         }
 
-        if(ref->s_name == entry.s_name) {
+        if(ref->name == entry.name) {
             DBG(__FUNCTION__, "BOTH STRINGS MUST NOT POINT TO SAME ADDRESS\n");
             res = False;
         }
@@ -455,8 +455,8 @@ TEST_FN Bool PopBack() {
     strid = 0;
 
     StringEntry entry = {
-        .s_name = "ieUtils",
-        .len = strlen("ieUtils")
+        .name = "AnvieUtils",
+        .len = strlen("AnvieUtils")
     };
 
     Bool res = True;
@@ -468,14 +468,14 @@ TEST_FN Bool PopBack() {
 
     // delete all elements and check size
     for(Size iter = TEST_DATA_SIZE; iter; iter--) {
-        StringEntry* ref = string_entry_vector_pop_back(vec);
+        StringEntry* ref = string_entry_vector_poback(vec);
 
         if(!CompareString(ref, &entry)) {
             DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
             res = False;
         }
 
-        if(ref->s_name == entry.s_name) {
+        if(ref->name == entry.name) {
             DBG(__FUNCTION__, "BOTH STRINGS MUST NOT POINT TO SAME ADDRESS\n");
             res = False;
         }
@@ -505,8 +505,8 @@ TEST_FN Bool PushFront() {
     strid = 0;
 
     StringEntry entry = {
-        .s_name = "ieUtils",
-        .len = strlen("ieUtils")
+        .name = "AnvieUtils",
+        .len = strlen("AnvieUtils")
     };
 
     Bool res = True;
@@ -532,11 +532,11 @@ TEST_FN Bool PushFront() {
 
         if(!CompareString(ref, &entry)) {
             DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
-            DBG(__FUNCTION__, "REF = \"%p\" | REF.STRING = \"%s\" | REF.LEN = \"%zu\"\n", ref, ref->s_name, ref->len);
+            DBG(__FUNCTION__, "REF = \"%p\" | REF.STRING = \"%s\" | REF.LEN = \"%zu\"\n", ref, ref->name, ref->len);
             res = False;
         }
 
-        if(ref->s_name == entry.s_name) {
+        if(ref->name == entry.name) {
             DBG(__FUNCTION__, "BOTH STRINGS MUST NOT POINT TO SAME ADDRESS\n");
             res = False;
         }
@@ -556,8 +556,8 @@ TEST_FN Bool PopFront() {
     strid = 0;
 
     StringEntry entry = {
-        .s_name = "ieUtils",
-        .len = strlen("ieUtils")
+        .name = "AnvieUtils",
+        .len = strlen("AnvieUtils")
     };
 
     Bool res = True;
@@ -569,14 +569,14 @@ TEST_FN Bool PopFront() {
 
     // delete all elements and check size
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        StringEntry* ref = string_entry_vector_pop_front(vec);
+        StringEntry* ref = string_entry_vector_pofront(vec);
 
         if(!CompareString(ref, &entry)) {
             DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
             res = False;
         }
 
-        if(ref->s_name == entry.s_name) {
+        if(ref->name == entry.name) {
             DBG(__FUNCTION__, "BOTH STRINGS MUST NOT POINT TO SAME ADDRESS\n");
             res = False;
         }
@@ -624,8 +624,8 @@ TEST_FN Bool Merge() {
     string_entry_vector_merge(vec1, vec2);
 
     // check merge
-    RETURN_VALUE_IF_FAIL(!strcmp(string_entry_vector_peek(vec1, 2)->s_name, string_entry_vector_peek(vec2, 0)->s_name), False, "MERGE OPERATION IS INVALID! ELEMENTS DON'T MATCH!\n");
-    RETURN_VALUE_IF_FAIL(!strcmp(string_entry_vector_peek(vec1, 3)->s_name, string_entry_vector_peek(vec2, 1)->s_name), False, "MERGE OPERATION IS INVALID! ELEMENTS DON'T MATCH!\n");
+    RETURN_VALUE_IF_FAIL(!strcmp(string_entry_vector_peek(vec1, 2)->name, string_entry_vector_peek(vec2, 0)->name), False, "MERGE OPERATION IS INVALID! ELEMENTS DON'T MATCH!\n");
+    RETURN_VALUE_IF_FAIL(!strcmp(string_entry_vector_peek(vec1, 3)->name, string_entry_vector_peek(vec2, 1)->name), False, "MERGE OPERATION IS INVALID! ELEMENTS DON'T MATCH!\n");
 
     string_entry_vector_destroy(vec1);
     string_entry_vector_destroy(vec2);
@@ -637,7 +637,7 @@ static inline Bool element_filter(void* x, void* udata) {
     StringEntry* v = (StringEntry*)x;
     Size sz_limit = (Size)udata;
 
-    return strlen(v->s_name) > sz_limit;
+    return strlen(v->name) > sz_limit;
 }
 
 TEST_FN Bool Filter() {
@@ -664,7 +664,7 @@ TEST_FN Bool Filter() {
 
     // check length of all elements in vec_g5 are greater than 5
     for(Size s = 0; s < vec_g5->length; s++) {
-        RETURN_VALUE_IF_FAIL(strlen(string_entry_vector_peek(vec_g5, s)->s_name) > 5, False, "FILTERED VECTOR CONTAINS WRONG CONTENT\n");
+        RETURN_VALUE_IF_FAIL(strlen(string_entry_vector_peek(vec_g5, s)->name) > 5, False, "FILTERED VECTOR CONTAINS WRONG CONTENT\n");
     }
 
     string_entry_vector_destroy(vec);

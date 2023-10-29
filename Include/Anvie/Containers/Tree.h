@@ -49,7 +49,7 @@ typedef struct anvie_tree_node_t TreeNode;
  * @c node_parent member is there to help traversing up the tree.
  * */
 struct anvie_tree_node_t {
-    void*        p_data;        /**< Data held by this tree node. */
+    void*        data;        /**< Data held by this tree node. */
     Size         size;          /**< Size of this node. This is total number of nodes attached, not just children nodes. */
     Size         height;        /**< Height of this given node. */
     Vector*   vec_children;  /**< Vector<TreeNode> containing children of this node. */
@@ -59,8 +59,8 @@ struct anvie_tree_node_t {
 #define TO_TREE_NODE(x) ((TreeNode*)(x))
 #define TREE_PARENT(node) (node->tree_parent ? node->tree_parent : TO_TREE(node))
 
-void tree_node_create_copy(void* p_dst, void* p_src);
-void tree_node_destroy_copy(void* p_copy);
+void tree_node_create_copy(void* dst, void* src);
+void tree_node_destroy_copy(void* copy);
 DEF_STRUCT_VECTOR_INTERFACE(tree_node, TreeNode, tree_node_create_copy, tree_node_destroy_copy);
 
 Size tree_node_get_size(TreeNode* node);
@@ -70,14 +70,14 @@ TreeNode* tree_node_get_front(TreeNode* node);
 TreeNode* tree_node_get_back(TreeNode* node);
 TreeNode* tree_node_peek(TreeNode* node, Size idx);
 
-TreeNode* tree_node_push_front(TreeNode* node, void* p_data);
-TreeNode* tree_node_push_back(TreeNode* node, void* p_data);
-TreeNode* tree_node_insert(TreeNode* node, void* p_data, Size index);
+TreeNode* tree_node_push_front(TreeNode* node, void* data);
+TreeNode* tree_node_push_back(TreeNode* node, void* data);
+TreeNode* tree_node_insert(TreeNode* node, void* data, Size index);
 TreeNode* tree_node_remove(TreeNode* node, Size index);
 void tree_node_delete(TreeNode* node, Size index);
 
-TreeNode* tree_node_push_front_fast(TreeNode* node, void* p_data);
-TreeNode* tree_node_insert_fast(TreeNode* node, void* p_data, Size index);
+TreeNode* tree_node_push_front_fast(TreeNode* node, void* data);
+TreeNode* tree_node_insert_fast(TreeNode* node, void* data, Size index);
 TreeNode* tree_node_remove_fast(TreeNode* node, Size index);
 void tree_node_delete_fast(TreeNode* node, Size index);
 
@@ -95,36 +95,36 @@ void tree_node_delete_fast(TreeNode* node, Size index);
  * */
 struct anvie_tree_t {
     TreeNode                   node_root; /**< Root node of the whole tree. */
-    Size                          element_size; /**< Size of p_data element. */
-    CreateElementCopyCallback  pfn_create_copy; /**< Copy constructor for each element. Can be NULL. */
-    DestroyElementCopyCallback pfn_destroy_copy; /**< Copy destructor for each element. Can be NULL. */
+    Size                          element_size; /**< Size of data element. */
+    CreateElementCopyCallback  create_copy; /**< Copy constructor for each element. Can be NULL. */
+    DestroyElementCopyCallback destroy_copy; /**< Copy destructor for each element. Can be NULL. */
 };
 #define TO_TREE(x) ((Tree*)(x))
 
 /**
  * Create a new tree object.
- * Like vectors, you either have both @c pfn_create_copy
- * and @c pfn_destroy_copy or you don't have them at all.
+ * Like vectors, you either have both @c create_copy
+ * and @c destroy_copy or you don't have them at all.
  *
  * @param element_size Size of data type to be stored in this tree.
- * @param pfn_create_copy Copy constructor callback for creating copy
+ * @param create_copy Copy constructor callback for creating copy
  * of each data inserted into the tree while construction of nodes.
  * This way, tree creates a copy of data each time it's added to it,
  * and hence avoids lots of very common memory bugs.
- * @param pfn_destroy_copy Copy destructor callback for destroying
- * copies created using @c pfn_create_copy.
+ * @param destroy_copy Copy destructor callback for destroying
+ * copies created using @c create_copy.
  *
  * @return New created tree.
  * */
 FORCE_INLINE Tree* tree_create (
     Size element_size,
-    CreateElementCopyCallback pfn_create_copy,
-    DestroyElementCopyCallback pfn_destroy_copy
+    CreateElementCopyCallback create_copy,
+    DestroyElementCopyCallback destroy_copy
 ) {
     RETURN_VALUE_IF_FAIL(element_size, NULL, ERR_INVALID_ARGUMENTS);
 
-    Bool b1 = pfn_create_copy != NULL;
-    Bool b2 = pfn_destroy_copy != NULL;
+    Bool b1 = create_copy != NULL;
+    Bool b2 = destroy_copy != NULL;
     RETURN_VALUE_IF_FAIL(!(b1 ^ b2), NULL,
                          "Either both copy constructor and destructor should be NULL, "
                          "or both should be non NULL at the same time!");
@@ -133,8 +133,8 @@ FORCE_INLINE Tree* tree_create (
     RETURN_VALUE_IF_FAIL(tree, NULL, ERR_OUT_OF_MEMORY);
 
     tree->element_size          = element_size;
-    tree->pfn_create_copy       = pfn_create_copy;
-    tree->pfn_destroy_copy      = pfn_destroy_copy;
+    tree->create_copy       = create_copy;
+    tree->destroy_copy      = destroy_copy;
 
     return tree;
 }
@@ -215,14 +215,14 @@ FORCE_INLINE TreeNode* tree_peek(Tree* node, Size idx) {
  * Order preserving methods.
  *
  * @param tree Tree to insert new child node into.
- * @param p_data Pointer to data to be set as child node's data.
+ * @param data Pointer to data to be set as child node's data.
  *
  * @return TreeNode* of new created child node on success.
  * NULL otherwise.
  * */
 #define TREE_PUSH(place)                                                \
-    FORCE_INLINE TreeNode* tree_push_##place(Tree* tree, void* p_data) { \
-        return tree_node_push_##place(TO_TREE_NODE(tree), p_data); \
+    FORCE_INLINE TreeNode* tree_push_##place(Tree* tree, void* data) { \
+        return tree_node_push_##place(TO_TREE_NODE(tree), data); \
     }
 TREE_PUSH(front)
 TREE_PUSH(back)
@@ -233,14 +233,14 @@ TREE_PUSH(back)
  * This is a slower insert method but is order preserving.
  *
  * @param tree Tree to insert new child node into.
- * @param p_data Pointer to data to be set as child node's data.
+ * @param data Pointer to data to be set as child node's data.
  * @param index Index (position) where insertion will take place.
  *
  * @return TreeNode* of new created child node on success.
  * NULL otherwise.
  * */
-FORCE_INLINE TreeNode* tree_insert(Tree* tree, void* p_data, Size index) {
-    return tree_node_insert(TO_TREE_NODE(tree), p_data, index);
+FORCE_INLINE TreeNode* tree_insert(Tree* tree, void* data, Size index) {
+    return tree_node_insert(TO_TREE_NODE(tree), data, index);
 }
 
 /**
@@ -275,13 +275,13 @@ FORCE_INLINE void tree_delete(Tree* tree, Size index) {
  * not preserve the order of children.
  *
  * @param tree Tree to insert new child node into.
- * @param p_data Pointer to data to be set as child node's data.
+ * @param data Pointer to data to be set as child node's data.
  *
  * @return TreeNode* of new created child node on success.
  * NULL otherwise.
  * */
-FORCE_INLINE TreeNode* tree_push_front_fast(Tree* tree, void* p_data) { \
-    return tree_node_push_front_fast(TO_TREE_NODE(tree), p_data);  \
+FORCE_INLINE TreeNode* tree_push_front_fast(Tree* tree, void* data) { \
+    return tree_node_push_front_fast(TO_TREE_NODE(tree), data);  \
 }
 
 /**
@@ -290,14 +290,14 @@ FORCE_INLINE TreeNode* tree_push_front_fast(Tree* tree, void* p_data) { \
  * not order preserving.
  *
  * @param tree Tree to insert new child node into.
- * @param p_data Pointer to data to be set as child node's data.
+ * @param data Pointer to data to be set as child node's data.
  * @parma index Index (position) where insertion will take place.
  *
  * @return TreeNode* of new created child node on success.
  * NULL otherwise.
  * */
-FORCE_INLINE TreeNode* tree_insert_fast(Tree* tree, void* p_data, Size index) {
-    return tree_node_insert_fast(TO_TREE_NODE(tree), p_data, index);
+FORCE_INLINE TreeNode* tree_insert_fast(Tree* tree, void* data, Size index) {
+    return tree_node_insert_fast(TO_TREE_NODE(tree), data, index);
 }
 
 /**

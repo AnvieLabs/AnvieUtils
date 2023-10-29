@@ -9,37 +9,37 @@
  * @return Vector4f* on success, NULL otherwise.
  * */
 inline Vector4f* vector_4f_create(Float32 x, Float32 y, Float32 z, Float32 t) {
-    Vector4f* p_vec = NEW(Vector4f);
-    RETURN_VALUE_IF_FAIL(p_vec, NULL, ERR_OUT_OF_MEMORY);
+    Vector4f* vec = NEW(Vector4f);
+    RETURN_VALUE_IF_FAIL(vec, NULL, ERR_OUT_OF_MEMORY);
 
-    p_vec->x = x;
-    p_vec->y = y;
-    p_vec->z = z;
-    p_vec->t = t;
+    vec->x = x;
+    vec->y = y;
+    vec->z = z;
+    vec->t = t;
 
-    return p_vec;
+    return vec;
 }
 
 /**
  * Destroy given Vector4f
  *
- * @param p_vec
+ * @param vec
  * */
-void vector_4f_destroy(Vector4f* p_vec) {
-    RETURN_IF_FAIL(p_vec, ERR_INVALID_ARGUMENTS);
-    FREE(p_vec);
+void vector_4f_destroy(Vector4f* vec) {
+    RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
+    FREE(vec);
 }
 
 /**
  * Create a copy of given vector.
  *
- * @param p_vec
+ * @param vec
  * @return Vector4f* on success, False otherwise.
  * */
-inline Vector4f* vector_4f_create_copy(Vector4f* p_vec) {
-    Vector4f* p_copy_vec = vector_4f_create(p_vec->x, p_vec->y, p_vec->z, p_vec->t);
-    RETURN_VALUE_IF_FAIL(p_copy_vec, NULL, "Failed to create copy of given vector\n");
-    return p_copy_vec;
+inline Vector4f* vector_4f_create_copy(Vector4f* vec) {
+    Vector4f* copy_vec = vector_4f_create(vec->x, vec->y, vec->z, vec->t);
+    RETURN_VALUE_IF_FAIL(copy_vec, NULL, "Failed to create copy of given vector\n");
+    return copy_vec;
 }
 
 /**
@@ -48,9 +48,9 @@ inline Vector4f* vector_4f_create_copy(Vector4f* p_vec) {
  * @return Vector4f* on success, NULL otherwise.
  * */
 inline Vector4f* vector_4f_origin() {
-    Vector4f* p_vec = vector_4f_create(0, 0, 0, 0);
-    RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create Origin Vector4f\n");
-    return p_vec;
+    Vector4f* vec = vector_4f_create(0, 0, 0, 0);
+    RETURN_VALUE_IF_FAIL(vec, NULL, "Failed to create Origin Vector4f\n");
+    return vec;
 }
 
 /**
@@ -59,9 +59,9 @@ inline Vector4f* vector_4f_origin() {
  * @return Vector4f* on success, NULL otherwise.
  * */
 Vector4f* vector_4f_x_axis() {
-    Vector4f* p_vec = vector_4f_create(1, 0, 0, 0);
-    RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create X Axis Vector4f\n");
-    return p_vec;
+    Vector4f* vec = vector_4f_create(1, 0, 0, 0);
+    RETURN_VALUE_IF_FAIL(vec, NULL, "Failed to create X Axis Vector4f\n");
+    return vec;
 }
 
 /**
@@ -70,9 +70,9 @@ Vector4f* vector_4f_x_axis() {
  * @return Vector4f* on success, NULL otherwise.
  * */
 Vector4f* vector_4f_y_axis() {
-    Vector4f* p_vec = vector_4f_create(0, 1, 0, 0);
-    RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create Y Axis Vector4f\n");
-    return p_vec;
+    Vector4f* vec = vector_4f_create(0, 1, 0, 0);
+    RETURN_VALUE_IF_FAIL(vec, NULL, "Failed to create Y Axis Vector4f\n");
+    return vec;
 }
 
 /**
@@ -81,9 +81,9 @@ Vector4f* vector_4f_y_axis() {
  * @return Vector4f* on success, NULL otherwise.
  * */
 Vector4f* vector_4f_z_axis() {
-    Vector4f* p_vec = vector_4f_create(0, 0, 1, 0);
-    RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create Z Axis Vector4f\n");
-    return p_vec;
+    Vector4f* vec = vector_4f_create(0, 0, 1, 0);
+    RETURN_VALUE_IF_FAIL(vec, NULL, "Failed to create Z Axis Vector4f\n");
+    return vec;
 }
 
 /**
@@ -92,28 +92,28 @@ Vector4f* vector_4f_z_axis() {
  * @return Vector4f* on success, NULL otherwise.
  * */
 Vector4f* vector_4f_t_axis() {
-    Vector4f* p_vec = vector_4f_create(0, 0, 0, 1);
-    RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create T Axis Vector4f\n");
-    return p_vec;
+    Vector4f* vec = vector_4f_create(0, 0, 0, 1);
+    RETURN_VALUE_IF_FAIL(vec, NULL, "Failed to create T Axis Vector4f\n");
+    return vec;
 }
 
 /**
  * Add first and second vector.
  * New returned vector must be destroyed after use.
  *
- * @param p_vec1
- * @param p_vec2
+ * @param vec1
+ * @param vec2
  * @return Vector4f* on success, NULL otherwise.
  * */
-Vector4f* vector_4f_add(Vector4f* p_vec1, Vector4f* p_vec2) {
-    RETURN_VALUE_IF_FAIL(p_vec1 && p_vec2, NULL, ERR_INVALID_ARGUMENTS);
+Vector4f* vector_4f_add(Vector4f* vec1, Vector4f* vec2) {
+    RETURN_VALUE_IF_FAIL(vec1 && vec2, NULL, ERR_INVALID_ARGUMENTS);
 
-    Vector4f* p_new_vec = vector_4f_origin();
-    RETURN_VALUE_IF_FAIL(p_new_vec, NULL, "Failed to create new vector for storing result\n");
+    Vector4f* new_vec = vector_4f_origin();
+    RETURN_VALUE_IF_FAIL(new_vec, NULL, "Failed to create new vector for storing result\n");
 
-#define V1(k) p_vec1->k
-#define V2(k) p_vec2->k
-#define VN(k) p_new_vec->k
+#define V1(k) vec1->k
+#define V2(k) vec2->k
+#define VN(k) new_vec->k
 
     VN(x) = V1(x) + V2(x);
     VN(y) = V1(y) + V2(y);
@@ -124,26 +124,26 @@ Vector4f* vector_4f_add(Vector4f* p_vec1, Vector4f* p_vec2) {
 #undef V2
 #undef VN
 
-    return p_new_vec;
+    return new_vec;
 }
 
 /**
  * Subtract second from first vector.
  * New returned vector must be destroyed after use.
  *
- * @param p_vec1
- * @param p_vec2
+ * @param vec1
+ * @param vec2
  * @return Vector4f* on success, NULL otherwise.
  * */
-Vector4f* vector_4f_sub(Vector4f* p_vec1, Vector4f* p_vec2) {
-    RETURN_VALUE_IF_FAIL(p_vec1 && p_vec2, NULL, ERR_INVALID_ARGUMENTS);
+Vector4f* vector_4f_sub(Vector4f* vec1, Vector4f* vec2) {
+    RETURN_VALUE_IF_FAIL(vec1 && vec2, NULL, ERR_INVALID_ARGUMENTS);
 
-    Vector4f* p_new_vec = vector_4f_origin();
-    RETURN_VALUE_IF_FAIL(p_new_vec, NULL, "Failed to create new vector for storing result\n");
+    Vector4f* new_vec = vector_4f_origin();
+    RETURN_VALUE_IF_FAIL(new_vec, NULL, "Failed to create new vector for storing result\n");
 
-#define V1(k) p_vec1->k
-#define V2(k) p_vec2->k
-#define VN(k) p_new_vec->k
+#define V1(k) vec1->k
+#define V2(k) vec2->k
+#define VN(k) new_vec->k
 
     VN(x) = V1(x) - V2(x);
     VN(y) = V1(y) - V2(y);
@@ -154,25 +154,25 @@ Vector4f* vector_4f_sub(Vector4f* p_vec1, Vector4f* p_vec2) {
 #undef V2
 #undef VN
 
-    return p_new_vec;
+    return new_vec;
 }
 
 /**
  * Scale (multiply) given vector with a scalar.
  * New returned vector must be destroyed after use.
  *
- * @param p_vec
+ * @param vec
  * @param scale
  * @return Vector4f* on success, NULL otherwise.
  * */
-Vector4f* vector_4f_scale(Vector4f* p_vec, Float32 scale) {
-    RETURN_VALUE_IF_FAIL(p_vec, NULL, ERR_INVALID_ARGUMENTS);
+Vector4f* vector_4f_scale(Vector4f* vec, Float32 scale) {
+    RETURN_VALUE_IF_FAIL(vec, NULL, ERR_INVALID_ARGUMENTS);
 
-    Vector4f* p_new_vec = vector_4f_origin();
-    RETURN_VALUE_IF_FAIL(p_new_vec, NULL, "Failed to create new vector for storing result\n");
+    Vector4f* new_vec = vector_4f_origin();
+    RETURN_VALUE_IF_FAIL(new_vec, NULL, "Failed to create new vector for storing result\n");
 
-#define V(k) p_vec->k
-#define VN(k) p_new_vec->k
+#define V(k) vec->k
+#define VN(k) new_vec->k
 
     VN(x) = V(x) * scale;
     VN(y) = V(y) * scale;
@@ -182,21 +182,21 @@ Vector4f* vector_4f_scale(Vector4f* p_vec, Float32 scale) {
 #undef V
 #undef VN
 
-    return p_new_vec;
+    return new_vec;
 }
 
 /**
  * Compute dot product of two vectors and return result.
  *
- * @param p_vec1
- * @param p_vec2
+ * @param vec1
+ * @param vec2
  * @return Result of dot product.
  * */
-Float32 vector_4f_dot(Vector4f* p_vec1, Vector4f* p_vec2) {
-    RETURN_VALUE_IF_FAIL(p_vec1 && p_vec2, 0, ERR_INVALID_ARGUMENTS);
+Float32 vector_4f_dot(Vector4f* vec1, Vector4f* vec2) {
+    RETURN_VALUE_IF_FAIL(vec1 && vec2, 0, ERR_INVALID_ARGUMENTS);
 
-#define V1(k) p_vec1->k
-#define V2(k) p_vec2->k
+#define V1(k) vec1->k
+#define V2(k) vec2->k
 
     return V1(x)*V2(x) + V1(y)*V2(y) + V1(z)*V2(z) + V1(t)*V2(t);
 
@@ -207,13 +207,13 @@ Float32 vector_4f_dot(Vector4f* p_vec1, Vector4f* p_vec2) {
 /**
  * Compute norm of given vector and return result,
  *
- * @param p_vec
+ * @param vec
  * @return Float32
  * */
-inline Float32 vector_4f_compute_norm(Vector4f* p_vec) {
-    RETURN_VALUE_IF_FAIL(p_vec, 0, ERR_INVALID_ARGUMENTS);
+inline Float32 vector_4f_compute_norm(Vector4f* vec) {
+    RETURN_VALUE_IF_FAIL(vec, 0, ERR_INVALID_ARGUMENTS);
 
-#define V(k) p_vec->k
+#define V(k) vec->k
     return sqrtf(V(x)*V(x) + V(y)*V(y) + V(z)*V(z) + V(t)*V(t));
 #undef V
 }
@@ -221,14 +221,14 @@ inline Float32 vector_4f_compute_norm(Vector4f* p_vec) {
 /**
  * Normalize given vector and store the result in it.
  *
- * @param p_vec
+ * @param vec
  * */
-void vector_4f_normalize(Vector4f* p_vec) {
-    RETURN_IF_FAIL(p_vec, ERR_INVALID_ARGUMENTS);
+void vector_4f_normalize(Vector4f* vec) {
+    RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
 
-#define V(k) p_vec->k
+#define V(k) vec->k
 
-    Float32 norm = vector_4f_compute_norm(p_vec);
+    Float32 norm = vector_4f_compute_norm(vec);
     V(x) = V(x) / norm;
     V(y) = V(y) / norm;
     V(z) = V(z) / norm;

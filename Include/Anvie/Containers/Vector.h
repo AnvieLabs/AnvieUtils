@@ -44,7 +44,7 @@
  *   depending on size of element.
  * - if @c element_size is more than 8 then it's treated as a structure
  *   array and data is copied to internal memory using @c memcpy.
- * - if @c pfn_copy is set, it will ALWAYS be used to create copy of data,
+ * - if @c copy is set, it will ALWAYS be used to create copy of data,
  *   else it's one of the methods described above.
  * This means, no matter what, @c vector will always create it's own
  * copy of data in order to avoid memory errors.
@@ -60,21 +60,21 @@ typedef struct anvie_dynamic_array_t {
     Size                          element_size; /**< size of each element in array */
     Size                          length; /**< number of active insertions, counted in number of elements */
     Size                          capacity; /**< total number of elements array can hold */
-    UByteArray                    p_data; /**< data of array in form of Uint8 array */
-    CreateElementCopyCallback  pfn_create_copy; /**< copy constructor functor */
-    DestroyElementCopyCallback pfn_destroy_copy; /**< copy destructor functor */
+    UByteArray                    data; /**< data of array in form of Uint8 array */
+    CreateElementCopyCallback  create_copy; /**< copy constructor functor */
+    DestroyElementCopyCallback destroy_copy; /**< copy destructor functor */
     Float32                       resize_factor; /**< percent factor for resizing arrays, by defualt it's 1, this means 2x resize */
 } Vector;
 
-#define vector_at(vec, type, pos) ((type*)((vec)->p_data))[pos]
-#define vector_address_at(vec, pos) ((vec)->p_data + (pos) * (vec)->element_size)
+#define vector_at(vec, type, pos) ((type*)((vec)->data))[pos]
+#define vector_address_at(vec, pos) ((vec)->data + (pos) * (vec)->element_size)
 #define vector_length(vec) ((vec)->length)
 #define vector_element_size(vec) ((vec)->element_size)
 
 Vector* vector_create (
     Size element_size,
-    CreateElementCopyCallback pfn_create_copy,
-    DestroyElementCopyCallback pfn_destroy_copy
+    CreateElementCopyCallback create_copy,
+    DestroyElementCopyCallback destroy_copy
 );
 void vector_destroy(Vector* vec);
 
@@ -88,43 +88,43 @@ Vector* vector_get_subvector(Vector* vec, Size start, Size size);
 
 void vector_copy(Vector* vec, Size to, Size from);
 void vector_move(Vector* vec, Size to, Size from);
-void vector_overwrite(Vector* vec, Size pos, void* p_data);
+void vector_overwrite(Vector* vec, Size pos, void* data);
 
-void  vector_insert(Vector* vec, void* p_data, Size pos);
+void  vector_insert(Vector* vec, void* data, Size pos);
 void  vector_delete(Vector* vec, Size pos);
 void* vector_remove(Vector* vec, Size pos);
 
-void  vector_insert_fast(Vector* vec, void* p_data, Size pos);
+void  vector_insert_fast(Vector* vec, void* data, Size pos);
 void  vector_delete_fast(Vector* vec, Size pos);
 void* vector_remove_fast(Vector* vec, Size pos);
 
-void  vector_push_front(Vector* vec, void* p_data);
-void* vector_pop_front(Vector* vec);
+void  vector_push_front(Vector* vec, void* data);
+void* vector_pofront(Vector* vec);
 
-void  vector_push_front_fast(Vector* vec, void* p_data);
-void* vector_pop_front_fast(Vector* vec);
+void  vector_push_front_fast(Vector* vec, void* data);
+void* vector_pofront_fast(Vector* vec);
 
-void  vector_push_back(Vector* vec, void* p_data);
-void* vector_pop_back(Vector* vec);
+void  vector_push_back(Vector* vec, void* data);
+void* vector_poback(Vector* vec);
 
 void* vector_peek(Vector* vec, Size pos);
 void* vector_front(Vector* vec);
 void* vector_back(Vector* vec);
 
-void vector_print(Vector* vec, PrintElementCallback pfn_printer);
+void vector_print(Vector* vec, PrintElementCallback printer);
 
 void vector_merge(Vector* vec, Vector* vec_other);
-Vector* vector_filter(Vector* vec, FilterElementCallback pfn_filter, void* p_user_data);
+Vector* vector_filter(Vector* vec, FilterElementCallback filter, void* user_data);
 // TODO: accumulate, sort, iterators, intersection, duplicate, slice, insert_range
 
 void vector_swap(Vector* vec, Size p1, Size p2);
-void vector_sort(Vector* vec, CompareElementCallback p_compare);
-Bool vector_check_sorted(Vector* vec, CompareElementCallback p_compare);
+void vector_sort(Vector* vec, CompareElementCallback compare);
+Bool vector_check_sorted(Vector* vec, CompareElementCallback compare);
 
 // sorting algorithms
-void vector_insertion_sort(Vector* vec, CompareElementCallback p_compare);
-void vector_bubble_sort(Vector* vec, CompareElementCallback p_compare);
-void vector_merge_sort(Vector* vec, CompareElementCallback p_compare);
+void vector_insertion_sort(Vector* vec, CompareElementCallback compare);
+void vector_bubble_sort(Vector* vec, CompareElementCallback compare);
+void vector_merge_sort(Vector* vec, CompareElementCallback compare);
 
 /*---------------- DEFINE COMMON INTERFACES FOR TYPE-SAFETY-----------------*/
 
@@ -147,8 +147,8 @@ DEF_INTEGER_VECTOR_INTERFACE_WITH_COPY_AND_DESTROY(string, String, string_create
 DEF_INTEGER_VECTOR_INTERFACE(voidptr, void*);
 
 // define interface to contain vector of vectors
-void vector_create_copy(void* p_dst, void* p_src);
-void vector_destroy_copy(void* p_copy);
+void vector_create_copy(void* dst, void* src);
+void vector_destroy_copy(void* copy);
 DEF_STRUCT_VECTOR_INTERFACE(vector, Vector, vector_create_copy, vector_destroy_copy);
 DEF_INTEGER_VECTOR_INTERFACE(pvector, Vector*);
 

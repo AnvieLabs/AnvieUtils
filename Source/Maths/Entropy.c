@@ -28,11 +28,11 @@
 /**
  * Compute shannon entropy for given data.
  *
- * @param p_data Pointer to data to compute entropy for.
+ * @param data Pointer to data to compute entropy for.
  * @param sz Size of data in bytes.
  * */
-Float32 compute_shannon_entropy(void* p_data, Size sz) {
-    RETURN_VALUE_IF_FAIL(p_data, 0.f, ERR_INVALID_ARGUMENTS);
+Float32 compute_shannon_entropy(void* data, Size sz) {
+    RETURN_VALUE_IF_FAIL(data, 0.f, ERR_INVALID_ARGUMENTS);
 
     if(sz < 2) return 0;
 
@@ -41,7 +41,7 @@ Float32 compute_shannon_entropy(void* p_data, Size sz) {
     Size ftab[0x100] = {0};
 
     // align the array size to be divisible by 4
-    Uint8* arr = (Uint8*)p_data;
+    Uint8* arr = (Uint8*)data;
     while(sz % 8){
         ftab[*arr++]++;
         sz--;

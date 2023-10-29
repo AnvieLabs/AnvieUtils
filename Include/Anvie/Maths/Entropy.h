@@ -25,7 +25,7 @@
 /**
  * Compute shannon entropy for given data.
  *
- * @param p_data Pointer to data to compute entropy for.
+ * @param data Pointer to data to compute entropy for.
  * @param sz Size of data in bytes.
  * */
-Float32 compute_shannon_entropy(void* p_data, Size sz);
+Float32 compute_shannon_entropy(void* data, Size sz);
