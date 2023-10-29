@@ -44,26 +44,26 @@ typedef struct anvie_string_buffer_t {
     String str;                 /**< @c NULL terminated string. */
     Size   length;              /**< current length of @c str */
     Size   capacity;            /**< total memory allocated for string (excluding the NULL character). */
-} AnvStringBuffer;
+} StringBuffer;
 
-#define anv_strbuf_at(sb, idx) if(sb && sb->str) sb->str[idx]
+#define strbuf_at(sb, idx) if(sb && sb->str) sb->str[idx]
 
-AnvStringBuffer* anv_strbuf_create(String str);
-void anv_strbuf_destroy(AnvStringBuffer* strbuf);
+StringBuffer* strbuf_create(String str);
+void strbuf_destroy(StringBuffer* strbuf);
 
-AnvStringBuffer* anv_strbuf_clone_buf(AnvStringBuffer* sb);
-String anv_strbuf_clone_str(AnvStringBuffer* sb);
+StringBuffer* strbuf_clone_buf(StringBuffer* sb);
+String strbuf_clone_str(StringBuffer* sb);
 
-void anv_strbuf_set(AnvStringBuffer* strbuf, String str);
-void anv_strbuf_setn(AnvStringBuffer* sb, String str, Size n);
-Int32 anv_strbuf_cmpstr(AnvStringBuffer* sb, String s);
-Int32 anv_strbuf_cmpstrn(AnvStringBuffer* sb, String s, Size n);
-Int32 anv_strbuf_cmp(AnvStringBuffer* sb1, AnvStringBuffer* sb2);
-Int32 anv_strbuf_cmpn(AnvStringBuffer* sb1, AnvStringBuffer* sb2, Size n);
+void strbuf_set(StringBuffer* strbuf, String str);
+void strbuf_setn(StringBuffer* sb, String str, Size n);
+Int32 strbuf_cmpstr(StringBuffer* sb, String s);
+Int32 strbuf_cmpstrn(StringBuffer* sb, String s, Size n);
+Int32 strbuf_cmp(StringBuffer* sb1, StringBuffer* sb2);
+Int32 strbuf_cmpn(StringBuffer* sb1, StringBuffer* sb2, Size n);
 
-void anv_strbuf_reserve(AnvStringBuffer* buf, Size n);
-void anv_strbuf_clear(AnvStringBuffer* buf);
-void anv_strbuf_clear_fast(AnvStringBuffer* buf);
-void anv_strbuf_append_str(AnvStringBuffer* buf, String s);
-void anv_strbuf_append_strn(AnvStringBuffer* buf, String s, Size n);
-void anv_strbuf_append_char(AnvStringBuffer* buf, Char c);
+void strbuf_reserve(StringBuffer* buf, Size n);
+void strbuf_clear(StringBuffer* buf);
+void strbuf_clear_fast(StringBuffer* buf);
+void strbuf_append_str(StringBuffer* buf, String s);
+void strbuf_append_strn(StringBuffer* buf, String s, Size n);
+void strbuf_append_char(StringBuffer* buf, Char c);

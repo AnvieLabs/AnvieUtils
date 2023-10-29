@@ -28,22 +28,22 @@
 typedef struct anvie_vector_2f_t {
     Float32 x;
     Float32 y;
-} AnvVector2f;
+} Vector2f;
 
-AnvVector2f* anv_vector_2f_create(Float32 x, Float32 y);
-void anv_vector_2f_destroy(AnvVector2f* p_vec);
-AnvVector2f* anv_vector_2f_create_copy(AnvVector2f* p_vec);
+Vector2f* vector_2f_create(Float32 x, Float32 y);
+void vector_2f_destroy(Vector2f* p_vec);
+Vector2f* vector_2f_create_copy(Vector2f* p_vec);
 
-AnvVector2f* anv_vector_2f_origin();
-AnvVector2f* anv_vector_2f_x_axis();
-AnvVector2f* anv_vector_2f_y_axis();
+Vector2f* vector_2f_origin();
+Vector2f* vector_2f_x_axis();
+Vector2f* vector_2f_y_axis();
 
-AnvVector2f* anv_vector_2f_add(AnvVector2f* p_vec1, AnvVector2f* p_vec2);
-AnvVector2f* anv_vector_2f_sub(AnvVector2f* p_vec1, AnvVector2f* p_vec2);
-AnvVector2f* anv_vector_2f_scale(AnvVector2f* p_vec, Float32 scale);
-Float32 anv_vector_2f_dot(AnvVector2f* p_vec1, AnvVector2f* p_vec2);
+Vector2f* vector_2f_add(Vector2f* p_vec1, Vector2f* p_vec2);
+Vector2f* vector_2f_sub(Vector2f* p_vec1, Vector2f* p_vec2);
+Vector2f* vector_2f_scale(Vector2f* p_vec, Float32 scale);
+Float32 vector_2f_dot(Vector2f* p_vec1, Vector2f* p_vec2);
 
-Float32 anv_vector_2f_compute_norm(AnvVector2f* p_vec);
-void anv_vector_2f_normalize(AnvVector2f* p_vec);
+Float32 vector_2f_compute_norm(Vector2f* p_vec);
+void vector_2f_normalize(Vector2f* p_vec);
 
 #endif // ANVIE_UTILS_MATH_VECTOR2F_H

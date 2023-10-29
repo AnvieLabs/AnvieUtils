@@ -29,10 +29,10 @@
 /**
  * Create a new Matrix4f.
  *
- * @return AnvMatrix4f on success, NULL otherwise.
+ * @return Matrix4f on success, NULL otherwise.
  * */
-AnvMatrix4f* anv_matrix_4f_create() {
-    AnvMatrix4f* p_mat = NEW(AnvMatrix4f);
+Matrix4f* matrix_4f_create() {
+    Matrix4f* p_mat = NEW(Matrix4f);
     RETURN_VALUE_IF_FAIL(p_mat, NULL, ERR_OUT_OF_MEMORY);
 
     return p_mat;
@@ -43,7 +43,7 @@ AnvMatrix4f* anv_matrix_4f_create() {
  *
  * @param p_mat
  * */
-void anv_matrix_4f_destroy(AnvMatrix4f* p_mat) {
+void matrix_4f_destroy(Matrix4f* p_mat) {
     FREE(p_mat);
 }
 
@@ -53,7 +53,7 @@ void anv_matrix_4f_destroy(AnvMatrix4f* p_mat) {
  * @param p_mat1
  * @param p_mat2
  * */
-void anv_matrix_4f_mul(AnvMatrix4f* p_mat1, AnvMatrix4f* p_mat2) {
+void matrix_4f_mul(Matrix4f* p_mat1, Matrix4f* p_mat2) {
     RETURN_IF_FAIL(p_mat1 && p_mat2, ERR_INVALID_ARGUMENTS);
 
 #define M1(r, c) p_mat1->data[r][c]
@@ -89,7 +89,7 @@ void anv_matrix_4f_mul(AnvMatrix4f* p_mat1, AnvMatrix4f* p_mat2) {
  * @param p_mat1
  * @param p_mat2
  * */
-void anv_matrix_4f_add(AnvMatrix4f* p_mat1, AnvMatrix4f* p_mat2) {
+void matrix_4f_add(Matrix4f* p_mat1, Matrix4f* p_mat2) {
     RETURN_IF_FAIL(p_mat1 && p_mat2, ERR_INVALID_ARGUMENTS);
 
 #define M1(r, c) p_mat1->data[r][c]
@@ -125,7 +125,7 @@ void anv_matrix_4f_add(AnvMatrix4f* p_mat1, AnvMatrix4f* p_mat2) {
  * @param p_mat1
  * @param p_mat2
  * */
-void anv_matrix_4f_sub(AnvMatrix4f* p_mat1, AnvMatrix4f* p_mat2) {
+void matrix_4f_sub(Matrix4f* p_mat1, Matrix4f* p_mat2) {
     RETURN_IF_FAIL(p_mat1 && p_mat2, ERR_INVALID_ARGUMENTS);
 
 #define M1(r, c) p_mat1->data[r][c]
@@ -158,10 +158,10 @@ void anv_matrix_4f_sub(AnvMatrix4f* p_mat1, AnvMatrix4f* p_mat2) {
 /**
  * Create identity matrix.
  *
- * @return AnvMatrix4f on success, NULL otherwise.
+ * @return Matrix4f on success, NULL otherwise.
  * */
-AnvMatrix4f* anv_matrix_4f_identity() {
-    AnvMatrix4f* p_mat = anv_matrix_4f_create();
+Matrix4f* matrix_4f_identity() {
+    Matrix4f* p_mat = matrix_4f_create();
     RETURN_VALUE_IF_FAIL(p_mat, NULL, "Failed to create identity matrix\n");
 
     p_mat->data[0][0] = 1.f;
@@ -182,16 +182,16 @@ AnvMatrix4f* anv_matrix_4f_identity() {
  * @param far Value between 0 and 1
  * @param near Value between 0 and 1
  *
- * @return AnvMatrix4f* on success, NULL otherwise.
+ * @return Matrix4f* on success, NULL otherwise.
  * */
-AnvMatrix4f* anv_matrix_4f_frustum(
+Matrix4f* matrix_4f_frustum(
     Float32 left, Float32 right,
     Float32 top, Float32 bottom,
     Float32 near, Float32 far)
 {
     RETURN_VALUE_IF_FAIL((left < right) && (top < bottom) && (near < far), NULL, ERR_INVALID_ARGUMENTS);
 
-    AnvMatrix4f* p_mat = anv_matrix_4f_create();
+    Matrix4f* p_mat = matrix_4f_create();
     RETURN_VALUE_IF_FAIL(p_mat, NULL, "Failed to create perspective projection matrix\n");
 
 #define M(r, c) p_mat->data[r][c]
@@ -220,7 +220,7 @@ AnvMatrix4f* anv_matrix_4f_frustum(
  * @param near Near plane
  * @param far Far plane
  * */
-AnvMatrix4f* anv_matrix_4f_projection_perspective(
+Matrix4f* matrix_4f_projection_perspective(
     Float32 aspect, Float32 fov,
     Float32 near, Float32 far
 ) {
@@ -232,7 +232,7 @@ AnvMatrix4f* anv_matrix_4f_projection_perspective(
     Float32 t = scale;
     Float32 b = -t;
 
-    return anv_matrix_4f_frustum(l, r, t, b, near, far);
+    return matrix_4f_frustum(l, r, t, b, near, far);
 }
 
 /**
@@ -245,13 +245,13 @@ AnvMatrix4f* anv_matrix_4f_projection_perspective(
  * @param far
  * @param near
  *
- * @return AnvMatrix4f* on success, NULL otherwise.
+ * @return Matrix4f* on success, NULL otherwise.
  * */
-AnvMatrix4f* anv_matrix_4f_projection_orthographic(
+Matrix4f* matrix_4f_projection_orthographic(
     Float32 right, Float32 left,
     Float32 top, Float32 bottom,
     Float32 far, Float32 near) {
-    AnvMatrix4f* p_mat = anv_matrix_4f_create();
+    Matrix4f* p_mat = matrix_4f_create();
     RETURN_VALUE_IF_FAIL(p_mat, NULL, "Failed to create orthographic projection matrix\n");
 
 #define M(r, c) p_mat->data[r][c]
@@ -285,28 +285,28 @@ AnvMatrix4f* anv_matrix_4f_projection_orthographic(
  * @param upY
  * @param upZ
  *
- * @return AnvMatrix4f* on success, NULL otherwise.
+ * @return Matrix4f* on success, NULL otherwise.
  * */
-AnvMatrix4f* anv_matrix_4f_look_at(
+Matrix4f* matrix_4f_look_at(
     Float32 eyeX, Float32 eyeY, Float32 eyeZ,
     Float32 targetX, Float32 targetY, Float32 targetZ,
     Float32 upX, Float32 upY, Float32 upZ
 ) {
-    AnvMatrix4f* p_mat = anv_matrix_4f_identity();
+    Matrix4f* p_mat = matrix_4f_identity();
     RETURN_VALUE_IF_FAIL(p_mat, NULL, "Failed to create LookAt matrix\n");
 
-    AnvVector3f* eye = anv_vector_3f_create(eyeX, eyeY, eyeZ);
-    AnvVector3f* target = anv_vector_3f_create(targetX, targetY, targetZ);
-    AnvVector3f* up = anv_vector_3f_create(upX, upY, upZ);
+    Vector3f* eye = vector_3f_create(eyeX, eyeY, eyeZ);
+    Vector3f* target = vector_3f_create(targetX, targetY, targetZ);
+    Vector3f* up = vector_3f_create(upX, upY, upZ);
 
-    AnvVector3f* fwd = anv_vector_3f_sub(eye, target);
-    AnvVector3f* right = anv_vector_3f_cross(up, fwd);
+    Vector3f* fwd = vector_3f_sub(eye, target);
+    Vector3f* right = vector_3f_cross(up, fwd);
 
-    anv_vector_3f_destroy(up);
-    up = anv_vector_3f_cross(fwd, right);
+    vector_3f_destroy(up);
+    up = vector_3f_cross(fwd, right);
 
-    anv_vector_3f_normalize(fwd);
-    anv_vector_3f_normalize(right);
+    vector_3f_normalize(fwd);
+    vector_3f_normalize(right);
 
 #define M(r, c) p_mat->data[r][c]
     M(0, 0) = right->x;
@@ -322,13 +322,13 @@ AnvMatrix4f* anv_matrix_4f_look_at(
     M(2, 2) = -fwd->z;
 #undef M
 
-    anv_vector_3f_destroy(eye);
-    anv_vector_3f_destroy(target);
-    anv_vector_3f_destroy(up);
-    anv_vector_3f_destroy(fwd);
-    anv_vector_3f_destroy(right);
+    vector_3f_destroy(eye);
+    vector_3f_destroy(target);
+    vector_3f_destroy(up);
+    vector_3f_destroy(fwd);
+    vector_3f_destroy(right);
 
-    anv_matrix_4f_translate(p_mat, eyeX, eyeY, eyeZ);
+    matrix_4f_translate(p_mat, eyeX, eyeY, eyeZ);
 
     return p_mat;
 }
@@ -340,10 +340,10 @@ AnvMatrix4f* anv_matrix_4f_look_at(
  * @param dy Change in Y coordinate
  * @param dz Change in Z coordinate
  *
- * @return AnvMatrix4f* on success, NULL otherwise.
+ * @return Matrix4f* on success, NULL otherwise.
  * */
-AnvMatrix4f* anv_matrix_4f_translation_matrix(Float32 dx, Float32 dy, Float32 dz) {
-    AnvMatrix4f* p_mat = anv_matrix_4f_identity();
+Matrix4f* matrix_4f_translation_matrix(Float32 dx, Float32 dy, Float32 dz) {
+    Matrix4f* p_mat = matrix_4f_identity();
     RETURN_VALUE_IF_FAIL(p_mat, NULL, "Failed to create translation matrix\n");
 
 #define M(r, c) p_mat->data[r][c]
@@ -363,10 +363,10 @@ AnvMatrix4f* anv_matrix_4f_translation_matrix(Float32 dx, Float32 dy, Float32 dz
  * @param pitch Rotation angle about Y axis
  * @param roll Rotation angle about X axis
  *
- * @return AnvMatrix4f* on success, NULL otherwise.
+ * @return Matrix4f* on success, NULL otherwise.
  * */
-AnvMatrix4f* anv_matrix_4f_rotation_matrix(Float32 yaw, Float32 pitch, Float32 roll) {
-    AnvMatrix4f* p_mat = anv_matrix_4f_identity();
+Matrix4f* matrix_4f_rotation_matrix(Float32 yaw, Float32 pitch, Float32 roll) {
+    Matrix4f* p_mat = matrix_4f_identity();
     RETURN_VALUE_IF_FAIL(p_mat, NULL, "Failed to create rotation matrix\n");
 
 #define M(r, c) p_mat->data[r][c]
@@ -393,10 +393,10 @@ AnvMatrix4f* anv_matrix_4f_rotation_matrix(Float32 yaw, Float32 pitch, Float32 r
  * @param sy Scale Y axis.
  * @param sz Scale Z axis.
  *
- * @return AnvMatrix4f* on success, NULL otherwise.
+ * @return Matrix4f* on success, NULL otherwise.
  * */
-AnvMatrix4f* anv_matrix_4f_scale_matrix(Float32 sx, Float32 sy, Float32 sz) {
-    AnvMatrix4f* p_mat = anv_matrix_4f_identity();
+Matrix4f* matrix_4f_scale_matrix(Float32 sx, Float32 sy, Float32 sz) {
+    Matrix4f* p_mat = matrix_4f_identity();
     RETURN_VALUE_IF_FAIL(p_mat, NULL, "Failed to create scale matrix\n");
 
 #define M(r, c) p_mat->data[r][c]
@@ -416,12 +416,12 @@ AnvMatrix4f* anv_matrix_4f_scale_matrix(Float32 sx, Float32 sy, Float32 sz) {
  * @param dy Change in Y axis
  * @param dz Change in Z axis
  * */
-void anv_matrix_4f_translate(AnvMatrix4f* p_mat, Float32 dx, Float32 dy, Float32 dz) {
+void matrix_4f_translate(Matrix4f* p_mat, Float32 dx, Float32 dy, Float32 dz) {
     RETURN_IF_FAIL(p_mat, "Failed to create translation matrix\n");
-    AnvMatrix4f* p_trmat = anv_matrix_4f_translation_matrix(dx, dy, dz);
+    Matrix4f* p_trmat = matrix_4f_translation_matrix(dx, dy, dz);
     RETURN_IF_FAIL(p_trmat, "Failed to create translation matrix\n");
-    anv_matrix_4f_mul(p_mat, p_trmat);
-    anv_matrix_4f_destroy(p_trmat);
+    matrix_4f_mul(p_mat, p_trmat);
+    matrix_4f_destroy(p_trmat);
 }
 
 /**
@@ -433,12 +433,12 @@ void anv_matrix_4f_translate(AnvMatrix4f* p_mat, Float32 dx, Float32 dy, Float32
  * @param pitch Rotation about Y axis.
  * @param roll Rotation about X axis.
  * */
-void anv_matrix_4f_rotate(AnvMatrix4f* p_mat, Float32 yaw, Float32 pitch, Float32 roll) {
+void matrix_4f_rotate(Matrix4f* p_mat, Float32 yaw, Float32 pitch, Float32 roll) {
     RETURN_IF_FAIL(p_mat, "Failed to create translation matrix\n");
-    AnvMatrix4f* p_rotmat = anv_matrix_4f_rotation_matrix(yaw, pitch, roll);
+    Matrix4f* p_rotmat = matrix_4f_rotation_matrix(yaw, pitch, roll);
     RETURN_IF_FAIL(p_rotmat, "Failed to create rotation matrix\n");
-    anv_matrix_4f_mul(p_mat, p_rotmat);
-    anv_matrix_4f_destroy(p_rotmat);
+    matrix_4f_mul(p_mat, p_rotmat);
+    matrix_4f_destroy(p_rotmat);
 }
 
 /**
@@ -450,10 +450,10 @@ void anv_matrix_4f_rotate(AnvMatrix4f* p_mat, Float32 yaw, Float32 pitch, Float3
  * @param sy Scale about Y axis.
  * @param sz Scale about Z axis.
  * */
-void anv_matrix_4f_scale(AnvMatrix4f* p_mat, Float32 sx, Float32 sy, Float32 sz) {
+void matrix_4f_scale(Matrix4f* p_mat, Float32 sx, Float32 sy, Float32 sz) {
     RETURN_IF_FAIL(p_mat, "Failed to create translation matrix\n");
-    AnvMatrix4f* p_scalemat = anv_matrix_4f_scale_matrix(sx, sy, sz);
+    Matrix4f* p_scalemat = matrix_4f_scale_matrix(sx, sy, sz);
     RETURN_IF_FAIL(p_scalemat, "Failed to create scale matrix\n");
-    anv_matrix_4f_mul(p_mat, p_scalemat);
-    anv_matrix_4f_destroy(p_scalemat);
+    matrix_4f_mul(p_mat, p_scalemat);
+    matrix_4f_destroy(p_scalemat);
 }

@@ -6,10 +6,10 @@
 /**
  * Create a new Vector4f
  *
- * @return AnvVector4f* on success, NULL otherwise.
+ * @return Vector4f* on success, NULL otherwise.
  * */
-inline AnvVector4f* anv_vector_4f_create(Float32 x, Float32 y, Float32 z, Float32 t) {
-    AnvVector4f* p_vec = NEW(AnvVector4f);
+inline Vector4f* vector_4f_create(Float32 x, Float32 y, Float32 z, Float32 t) {
+    Vector4f* p_vec = NEW(Vector4f);
     RETURN_VALUE_IF_FAIL(p_vec, NULL, ERR_OUT_OF_MEMORY);
 
     p_vec->x = x;
@@ -25,7 +25,7 @@ inline AnvVector4f* anv_vector_4f_create(Float32 x, Float32 y, Float32 z, Float3
  *
  * @param p_vec
  * */
-void anv_vector_4f_destroy(AnvVector4f* p_vec) {
+void vector_4f_destroy(Vector4f* p_vec) {
     RETURN_IF_FAIL(p_vec, ERR_INVALID_ARGUMENTS);
     FREE(p_vec);
 }
@@ -34,10 +34,10 @@ void anv_vector_4f_destroy(AnvVector4f* p_vec) {
  * Create a copy of given vector.
  *
  * @param p_vec
- * @return AnvVector4f* on success, False otherwise.
+ * @return Vector4f* on success, False otherwise.
  * */
-inline AnvVector4f* anv_vector_4f_create_copy(AnvVector4f* p_vec) {
-    AnvVector4f* p_copy_vec = anv_vector_4f_create(p_vec->x, p_vec->y, p_vec->z, p_vec->t);
+inline Vector4f* vector_4f_create_copy(Vector4f* p_vec) {
+    Vector4f* p_copy_vec = vector_4f_create(p_vec->x, p_vec->y, p_vec->z, p_vec->t);
     RETURN_VALUE_IF_FAIL(p_copy_vec, NULL, "Failed to create copy of given vector\n");
     return p_copy_vec;
 }
@@ -45,10 +45,10 @@ inline AnvVector4f* anv_vector_4f_create_copy(AnvVector4f* p_vec) {
 /**
  * Create Vector4f representing Origin.
  *
- * @return AnvVector4f* on success, NULL otherwise.
+ * @return Vector4f* on success, NULL otherwise.
  * */
-inline AnvVector4f* anv_vector_4f_origin() {
-    AnvVector4f* p_vec = anv_vector_4f_create(0, 0, 0, 0);
+inline Vector4f* vector_4f_origin() {
+    Vector4f* p_vec = vector_4f_create(0, 0, 0, 0);
     RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create Origin Vector4f\n");
     return p_vec;
 }
@@ -56,10 +56,10 @@ inline AnvVector4f* anv_vector_4f_origin() {
 /**
  * Create Vector4f representing X Axis.
  *
- * @return AnvVector4f* on success, NULL otherwise.
+ * @return Vector4f* on success, NULL otherwise.
  * */
-AnvVector4f* anv_vector_4f_x_axis() {
-    AnvVector4f* p_vec = anv_vector_4f_create(1, 0, 0, 0);
+Vector4f* vector_4f_x_axis() {
+    Vector4f* p_vec = vector_4f_create(1, 0, 0, 0);
     RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create X Axis Vector4f\n");
     return p_vec;
 }
@@ -67,10 +67,10 @@ AnvVector4f* anv_vector_4f_x_axis() {
 /**
  * Create Vector4f representing Y Axis.
  *
- * @return AnvVector4f* on success, NULL otherwise.
+ * @return Vector4f* on success, NULL otherwise.
  * */
-AnvVector4f* anv_vector_4f_y_axis() {
-    AnvVector4f* p_vec = anv_vector_4f_create(0, 1, 0, 0);
+Vector4f* vector_4f_y_axis() {
+    Vector4f* p_vec = vector_4f_create(0, 1, 0, 0);
     RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create Y Axis Vector4f\n");
     return p_vec;
 }
@@ -78,10 +78,10 @@ AnvVector4f* anv_vector_4f_y_axis() {
 /**
  * Create Vector4f representing Z Axis.
  *
- * @return AnvVector4f* on success, NULL otherwise.
+ * @return Vector4f* on success, NULL otherwise.
  * */
-AnvVector4f* anv_vector_4f_z_axis() {
-    AnvVector4f* p_vec = anv_vector_4f_create(0, 0, 1, 0);
+Vector4f* vector_4f_z_axis() {
+    Vector4f* p_vec = vector_4f_create(0, 0, 1, 0);
     RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create Z Axis Vector4f\n");
     return p_vec;
 }
@@ -89,10 +89,10 @@ AnvVector4f* anv_vector_4f_z_axis() {
 /**
  * Create Vector4f representing Z Axis.
  *
- * @return AnvVector4f* on success, NULL otherwise.
+ * @return Vector4f* on success, NULL otherwise.
  * */
-AnvVector4f* anv_vector_4f_t_axis() {
-    AnvVector4f* p_vec = anv_vector_4f_create(0, 0, 0, 1);
+Vector4f* vector_4f_t_axis() {
+    Vector4f* p_vec = vector_4f_create(0, 0, 0, 1);
     RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create T Axis Vector4f\n");
     return p_vec;
 }
@@ -103,12 +103,12 @@ AnvVector4f* anv_vector_4f_t_axis() {
  *
  * @param p_vec1
  * @param p_vec2
- * @return AnvVector4f* on success, NULL otherwise.
+ * @return Vector4f* on success, NULL otherwise.
  * */
-AnvVector4f* anv_vector_4f_add(AnvVector4f* p_vec1, AnvVector4f* p_vec2) {
+Vector4f* vector_4f_add(Vector4f* p_vec1, Vector4f* p_vec2) {
     RETURN_VALUE_IF_FAIL(p_vec1 && p_vec2, NULL, ERR_INVALID_ARGUMENTS);
 
-    AnvVector4f* p_new_vec = anv_vector_4f_origin();
+    Vector4f* p_new_vec = vector_4f_origin();
     RETURN_VALUE_IF_FAIL(p_new_vec, NULL, "Failed to create new vector for storing result\n");
 
 #define V1(k) p_vec1->k
@@ -133,12 +133,12 @@ AnvVector4f* anv_vector_4f_add(AnvVector4f* p_vec1, AnvVector4f* p_vec2) {
  *
  * @param p_vec1
  * @param p_vec2
- * @return AnvVector4f* on success, NULL otherwise.
+ * @return Vector4f* on success, NULL otherwise.
  * */
-AnvVector4f* anv_vector_4f_sub(AnvVector4f* p_vec1, AnvVector4f* p_vec2) {
+Vector4f* vector_4f_sub(Vector4f* p_vec1, Vector4f* p_vec2) {
     RETURN_VALUE_IF_FAIL(p_vec1 && p_vec2, NULL, ERR_INVALID_ARGUMENTS);
 
-    AnvVector4f* p_new_vec = anv_vector_4f_origin();
+    Vector4f* p_new_vec = vector_4f_origin();
     RETURN_VALUE_IF_FAIL(p_new_vec, NULL, "Failed to create new vector for storing result\n");
 
 #define V1(k) p_vec1->k
@@ -163,12 +163,12 @@ AnvVector4f* anv_vector_4f_sub(AnvVector4f* p_vec1, AnvVector4f* p_vec2) {
  *
  * @param p_vec
  * @param scale
- * @return AnvVector4f* on success, NULL otherwise.
+ * @return Vector4f* on success, NULL otherwise.
  * */
-AnvVector4f* anv_vector_4f_scale(AnvVector4f* p_vec, Float32 scale) {
+Vector4f* vector_4f_scale(Vector4f* p_vec, Float32 scale) {
     RETURN_VALUE_IF_FAIL(p_vec, NULL, ERR_INVALID_ARGUMENTS);
 
-    AnvVector4f* p_new_vec = anv_vector_4f_origin();
+    Vector4f* p_new_vec = vector_4f_origin();
     RETURN_VALUE_IF_FAIL(p_new_vec, NULL, "Failed to create new vector for storing result\n");
 
 #define V(k) p_vec->k
@@ -192,7 +192,7 @@ AnvVector4f* anv_vector_4f_scale(AnvVector4f* p_vec, Float32 scale) {
  * @param p_vec2
  * @return Result of dot product.
  * */
-Float32 anv_vector_4f_dot(AnvVector4f* p_vec1, AnvVector4f* p_vec2) {
+Float32 vector_4f_dot(Vector4f* p_vec1, Vector4f* p_vec2) {
     RETURN_VALUE_IF_FAIL(p_vec1 && p_vec2, 0, ERR_INVALID_ARGUMENTS);
 
 #define V1(k) p_vec1->k
@@ -210,7 +210,7 @@ Float32 anv_vector_4f_dot(AnvVector4f* p_vec1, AnvVector4f* p_vec2) {
  * @param p_vec
  * @return Float32
  * */
-inline Float32 anv_vector_4f_compute_norm(AnvVector4f* p_vec) {
+inline Float32 vector_4f_compute_norm(Vector4f* p_vec) {
     RETURN_VALUE_IF_FAIL(p_vec, 0, ERR_INVALID_ARGUMENTS);
 
 #define V(k) p_vec->k
@@ -223,12 +223,12 @@ inline Float32 anv_vector_4f_compute_norm(AnvVector4f* p_vec) {
  *
  * @param p_vec
  * */
-void anv_vector_4f_normalize(AnvVector4f* p_vec) {
+void vector_4f_normalize(Vector4f* p_vec) {
     RETURN_IF_FAIL(p_vec, ERR_INVALID_ARGUMENTS);
 
 #define V(k) p_vec->k
 
-    Float32 norm = anv_vector_4f_compute_norm(p_vec);
+    Float32 norm = vector_4f_compute_norm(p_vec);
     V(x) = V(x) / norm;
     V(y) = V(y) / norm;
     V(z) = V(z) / norm;

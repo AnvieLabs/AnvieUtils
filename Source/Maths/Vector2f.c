@@ -6,10 +6,10 @@
 /**
  * Create a new Vector2f
  *
- * @return AnvVector2f* on success, NULL otherwise.
+ * @return Vector2f* on success, NULL otherwise.
  * */
-inline AnvVector2f* anv_vector_2f_create(Float32 x, Float32 y) {
-    AnvVector2f* p_vec = NEW(AnvVector2f);
+inline Vector2f* vector_2f_create(Float32 x, Float32 y) {
+    Vector2f* p_vec = NEW(Vector2f);
     RETURN_VALUE_IF_FAIL(p_vec, NULL, ERR_OUT_OF_MEMORY);
 
     p_vec->x = x;
@@ -23,7 +23,7 @@ inline AnvVector2f* anv_vector_2f_create(Float32 x, Float32 y) {
  *
  * @param p_vec
  * */
-void anv_vector_2f_destroy(AnvVector2f* p_vec) {
+void vector_2f_destroy(Vector2f* p_vec) {
     RETURN_IF_FAIL(p_vec, ERR_INVALID_ARGUMENTS);
     FREE(p_vec);
 }
@@ -32,10 +32,10 @@ void anv_vector_2f_destroy(AnvVector2f* p_vec) {
  * Create a copy of given vector.
  *
  * @param p_vec
- * @return AnvVector2f* on success, False otherwise.
+ * @return Vector2f* on success, False otherwise.
  * */
-inline AnvVector2f* anv_vector_2f_create_copy(AnvVector2f* p_vec) {
-    AnvVector2f* p_copy_vec = anv_vector_2f_create(p_vec->x, p_vec->y);
+inline Vector2f* vector_2f_create_copy(Vector2f* p_vec) {
+    Vector2f* p_copy_vec = vector_2f_create(p_vec->x, p_vec->y);
     RETURN_VALUE_IF_FAIL(p_copy_vec, NULL, "Failed to create copy of given vector\n");
     return p_copy_vec;
 }
@@ -43,10 +43,10 @@ inline AnvVector2f* anv_vector_2f_create_copy(AnvVector2f* p_vec) {
 /**
  * Create Vector2f representing Origin.
  *
- * @return AnvVector2f* on success, NULL otherwise.
+ * @return Vector2f* on success, NULL otherwise.
  * */
-inline AnvVector2f* anv_vector_2f_origin() {
-    AnvVector2f* p_vec = anv_vector_2f_create(0, 0);
+inline Vector2f* vector_2f_origin() {
+    Vector2f* p_vec = vector_2f_create(0, 0);
     RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create Origin Vector2f\n");
     return p_vec;
 }
@@ -54,10 +54,10 @@ inline AnvVector2f* anv_vector_2f_origin() {
 /**
  * Create Vector2f representing X Axis.
  *
- * @return AnvVector2f* on success, NULL otherwise.
+ * @return Vector2f* on success, NULL otherwise.
  * */
-AnvVector2f* anv_vector_2f_x_axis() {
-    AnvVector2f* p_vec = anv_vector_2f_create(1, 0);
+Vector2f* vector_2f_x_axis() {
+    Vector2f* p_vec = vector_2f_create(1, 0);
     RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create X Axis Vector2f\n");
     return p_vec;
 }
@@ -65,10 +65,10 @@ AnvVector2f* anv_vector_2f_x_axis() {
 /**
  * Create Vector2f representing Y Axis.
  *
- * @return AnvVector2f* on success, NULL otherwise.
+ * @return Vector2f* on success, NULL otherwise.
  * */
-AnvVector2f* anv_vector_2f_y_axis() {
-    AnvVector2f* p_vec = anv_vector_2f_create(0, 1);
+Vector2f* vector_2f_y_axis() {
+    Vector2f* p_vec = vector_2f_create(0, 1);
     RETURN_VALUE_IF_FAIL(p_vec, NULL, "Failed to create Y Axis Vector2f\n");
     return p_vec;
 }
@@ -79,12 +79,12 @@ AnvVector2f* anv_vector_2f_y_axis() {
  *
  * @param p_vec1
  * @param p_vec2
- * @return AnvVector2f* on success, NULL otherwise.
+ * @return Vector2f* on success, NULL otherwise.
  * */
-AnvVector2f* anv_vector_2f_add(AnvVector2f* p_vec1, AnvVector2f* p_vec2) {
+Vector2f* vector_2f_add(Vector2f* p_vec1, Vector2f* p_vec2) {
     RETURN_VALUE_IF_FAIL(p_vec1 && p_vec2, NULL, ERR_INVALID_ARGUMENTS);
 
-    AnvVector2f* p_new_vec = anv_vector_2f_origin();
+    Vector2f* p_new_vec = vector_2f_origin();
     RETURN_VALUE_IF_FAIL(p_new_vec, NULL, "Failed to create new vector for storing result\n");
 
 #define V1(t) p_vec1->t
@@ -107,12 +107,12 @@ AnvVector2f* anv_vector_2f_add(AnvVector2f* p_vec1, AnvVector2f* p_vec2) {
  *
  * @param p_vec1
  * @param p_vec2
- * @return AnvVector2f* on success, NULL otherwise.
+ * @return Vector2f* on success, NULL otherwise.
  * */
-AnvVector2f* anv_vector_2f_sub(AnvVector2f* p_vec1, AnvVector2f* p_vec2) {
+Vector2f* vector_2f_sub(Vector2f* p_vec1, Vector2f* p_vec2) {
     RETURN_VALUE_IF_FAIL(p_vec1 && p_vec2, NULL, ERR_INVALID_ARGUMENTS);
 
-    AnvVector2f* p_new_vec = anv_vector_2f_origin();
+    Vector2f* p_new_vec = vector_2f_origin();
     RETURN_VALUE_IF_FAIL(p_new_vec, NULL, "Failed to create new vector for storing result\n");
 
 #define V1(t) p_vec1->t
@@ -135,12 +135,12 @@ AnvVector2f* anv_vector_2f_sub(AnvVector2f* p_vec1, AnvVector2f* p_vec2) {
  *
  * @param p_vec
  * @param scale
- * @return AnvVector2f* on success, NULL otherwise.
+ * @return Vector2f* on success, NULL otherwise.
  * */
-AnvVector2f* anv_vector_2f_scale(AnvVector2f* p_vec, Float32 scale) {
+Vector2f* vector_2f_scale(Vector2f* p_vec, Float32 scale) {
     RETURN_VALUE_IF_FAIL(p_vec, NULL, ERR_INVALID_ARGUMENTS);
 
-    AnvVector2f* p_new_vec = anv_vector_2f_origin();
+    Vector2f* p_new_vec = vector_2f_origin();
     RETURN_VALUE_IF_FAIL(p_new_vec, NULL, "Failed to create new vector for storing result\n");
 
 #define V(t) p_vec->t
@@ -162,7 +162,7 @@ AnvVector2f* anv_vector_2f_scale(AnvVector2f* p_vec, Float32 scale) {
  * @param p_vec2
  * @return Result of dot product.
  * */
-Float32 anv_vector_2f_dot(AnvVector2f* p_vec1, AnvVector2f* p_vec2) {
+Float32 vector_2f_dot(Vector2f* p_vec1, Vector2f* p_vec2) {
     RETURN_VALUE_IF_FAIL(p_vec1 && p_vec2, 0, ERR_INVALID_ARGUMENTS);
 
 #define V1(t) p_vec1->t
@@ -180,7 +180,7 @@ Float32 anv_vector_2f_dot(AnvVector2f* p_vec1, AnvVector2f* p_vec2) {
  * @param p_vec
  * @return Float32
  * */
-inline Float32 anv_vector_2f_compute_norm(AnvVector2f* p_vec) {
+inline Float32 vector_2f_compute_norm(Vector2f* p_vec) {
     RETURN_VALUE_IF_FAIL(p_vec, 0, ERR_INVALID_ARGUMENTS);
 
 #define V(t) p_vec->t
@@ -193,12 +193,12 @@ inline Float32 anv_vector_2f_compute_norm(AnvVector2f* p_vec) {
  *
  * @param p_vec
  * */
-void anv_vector_2f_normalize(AnvVector2f* p_vec) {
+void vector_2f_normalize(Vector2f* p_vec) {
     RETURN_IF_FAIL(p_vec, ERR_INVALID_ARGUMENTS);
 
 #define V(t) p_vec->t
 
-    Float32 norm = anv_vector_2f_compute_norm(p_vec);
+    Float32 norm = vector_2f_compute_norm(p_vec);
     V(x) = V(x) / norm;
     V(y) = V(y) / norm;
 

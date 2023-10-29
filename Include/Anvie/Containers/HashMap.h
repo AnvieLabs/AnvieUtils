@@ -23,4 +23,4 @@
 
 typedef struct anvie_hash_map_t {
 
-} AnvHashMap;
+} HashMap;

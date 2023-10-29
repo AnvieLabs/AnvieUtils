@@ -30,24 +30,24 @@ typedef struct anvie_vector_4f_t {
     Float32 y;
     Float32 z;
     Float32 t;
-} AnvVector4f;
+} Vector4f;
 
-AnvVector4f* anv_vector_4f_create(Float32 x, Float32 y, Float32 z, Float32 t);
-void anv_vector_4f_destroy(AnvVector4f* p_vec);
-AnvVector4f* anv_vector_4f_create_copy(AnvVector4f* p_vec);
+Vector4f* vector_4f_create(Float32 x, Float32 y, Float32 z, Float32 t);
+void vector_4f_destroy(Vector4f* p_vec);
+Vector4f* vector_4f_create_copy(Vector4f* p_vec);
 
-AnvVector4f* anv_vector_4f_origin();
-AnvVector4f* anv_vector_4f_x_axis();
-AnvVector4f* anv_vector_4f_y_axis();
-AnvVector4f* anv_vector_4f_z_axis();
-AnvVector4f* anv_vector_4f_t_axis();
+Vector4f* vector_4f_origin();
+Vector4f* vector_4f_x_axis();
+Vector4f* vector_4f_y_axis();
+Vector4f* vector_4f_z_axis();
+Vector4f* vector_4f_t_axis();
 
-AnvVector4f* anv_vector_4f_add(AnvVector4f* p_vec1, AnvVector4f* p_vec2);
-AnvVector4f* anv_vector_4f_sub(AnvVector4f* p_vec1, AnvVector4f* p_vec2);
-AnvVector4f* anv_vector_4f_scale(AnvVector4f* p_vec, Float32 scale);
-Float32 anv_vector_4f_dot(AnvVector4f* p_vec1, AnvVector4f* p_vec2);
+Vector4f* vector_4f_add(Vector4f* p_vec1, Vector4f* p_vec2);
+Vector4f* vector_4f_sub(Vector4f* p_vec1, Vector4f* p_vec2);
+Vector4f* vector_4f_scale(Vector4f* p_vec, Float32 scale);
+Float32 vector_4f_dot(Vector4f* p_vec1, Vector4f* p_vec2);
 
-Float32 anv_vector_4f_compute_norm(AnvVector4f* p_vec);
-void anv_vector_4f_normalize(AnvVector4f* p_vec);
+Float32 vector_4f_compute_norm(Vector4f* p_vec);
+void vector_4f_normalize(Vector4f* p_vec);
 
 #endif // ANVIE_UTILS_MATH_VECTOR4F_H

@@ -25,10 +25,10 @@
 #include <string.h>
 
 // private functions
-static void tree_node_increment_height(AnvTreeNode* node);
-static void tree_node_increment_size(AnvTreeNode* node);
-static void tree_node_decrement_height(AnvTreeNode* node);
-static void tree_node_decrement_size(AnvTreeNode* node);
+static void tree_node_increment_height(TreeNode* node);
+static void tree_node_increment_size(TreeNode* node);
+static void tree_node_decrement_height(TreeNode* node);
+static void tree_node_decrement_size(TreeNode* node);
 
 /**
  * Create a copy of given node object.
@@ -37,14 +37,14 @@ static void tree_node_decrement_size(AnvTreeNode* node);
  * new copy will be stored.
  * @param p_src Pointer to tree node to create copy of.
  * */
-void anv_tree_node_create_copy(void* p_dst, void* p_src) {
+void tree_node_create_copy(void* p_dst, void* p_src) {
     RETURN_IF_FAIL(p_dst && p_src, ERR_INVALID_ARGUMENTS);
 
-    AnvTreeNode* node_src = TO_ANV_TREE_NODE(p_src);
-    AnvTree* tree = node_src->tree_parent;
+    TreeNode* node_src = TO_TREE_NODE(p_src);
+    Tree* tree = node_src->tree_parent;
 
     // create a copy of given src node to dst node
-    AnvTreeNode* node_dst = TO_ANV_TREE_NODE(p_dst);
+    TreeNode* node_dst = TO_TREE_NODE(p_dst);
     node_dst->node_parent = node_src->node_parent;
     node_dst->tree_parent = tree;
     node_dst->height = node_src->height;
@@ -69,7 +69,7 @@ void anv_tree_node_create_copy(void* p_dst, void* p_src) {
 
     // create clone of all children
     if(node_src->vec_children) {
-        node_dst->vec_children = anv_tree_node_vector_clone(node_src->vec_children);
+        node_dst->vec_children = tree_node_vector_clone(node_src->vec_children);
         if(!node_dst->vec_children) {
             ERR(__FUNCTION__, ERR_OUT_OF_MEMORY);
             FREE(node_dst->p_data);
@@ -81,14 +81,14 @@ void anv_tree_node_create_copy(void* p_dst, void* p_src) {
 /**
  * Destroy the copy of given tree node object.
  *
- * @param p_copy Pointer to copy of AnvTreeNode created
- * using @c anv_tree_node_create_copy().
+ * @param p_copy Pointer to copy of TreeNode created
+ * using @c tree_node_create_copy().
  * */
-void anv_tree_node_destroy_copy(void* p_copy) {
+void tree_node_destroy_copy(void* p_copy) {
     RETURN_IF_FAIL(p_copy, ERR_INVALID_ARGUMENTS);
 
-    AnvTreeNode* node = TO_ANV_TREE_NODE(p_copy);
-    AnvTree* tree = TREE_PARENT(node);
+    TreeNode* node = TO_TREE_NODE(p_copy);
+    Tree* tree = TREE_PARENT(node);
 
     // if element was created using a create_copy() or it's size is greater than 8
     // then free it
@@ -100,7 +100,7 @@ void anv_tree_node_destroy_copy(void* p_copy) {
 
     // TODO: make sure this will destroy the tree recursively!
     if(node->vec_children) {
-        anv_tree_node_vector_destroy(node->vec_children);
+        tree_node_vector_destroy(node->vec_children);
     }
 }
 
@@ -114,7 +114,7 @@ void anv_tree_node_destroy_copy(void* p_copy) {
  * @return Total size of given node. Returns 0 if node is NULL
  * without any error message.
  * */
-Size anv_tree_node_get_size(AnvTreeNode* node) {
+Size tree_node_get_size(TreeNode* node) {
     if(!node) return 0;
     return node->size;
 }
@@ -127,7 +127,7 @@ Size anv_tree_node_get_size(AnvTreeNode* node) {
  * @return Total size of given node. Returns 0 if node is NULL
  * without any error message.
  * */
-Size anv_tree_node_get_height(AnvTreeNode* node) {
+Size tree_node_get_height(TreeNode* node) {
     if(!node) return 0;
     return node->height;
 }
@@ -139,14 +139,14 @@ Size anv_tree_node_get_height(AnvTreeNode* node) {
  *
  * @return Pointer to first child node.
  * */
-AnvTreeNode* anv_tree_node_get_front(AnvTreeNode* node) {
+TreeNode* tree_node_get_front(TreeNode* node) {
     RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
 
     if(!node->vec_children || !node->vec_children->length) {
         return NULL;
     }
 
-    return anv_tree_node_vector_front(node->vec_children);
+    return tree_node_vector_front(node->vec_children);
 }
 
 /**
@@ -156,14 +156,14 @@ AnvTreeNode* anv_tree_node_get_front(AnvTreeNode* node) {
  *
  * @return Pointer to last child node.
  * */
-AnvTreeNode* anv_tree_node_get_back(AnvTreeNode* node) {
+TreeNode* tree_node_get_back(TreeNode* node) {
     RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
 
     if(!node->vec_children || !node->vec_children->length) {
         return NULL;
     }
 
-    return anv_tree_node_vector_front(node->vec_children);
+    return tree_node_vector_front(node->vec_children);
 }
 
 /**
@@ -174,7 +174,7 @@ AnvTreeNode* anv_tree_node_get_back(AnvTreeNode* node) {
  *
  * @return Pointer to first child node.
  * */
-AnvTreeNode* anv_tree_node_peek(AnvTreeNode* node, Size idx) {
+TreeNode* tree_node_peek(TreeNode* node, Size idx) {
     RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
 
     if(!node->vec_children || !node->vec_children->length) {
@@ -183,7 +183,7 @@ AnvTreeNode* anv_tree_node_peek(AnvTreeNode* node, Size idx) {
 
     RETURN_VALUE_IF_FAIL(idx < node->vec_children->length, NULL, "Provided index is exceeding the last index in array of child nodes\n")
 
-    return anv_tree_node_vector_peek(node->vec_children, idx);
+    return tree_node_vector_peek(node->vec_children, idx);
 }
 
 /**
@@ -195,10 +195,10 @@ AnvTreeNode* anv_tree_node_peek(AnvTreeNode* node, Size idx) {
  * @return Pointer to new added child node on success, NULL otherwise.
  * */
 #define TREE_PUSH(place)                                                \
-    AnvTreeNode* anv_tree_node_push_##place(AnvTreeNode* node, void* p_data) { \
+    TreeNode* tree_node_push_##place(TreeNode* node, void* p_data) { \
         RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);        \
                                                                         \
-        AnvTreeNode node_child;                                         \
+        TreeNode node_child;                                         \
         node_child.node_parent = node;                                  \
         node_child.tree_parent = TREE_PARENT(node);                     \
         node_child.p_data = p_data;                                     \
@@ -206,7 +206,7 @@ AnvTreeNode* anv_tree_node_peek(AnvTreeNode* node, Size idx) {
         node_child.size = 1;                                            \
                                                                         \
         if(!node->vec_children) {                                       \
-            node->vec_children = anv_tree_node_vector_create();         \
+            node->vec_children = tree_node_vector_create();         \
         }                                                               \
                                                                         \
         if(!node->vec_children->length) {                               \
@@ -214,8 +214,8 @@ AnvTreeNode* anv_tree_node_peek(AnvTreeNode* node, Size idx) {
         }                                                               \
         tree_node_increment_size(node);                                 \
                                                                         \
-        anv_tree_node_vector_push_##place(node->vec_children, &node_child); \
-        return anv_tree_node_vector_##place(node->vec_children);        \
+        tree_node_vector_push_##place(node->vec_children, &node_child); \
+        return tree_node_vector_##place(node->vec_children);        \
     }
 
 TREE_PUSH(front)
@@ -232,11 +232,11 @@ TREE_PUSH(back)
  *
  * @return Pointer to new inserted node.
  * */
-AnvTreeNode* anv_tree_node_insert(AnvTreeNode* node, void* p_data, Size index) {
+TreeNode* tree_node_insert(TreeNode* node, void* p_data, Size index) {
     RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
 
     // create temporary child node object
-    AnvTreeNode node_child;
+    TreeNode node_child;
     node_child.node_parent = node;
     node_child.tree_parent = TREE_PARENT(node);
     node_child.p_data = p_data;
@@ -248,7 +248,7 @@ AnvTreeNode* anv_tree_node_insert(AnvTreeNode* node, void* p_data, Size index) {
 
     // create vector and add this child object.
     if(!node->vec_children) {
-        node->vec_children = anv_tree_node_vector_create();
+        node->vec_children = tree_node_vector_create();
     }
 
     // tree height is changed only when one of it's children's height get
@@ -259,8 +259,8 @@ AnvTreeNode* anv_tree_node_insert(AnvTreeNode* node, void* p_data, Size index) {
     // size is incremented at every insertion
     tree_node_increment_size(node);
 
-    anv_tree_node_vector_insert(node->vec_children, &node_child, index);
-    return anv_tree_node_vector_peek(node->vec_children, index);
+    tree_node_vector_insert(node->vec_children, &node_child, index);
+    return tree_node_vector_peek(node->vec_children, index);
 }
 
 /**
@@ -272,11 +272,11 @@ AnvTreeNode* anv_tree_node_insert(AnvTreeNode* node, void* p_data, Size index) {
  *
  * @return Pointer to removed child node on success, NULL otherwise.
  * */
-AnvTreeNode* anv_tree_node_remove(AnvTreeNode* node, Size index) {
+TreeNode* tree_node_remove(TreeNode* node, Size index) {
     RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
     RETURN_VALUE_IF_FAIL(node->vec_children && (index < node->vec_children->length), NULL, "Provided index is exceeding the last index in array of child nodes\n");
 
-    AnvTreeNode* node_child = anv_tree_node_vector_remove(node->vec_children, index);
+    TreeNode* node_child = tree_node_vector_remove(node->vec_children, index);
 
     tree_node_decrement_size(node);
     if(!node->vec_children->length) {
@@ -293,11 +293,11 @@ AnvTreeNode* anv_tree_node_remove(AnvTreeNode* node, Size index) {
  * @param node
  * @param index
  * */
-void anv_tree_node_delete(AnvTreeNode* node, Size index) {
+void tree_node_delete(TreeNode* node, Size index) {
     RETURN_IF_FAIL(node, ERR_INVALID_ARGUMENTS);
     RETURN_IF_FAIL(node->vec_children && (index < node->vec_children->length), "Provided index is exceeding the last index in array of child nodes\n");
 
-    anv_tree_node_vector_delete(node->vec_children, index);
+    tree_node_vector_delete(node->vec_children, index);
 
     tree_node_decrement_size(node);
     if(!node->vec_children->length) {
@@ -314,17 +314,17 @@ void anv_tree_node_delete(AnvTreeNode* node, Size index) {
  *
  * @return Pointer to new added node.
  * */
-AnvTreeNode* anv_tree_node_push_front_fast(AnvTreeNode* node, void* p_data) {
+TreeNode* tree_node_push_front_fast(TreeNode* node, void* p_data) {
     RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
 
     // create temporary child node object
-    AnvTreeNode node_child;
+    TreeNode node_child;
     node_child.node_parent = node;
     node_child.tree_parent = TREE_PARENT(node);
     node_child.p_data = p_data;
 
     if(!node->vec_children) {
-        node->vec_children = anv_tree_node_vector_create();
+        node->vec_children = tree_node_vector_create();
     }
 
     if(!node->vec_children->length) {
@@ -332,8 +332,8 @@ AnvTreeNode* anv_tree_node_push_front_fast(AnvTreeNode* node, void* p_data) {
     }
     tree_node_increment_size(node);
 
-    anv_tree_node_vector_push_front_fast(node->vec_children, &node_child);
-    return anv_tree_node_vector_front(node->vec_children);
+    tree_node_vector_push_front_fast(node->vec_children, &node_child);
+    return tree_node_vector_front(node->vec_children);
 }
 
 /**
@@ -346,18 +346,18 @@ AnvTreeNode* anv_tree_node_push_front_fast(AnvTreeNode* node, void* p_data) {
  *
  * @return Pointer to removed child node on success, NULL otherwise.
  * */
-AnvTreeNode* anv_tree_node_insert_fast(AnvTreeNode* node, void* p_data, Size index) {
+TreeNode* tree_node_insert_fast(TreeNode* node, void* p_data, Size index) {
     RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
 
     // create temporary child node object
-    AnvTreeNode node_child;
+    TreeNode node_child;
     node_child.node_parent = node;
     node_child.tree_parent = TREE_PARENT(node);
     node_child.p_data = p_data;
 
     // create child vector if not already created and insert
     if(!node->vec_children) {
-        node->vec_children = anv_tree_node_vector_create();
+        node->vec_children = tree_node_vector_create();
     }
 
     // update height and size
@@ -366,8 +366,8 @@ AnvTreeNode* anv_tree_node_insert_fast(AnvTreeNode* node, void* p_data, Size ind
     }
     tree_node_increment_size(node);
 
-    anv_tree_node_vector_insert_fast(node->vec_children, &node_child, index);
-    return anv_tree_node_vector_peek(node->vec_children, index);
+    tree_node_vector_insert_fast(node->vec_children, &node_child, index);
+    return tree_node_vector_peek(node->vec_children, index);
 }
 
 /**
@@ -380,11 +380,11 @@ AnvTreeNode* anv_tree_node_insert_fast(AnvTreeNode* node, void* p_data, Size ind
  *
  * @return Pointer to removed child node on success, NULL otherwise.
  * */
-AnvTreeNode* anv_tree_node_remove_fast(AnvTreeNode* node, Size index) {
+TreeNode* tree_node_remove_fast(TreeNode* node, Size index) {
     RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
     RETURN_VALUE_IF_FAIL(node->vec_children && (index < node->vec_children->length), NULL, "Provided index is exceeding the last index in array of child nodes\n");
 
-    AnvTreeNode* node_child = anv_tree_node_vector_remove_fast(node->vec_children, index);
+    TreeNode* node_child = tree_node_vector_remove_fast(node->vec_children, index);
 
     tree_node_decrement_size(node);
     if(!node->vec_children->length) {
@@ -402,11 +402,11 @@ AnvTreeNode* anv_tree_node_remove_fast(AnvTreeNode* node, Size index) {
  * @param node Parent node to insert child node to.
  * @param index Index where new child node will be inserted.
  * */
-void anv_tree_node_delete_fast(AnvTreeNode* node, Size index) {
+void tree_node_delete_fast(TreeNode* node, Size index) {
     RETURN_IF_FAIL(node, ERR_INVALID_ARGUMENTS);
     RETURN_IF_FAIL(node->vec_children && (index < node->vec_children->length), "Provided index is exceeding the last index in array of child nodes\n");
 
-    anv_tree_node_vector_delete_fast(node->vec_children, index);
+    tree_node_vector_delete_fast(node->vec_children, index);
 
     tree_node_decrement_size(node);
     if(!node->vec_children->length) {
@@ -417,7 +417,7 @@ void anv_tree_node_delete_fast(AnvTreeNode* node, Size index) {
 /************************** PRIVATE FUNCTIONS ***************************/
 
 #define TREE_NODE_INCREMENT_PROP(prop)                    \
-    static void tree_node_increment_##prop(AnvTreeNode* node) { \
+    static void tree_node_increment_##prop(TreeNode* node) { \
         if(!node) return;                                               \
         node->prop++;                                                   \
         if(node->node_parent) tree_node_increment_##prop(node->node_parent); \
@@ -427,7 +427,7 @@ TREE_NODE_INCREMENT_PROP(size)
 #undef TREE_NODE_INCREMENT_PROP
 
 #define TREE_NODE_DECREMENT_PROP(prop)                    \
-    static void tree_node_decrement_##prop(AnvTreeNode* node) { \
+    static void tree_node_decrement_##prop(TreeNode* node) { \
         if(!node) return;                                               \
         node->prop--;                                                   \
         if(node->node_parent) tree_node_decrement_##prop(node->node_parent); \

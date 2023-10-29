@@ -1,10 +1,10 @@
-# Anvie Utils
+# ie Utils
 
-Utility library for Anvie. This provides, basic helper defines, tests, containers etc...
+Utility library for ie. This provides, basic helper defines, tests, containers etc...
 
 ### Current Support
 
-| Utility Name     | Has Test | Actively in use in AnvieLabs | Has been used |
+| Utility Name     | Has Test | Actively in use in ieLabs | Has been used |
 |------------------|----------|------------------------------|---------------|
 | Container/Vector | Yes      | Yes                          | Yes           |
 | Maths/Vector2f   | No       | No                           | No            |

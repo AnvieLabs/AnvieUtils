@@ -1,5 +1,5 @@
 /**
- * @file AnvHelperDefines.h
+ * @file HelperDefines.h
  * @date Wed, 5th July, 2023
  * @author Siddharth Mishra (admin@brightprogrammer.in)
  * @copyright Copyright 2023 Siddharth Mishra
@@ -27,9 +27,9 @@
 #include <stdlib.h>
 #include <Anvie/TerminalColors.h>
 
-#ifndef ANV_MODULE_NAME
-#define ANV_MODULE_NAME "AnvUtils"
-#endif//ANV_MODULE_NAME
+#ifndef MODULE_NAME
+#define MODULE_NAME "Utils"
+#endif//MODULE_NAME
 
 #define LINE80() println("================================================================================")
 #define newline() putchar(0xa)
@@ -58,19 +58,19 @@
 
 // print an error message
 #define ERR(tag, ...) do {                                              \
-    fprintf(stderr, COLOR_BOLD_RED"[-]"COLOR_RESET " [" COLOR_BOLD_BLUE ANV_MODULE_NAME COLOR_RESET "] ["COLOR_BOLD_RED" %s "COLOR_RESET"] : ", tag); \
+    fprintf(stderr, COLOR_BOLD_RED"[-]"COLOR_RESET " [" COLOR_BOLD_BLUE MODULE_NAME COLOR_RESET "] ["COLOR_BOLD_RED" %s "COLOR_RESET"] : ", tag); \
     fprintf(stderr, __VA_ARGS__);                                        \
         } while(0)
 
 // print a debug message
 #define DBG(tag, ...) do {                                              \
-    fprintf(stderr, COLOR_BOLD_YELLOW"[!]"COLOR_RESET " [" COLOR_BOLD_BLUE ANV_MODULE_NAME COLOR_RESET "] ["COLOR_BOLD_YELLOW" %s "COLOR_RESET"] : ", tag); \
+    fprintf(stderr, COLOR_BOLD_YELLOW"[!]"COLOR_RESET " [" COLOR_BOLD_BLUE MODULE_NAME COLOR_RESET "] ["COLOR_BOLD_YELLOW" %s "COLOR_RESET"] : ", tag); \
     fprintf(stderr, __VA_ARGS__);                                       \
         } while(0)
 
 // print a success message
 #define OK(tag, ...) do {                                                   \
-    fprintf(stderr, COLOR_BOLD_GREEN"[+]"COLOR_RESET " [" COLOR_BOLD_BLUE ANV_MODULE_NAME COLOR_RESET "] ["COLOR_BOLD_GREEN" %s "COLOR_RESET"] : ", tag); \
+    fprintf(stderr, COLOR_BOLD_GREEN"[+]"COLOR_RESET " [" COLOR_BOLD_BLUE MODULE_NAME COLOR_RESET "] ["COLOR_BOLD_GREEN" %s "COLOR_RESET"] : ", tag); \
     fprintf(stderr, __VA_ARGS__);                                       \
         } while(0)
 

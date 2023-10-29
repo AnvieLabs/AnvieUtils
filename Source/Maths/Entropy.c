@@ -31,7 +31,7 @@
  * @param p_data Pointer to data to compute entropy for.
  * @param sz Size of data in bytes.
  * */
-Float32 anv_compute_shannon_entropy(void* p_data, Size sz) {
+Float32 compute_shannon_entropy(void* p_data, Size sz) {
     RETURN_VALUE_IF_FAIL(p_data, 0.f, ERR_INVALID_ARGUMENTS);
 
     if(sz < 2) return 0;

@@ -29,10 +29,10 @@
  *
  * @param str String to be set initially. This can be @c NULL.
  *
- * @return AnvStringBuffer on success, NULL otherwise.
+ * @return StringBuffer on success, NULL otherwise.
  * */
-AnvStringBuffer* anv_strbuf_create(String str) {
-    AnvStringBuffer* sb = NEW(AnvStringBuffer);
+StringBuffer* strbuf_create(String str) {
+    StringBuffer* sb = NEW(StringBuffer);
     RETURN_VALUE_IF_FAIL(sb, NULL, ERR_OUT_OF_MEMORY);
 
     if(str) {
@@ -54,7 +54,7 @@ AnvStringBuffer* anv_strbuf_create(String str) {
  *
  * @param strbuf String buffer object to be destroyed.
  * */
-void anv_strbuf_destroy(AnvStringBuffer* strbuf) {
+void strbuf_destroy(StringBuffer* strbuf) {
     RETURN_IF_FAIL(strbuf, ERR_INVALID_ARGUMENTS);
 
     if(strbuf->str) {
@@ -73,12 +73,12 @@ void anv_strbuf_destroy(AnvStringBuffer* strbuf) {
  *
  * @param sb @c StringBuffer to be cloned.
  *
- * @return AnvStringBuffer* on success, @c NULL otherwise.
+ * @return StringBuffer* on success, @c NULL otherwise.
  * */
-AnvStringBuffer* anv_strbuf_clone_buf(AnvStringBuffer* sb) {
+StringBuffer* strbuf_clone_buf(StringBuffer* sb) {
     RETURN_VALUE_IF_FAIL(sb, NULL, ERR_INVALID_ARGUMENTS);
 
-    AnvStringBuffer* sbclone = NEW(AnvStringBuffer);
+    StringBuffer* sbclone = NEW(StringBuffer);
 
     sbclone->str = ALLOCATE(Char, sb->capacity);
     if(!sbclone->str) {
@@ -102,7 +102,7 @@ AnvStringBuffer* anv_strbuf_clone_buf(AnvStringBuffer* sb) {
  * @return Duplicated @c String on success, @c NULL otherwise.
  * This does not check for @c NULL returned by strdup.
  * */
-String anv_strbuf_clone_str(AnvStringBuffer* sb) {
+String strbuf_clone_str(StringBuffer* sb) {
     RETURN_VALUE_IF_FAIL(sb, NULL, ERR_INVALID_ARGUMENTS);
     return strdup(sb->str);
 }
@@ -114,7 +114,7 @@ String anv_strbuf_clone_str(AnvStringBuffer* sb) {
  * @param str String to be set in the given @c StringBuffer.
  * Passing NULL is equivalent to clearing the string.
  * */
-void anv_strbuf_set(AnvStringBuffer* strbuf, String str) {
+void strbuf_set(StringBuffer* strbuf, String str) {
     RETURN_IF_FAIL(strbuf, ERR_INVALID_ARGUMENTS);
 
     if(str) {
@@ -147,7 +147,7 @@ void anv_strbuf_set(AnvStringBuffer* strbuf, String str) {
  * given string. Behaviour is undefined if @p n is greater than size
  * of @p str.
  * */
-void anv_strbuf_setn(AnvStringBuffer* strbuf, String str, Size n) {
+void strbuf_setn(StringBuffer* strbuf, String str, Size n) {
     RETURN_IF_FAIL(strbuf, ERR_INVALID_ARGUMENTS);
 
     if(str) {
@@ -179,7 +179,7 @@ void anv_strbuf_setn(AnvStringBuffer* strbuf, String str, Size n) {
  *
  * @return 0 if strings are equal, non zero otherwise.
  * */
-Int32 anv_strbuf_cmpstr(AnvStringBuffer* sb, String s) {
+Int32 strbuf_cmpstr(StringBuffer* sb, String s) {
     RETURN_VALUE_IF_FAIL(sb && s, 1, ERR_INVALID_ARGUMENTS);
     return strcmp(sb->str, s);
 }
@@ -195,7 +195,7 @@ Int32 anv_strbuf_cmpstr(AnvStringBuffer* sb, String s) {
  *
  * @return 0 if strings are equal, non zero otherwise.
  * */
-Int32 anv_strbuf_cmpstrn(AnvStringBuffer* sb, String s, Size n) {
+Int32 strbuf_cmpstrn(StringBuffer* sb, String s, Size n) {
     RETURN_VALUE_IF_FAIL(sb && s && n, 1, ERR_INVALID_ARGUMENTS);
     return strncmp(sb->str, s, n);
 }
@@ -208,7 +208,7 @@ Int32 anv_strbuf_cmpstrn(AnvStringBuffer* sb, String s, Size n) {
  *
  * @return 0 if strings are equal, non zero otherwise.
  * */
-Int32 anv_strbuf_cmp(AnvStringBuffer* sb1, AnvStringBuffer* sb2) {
+Int32 strbuf_cmp(StringBuffer* sb1, StringBuffer* sb2) {
     RETURN_VALUE_IF_FAIL(sb1 && sb2, 1, ERR_INVALID_ARGUMENTS);
     if(sb1->length != sb2->length) return 1;
     return strncmp(sb1->str, sb2->str, sb1->length);
@@ -224,7 +224,7 @@ Int32 anv_strbuf_cmp(AnvStringBuffer* sb1, AnvStringBuffer* sb2) {
  *
  * @return 0 if strings are equal, non zero otherwise.
  * */
-Int32 anv_strbuf_cmpn(AnvStringBuffer* sb1, AnvStringBuffer* sb2, Size n) {
+Int32 strbuf_cmpn(StringBuffer* sb1, StringBuffer* sb2, Size n) {
     RETURN_VALUE_IF_FAIL(sb1 && sb2 && n, 1, ERR_INVALID_ARGUMENTS);
     return strncmp(sb1->str, sb2->str, n);
 }
@@ -238,7 +238,7 @@ Int32 anv_strbuf_cmpn(AnvStringBuffer* sb1, AnvStringBuffer* sb2, Size n) {
  * @param buf @c StringBuffer to reserve space for.
  * @param n Number of bytes to reserve.
  * */
-void anv_strbuf_reserve(AnvStringBuffer* buf, Size n) {
+void strbuf_reserve(StringBuffer* buf, Size n) {
     RETURN_IF_FAIL(buf && n, ERR_INVALID_ARGUMENTS);
     if(n > buf->capacity) {
         String tmpstr = realloc((void*)buf->str, n + 1);
@@ -257,7 +257,7 @@ void anv_strbuf_reserve(AnvStringBuffer* buf, Size n) {
  *
  * @param buf
  * */
-void anv_strbuf_clear(AnvStringBuffer* buf) {
+void strbuf_clear(StringBuffer* buf) {
     RETURN_IF_FAIL(buf, ERR_INVALID_ARGUMENTS);
     *(char*)buf->str = 0;
     buf->length = 0;
@@ -270,7 +270,7 @@ void anv_strbuf_clear(AnvStringBuffer* buf) {
  *
  * @param buf
  * */
-void anv_strbuf_clear_fast(AnvStringBuffer* buf) {
+void strbuf_clear_fast(StringBuffer* buf) {
     RETURN_IF_FAIL(buf, ERR_INVALID_ARGUMENTS);
     *(char*)buf->str = 0;
     buf->length = 0;
@@ -283,7 +283,7 @@ void anv_strbuf_clear_fast(AnvStringBuffer* buf) {
  * @param buf @c StringBuffer to append given string to.
  * @param s @c NULL terminated string
  * */
-void anv_strbuf_append_str(AnvStringBuffer* buf, String s) {
+void strbuf_append_str(StringBuffer* buf, String s) {
     if(!s) return;
     RETURN_IF_FAIL(buf, ERR_INVALID_ARGUMENTS);
 
@@ -318,7 +318,7 @@ void anv_strbuf_append_str(AnvStringBuffer* buf, String s) {
  * @param n Nunber of bytes to append to @c StringBuffer. Must be
  * less than or equal to size of given string.
  * */
-void anv_strbuf_append_strn(AnvStringBuffer* buf, String s, Size n) {
+void strbuf_append_strn(StringBuffer* buf, String s, Size n) {
     if(!s || !n) return;
     RETURN_IF_FAIL(buf, ERR_INVALID_ARGUMENTS);
 
@@ -349,7 +349,7 @@ void anv_strbuf_append_strn(AnvStringBuffer* buf, String s, Size n) {
  * @param buf @c StringBuffer
  * @param c Character to be appended.
  * */
-void anv_strbuf_append_char(AnvStringBuffer* buf, Char c) {
+void strbuf_append_char(StringBuffer* buf, Char c) {
     RETURN_IF_FAIL(buf, ERR_INVALID_ARGUMENTS);
 
     Size newlen = buf->length++;

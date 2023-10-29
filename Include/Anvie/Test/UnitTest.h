@@ -30,7 +30,7 @@
 /**
  * All unit tests look like this
  * */
-typedef Bool (*AnvUnitTestCallbackFn)();
+typedef Bool (*UnitTestCallbackFn)();
 #define TEST_FN static inline
 
 /**
@@ -38,14 +38,14 @@ typedef Bool (*AnvUnitTestCallbackFn)();
  * */
 typedef struct anvie_unit_test_t {
     String s_name;
-    AnvUnitTestCallbackFn pfn_test;
-} AnvUnitTest;
+    UnitTestCallbackFn pfn_test;
+} UnitTest;
 
 // begin tests recording
 #define BEGIN_TESTS(name)                              \
     Size unit_##name##_tests() {                       \
     static String unit_tests_names = #name;            \
-    static const AnvUnitTest tests[] = {
+    static const UnitTest tests[] = {
 
 // end tests recording
 #define END_TESTS()                                                     \

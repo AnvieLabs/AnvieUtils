@@ -29,25 +29,25 @@
 
 #include <sys/time.h>
 
-Size anv_chrono_get_time_as_seconds(void) {
+Size chrono_get_time_as_seconds(void) {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return ((Size)tv.tv_sec)+((Size)tv.tv_usec)/1000000;
 }
 
-Size anv_chrono_get_time_as_milliseconds(void) {
+Size chrono_get_time_as_milliseconds(void) {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return ((Size)tv.tv_sec)*1000+((Size)tv.tv_usec)/1000;
 }
 
-Size anv_chrono_get_time_as_microseconds(void) {
+Size chrono_get_time_as_microseconds(void) {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return ((Size)tv.tv_sec)*1000000+((Size)tv.tv_usec);
 }
 
-Size anv_chrono_get_time_as_nanoseconds(void) {
+Size chrono_get_time_as_nanoseconds(void) {
     return 0;
     // TODO:
 }

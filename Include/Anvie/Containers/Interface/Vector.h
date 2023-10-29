@@ -21,298 +21,298 @@
  * Take a look at IntegerVectorTests.c and StructVectorTests.c for more insight on how to use these.
  * */
 
-#ifndef ANV_UTILS_VECTOR_INTERFACE_H
-#define ANV_UTILS_VECTOR_INTERFACE_H
+#ifndef UTILS_VECTOR_INTERFACE_H
+#define UTILS_VECTOR_INTERFACE_H
 
 #include <Anvie/HelperDefines.h>
 
-#define DEF_ANV_INTEGER_VECTOR_INTERFACE(prefix, type) DEF_ANV_INTEGER_VECTOR_INTERFACE_WITH_COPY_AND_DESTROY(prefix, type, NULL, NULL)
+#define DEF_INTEGER_VECTOR_INTERFACE(prefix, type) DEF_INTEGER_VECTOR_INTERFACE_WITH_COPY_AND_DESTROY(prefix, type, NULL, NULL)
 
-#define DEF_ANV_INTEGER_VECTOR_INTERFACE_WITH_COPY_AND_DESTROY(prefix, type, copy, destroy) \
-    FORCE_INLINE AnvVector* anv_##prefix##_vector_create() {            \
-        return anv_vector_create(sizeof(type), copy, destroy);          \
+#define DEF_INTEGER_VECTOR_INTERFACE_WITH_COPY_AND_DESTROY(prefix, type, copy, destroy) \
+    FORCE_INLINE Vector* prefix##_vector_create() {            \
+        return vector_create(sizeof(type), copy, destroy);          \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_destroy(AnvVector* vec) {   \
-        anv_vector_destroy(vec);                                        \
+    FORCE_INLINE void prefix##_vector_destroy(Vector* vec) {   \
+        vector_destroy(vec);                                        \
     }                                                                   \
                                                                         \
-    FORCE_INLINE AnvVector* anv_##prefix##_vector_clone(AnvVector* vec) { \
-        return anv_vector_clone(vec);                                   \
+    FORCE_INLINE Vector* prefix##_vector_clone(Vector* vec) { \
+        return vector_clone(vec);                                   \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_resize(AnvVector* vec, Size sz) { \
-        anv_vector_resize(vec, sz);                                     \
+    FORCE_INLINE void prefix##_vector_resize(Vector* vec, Size sz) { \
+        vector_resize(vec, sz);                                     \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_reserve(AnvVector* vec, Size sz) { \
-        anv_vector_reserve(vec, sz);                                    \
+    FORCE_INLINE void prefix##_vector_reserve(Vector* vec, Size sz) { \
+        vector_reserve(vec, sz);                                    \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_clear(AnvVector* vec) {     \
-        anv_vector_clear(vec);                                          \
+    FORCE_INLINE void prefix##_vector_clear(Vector* vec) {     \
+        vector_clear(vec);                                          \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_get_subvector(AnvVector* vec, Size start, Size size) { \
-        anv_vector_get_subvector(vec, start, size);                         \
+    FORCE_INLINE void prefix##_vector_get_subvector(Vector* vec, Size start, Size size) { \
+        vector_get_subvector(vec, start, size);                         \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_copy(AnvVector* vec, Size to, Size from) { \
-        anv_vector_copy(vec, to, from);                                 \
+    FORCE_INLINE void prefix##_vector_copy(Vector* vec, Size to, Size from) { \
+        vector_copy(vec, to, from);                                 \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_move(AnvVector* vec, Size to, Size from) { \
-        anv_vector_move(vec, to, from);                                 \
+    FORCE_INLINE void prefix##_vector_move(Vector* vec, Size to, Size from) { \
+        vector_move(vec, to, from);                                 \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_overwrite(AnvVector* vec, Size to, type value) { \
-        anv_vector_overwrite(vec, to, (void*)(Uint64)value);            \
+    FORCE_INLINE void prefix##_vector_overwrite(Vector* vec, Size to, type value) { \
+        vector_overwrite(vec, to, (void*)(Uint64)value);            \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_insert(AnvVector* vec, type value, Size pos) { \
-        anv_vector_insert(vec, (void*)(Uint64)value, pos);              \
+    FORCE_INLINE void prefix##_vector_insert(Vector* vec, type value, Size pos) { \
+        vector_insert(vec, (void*)(Uint64)value, pos);              \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_delete(AnvVector* vec, Size pos) { \
-        anv_vector_delete(vec, pos);                                    \
+    FORCE_INLINE void prefix##_vector_delete(Vector* vec, Size pos) { \
+        vector_delete(vec, pos);                                    \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type anv_##prefix##_vector_remove(AnvVector* vec, Size pos) { \
-        return (type)(Uint64)anv_vector_remove(vec, pos);               \
+    FORCE_INLINE type prefix##_vector_remove(Vector* vec, Size pos) { \
+        return (type)(Uint64)vector_remove(vec, pos);               \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_insert_fast(AnvVector* vec, type value, Size pos) { \
-        anv_vector_insert_fast(vec, (void*)(Uint64)value, pos);         \
+    FORCE_INLINE void prefix##_vector_insert_fast(Vector* vec, type value, Size pos) { \
+        vector_insert_fast(vec, (void*)(Uint64)value, pos);         \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_delete_fast(AnvVector* vec, Size pos) { \
-        anv_vector_delete_fast(vec, pos);                               \
+    FORCE_INLINE void prefix##_vector_delete_fast(Vector* vec, Size pos) { \
+        vector_delete_fast(vec, pos);                               \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type anv_##prefix##_vector_remove_fast(AnvVector* vec, Size pos) { \
-        return (type)(Uint64)anv_vector_remove_fast(vec, pos);          \
+    FORCE_INLINE type prefix##_vector_remove_fast(Vector* vec, Size pos) { \
+        return (type)(Uint64)vector_remove_fast(vec, pos);          \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_push_front(AnvVector* vec, type value) { \
-        anv_vector_push_front(vec, (void*)(Uint64)value);               \
+    FORCE_INLINE void prefix##_vector_push_front(Vector* vec, type value) { \
+        vector_push_front(vec, (void*)(Uint64)value);               \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type anv_##prefix##_vector_pop_front(AnvVector* vec) { \
-        return (type)(Uint64)anv_vector_pop_front(vec);                 \
+    FORCE_INLINE type prefix##_vector_pop_front(Vector* vec) { \
+        return (type)(Uint64)vector_pop_front(vec);                 \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_push_front_fast(AnvVector* vec, type value) { \
-        anv_vector_push_front_fast(vec, (void*)(Uint64)value);          \
+    FORCE_INLINE void prefix##_vector_push_front_fast(Vector* vec, type value) { \
+        vector_push_front_fast(vec, (void*)(Uint64)value);          \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type anv_##prefix##_vector_pop_front_fast(AnvVector* vec) { \
-        return (type)(Uint64)anv_vector_pop_front_fast(vec);            \
+    FORCE_INLINE type prefix##_vector_pop_front_fast(Vector* vec) { \
+        return (type)(Uint64)vector_pop_front_fast(vec);            \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_push_back(AnvVector* vec, type value) { \
-        anv_vector_push_back(vec, (void*)(Uint64)value);                \
+    FORCE_INLINE void prefix##_vector_push_back(Vector* vec, type value) { \
+        vector_push_back(vec, (void*)(Uint64)value);                \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type anv_##prefix##_vector_pop_back(AnvVector* vec) {  \
-        return (type)(Uint64)anv_vector_pop_back(vec);                  \
+    FORCE_INLINE type prefix##_vector_pop_back(Vector* vec) {  \
+        return (type)(Uint64)vector_pop_back(vec);                  \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type anv_##prefix##_vector_peek(AnvVector* vec, Size pos) { \
-        return (type)(Uint64)anv_vector_peek(vec, pos);                 \
+    FORCE_INLINE type prefix##_vector_peek(Vector* vec, Size pos) { \
+        return (type)(Uint64)vector_peek(vec, pos);                 \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type anv_##prefix##_vector_front(AnvVector* vec) {     \
-        return (type)(Uint64)anv_vector_front(vec);                     \
+    FORCE_INLINE type prefix##_vector_front(Vector* vec) {     \
+        return (type)(Uint64)vector_front(vec);                     \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type anv_##prefix##_vector_back(AnvVector* vec) {      \
-        return (type)(Uint64)anv_vector_back(vec);                      \
+    FORCE_INLINE type prefix##_vector_back(Vector* vec) {      \
+        return (type)(Uint64)vector_back(vec);                      \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_print(AnvVector* vec, AnvPrintElementCallback printer) { \
-        anv_vector_print(vec, printer);                                 \
+    FORCE_INLINE void prefix##_vector_print(Vector* vec, PrintElementCallback printer) { \
+        vector_print(vec, printer);                                 \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_merge(AnvVector* vec, AnvVector* vec_other) { \
-        anv_vector_merge(vec, vec_other);                               \
+    FORCE_INLINE void prefix##_vector_merge(Vector* vec, Vector* vec_other) { \
+        vector_merge(vec, vec_other);                               \
     }                                                                   \
                                                                         \
-    FORCE_INLINE AnvVector* anv_##prefix##_vector_filter(AnvVector* vec, AnvFilterElementCallback filter, void* user_data) { \
-        return anv_vector_filter(vec, filter, user_data);               \
+    FORCE_INLINE Vector* prefix##_vector_filter(Vector* vec, FilterElementCallback filter, void* user_data) { \
+        return vector_filter(vec, filter, user_data);               \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_swap(AnvVector* vec, Size p1, Size p2) { \
-        anv_vector_swap(vec, p1, p2);                                   \
+    FORCE_INLINE void prefix##_vector_swap(Vector* vec, Size p1, Size p2) { \
+        vector_swap(vec, p1, p2);                                   \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_sort(AnvVector* vec, AnvCompareElementCallback compare) { \
-        anv_vector_sort(vec, compare);                                  \
+    FORCE_INLINE void prefix##_vector_sort(Vector* vec, CompareElementCallback compare) { \
+        vector_sort(vec, compare);                                  \
     }                                                                   \
                                                                         \
-    FORCE_INLINE Bool anv_##prefix##_vector_check_sorted(AnvVector* vec, AnvCompareElementCallback compare) { \
-        return anv_vector_check_sorted(vec, compare);                   \
+    FORCE_INLINE Bool prefix##_vector_check_sorted(Vector* vec, CompareElementCallback compare) { \
+        return vector_check_sorted(vec, compare);                   \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_insertion_sort(AnvVector* vec, AnvCompareElementCallback compare) { \
-        anv_vector_insertion_sort(vec, compare);                        \
+    FORCE_INLINE void prefix##_vector_insertion_sort(Vector* vec, CompareElementCallback compare) { \
+        vector_insertion_sort(vec, compare);                        \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_bubble_sort(AnvVector* vec, AnvCompareElementCallback compare) { \
-        anv_vector_bubble_sort(vec, compare);                           \
+    FORCE_INLINE void prefix##_vector_bubble_sort(Vector* vec, CompareElementCallback compare) { \
+        vector_bubble_sort(vec, compare);                           \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* anv_##prefix##_vector_data(AnvVector* vec) {     \
+    FORCE_INLINE type* prefix##_vector_data(Vector* vec) {     \
         return (type*)vec->p_data;                                      \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* anv_##prefix##_vector_address_at(AnvVector* vec, Size idx) { \
-        return (type*)anv_vector_address_at(vec, idx);                  \
+    FORCE_INLINE type* prefix##_vector_address_at(Vector* vec, Size idx) { \
+        return (type*)vector_address_at(vec, idx);                  \
     }
 
-#define DEF_ANV_STRUCT_VECTOR_INTERFACE(prefix, type, copy_create, copy_destroy) \
-    typedef void(*Anv##prefix##CreateCopyCallback)(type* dst, type* src); \
-    typedef void(*Anv##prefix##DestroyCopyCallback)(type* copy);        \
+#define DEF_STRUCT_VECTOR_INTERFACE(prefix, type, copy_create, copy_destroy) \
+    typedef void(*prefix##CreateCopyCallback)(type* dst, type* src); \
+    typedef void(*prefix##DestroyCopyCallback)(type* copy);        \
                                                                         \
-    FORCE_INLINE AnvVector* anv_##prefix##_vector_create() {            \
-        return anv_vector_create(sizeof(type), (AnvCreateElementCopyCallback)(copy_create), (AnvDestroyElementCopyCallback)(copy_destroy)); \
+    FORCE_INLINE Vector* prefix##_vector_create() {            \
+        return vector_create(sizeof(type), (CreateElementCopyCallback)(copy_create), (DestroyElementCopyCallback)(copy_destroy)); \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_destroy(AnvVector* vec) {   \
-        anv_vector_destroy(vec);                                        \
+    FORCE_INLINE void prefix##_vector_destroy(Vector* vec) {   \
+        vector_destroy(vec);                                        \
     }                                                                   \
                                                                         \
-    FORCE_INLINE AnvVector* anv_##prefix##_vector_clone(AnvVector* vec) { \
-        return anv_vector_clone(vec);                                   \
+    FORCE_INLINE Vector* prefix##_vector_clone(Vector* vec) { \
+        return vector_clone(vec);                                   \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_resize(AnvVector* vec, Size sz) { \
-        anv_vector_resize(vec, sz);                                     \
+    FORCE_INLINE void prefix##_vector_resize(Vector* vec, Size sz) { \
+        vector_resize(vec, sz);                                     \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_reserve(AnvVector* vec, Size sz) { \
-        anv_vector_reserve(vec, sz);                                    \
+    FORCE_INLINE void prefix##_vector_reserve(Vector* vec, Size sz) { \
+        vector_reserve(vec, sz);                                    \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_clear(AnvVector* vec) {     \
-        anv_vector_clear(vec);                                          \
+    FORCE_INLINE void prefix##_vector_clear(Vector* vec) {     \
+        vector_clear(vec);                                          \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_get_subvector(AnvVector* vec, Size start, Size size) { \
-        anv_vector_get_subvector(vec, start, size);                         \
+    FORCE_INLINE void prefix##_vector_get_subvector(Vector* vec, Size start, Size size) { \
+        vector_get_subvector(vec, start, size);                         \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_copy(AnvVector* vec, Size to, Size from) { \
-        anv_vector_copy(vec, to, from);                                 \
+    FORCE_INLINE void prefix##_vector_copy(Vector* vec, Size to, Size from) { \
+        vector_copy(vec, to, from);                                 \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_move(AnvVector* vec, Size to, Size from) { \
-        anv_vector_move(vec, to, from);                                 \
+    FORCE_INLINE void prefix##_vector_move(Vector* vec, Size to, Size from) { \
+        vector_move(vec, to, from);                                 \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_overwrite(AnvVector* vec, Size to, type* p_data) { \
-        anv_vector_overwrite(vec, to, (void*)p_data);                   \
+    FORCE_INLINE void prefix##_vector_overwrite(Vector* vec, Size to, type* p_data) { \
+        vector_overwrite(vec, to, (void*)p_data);                   \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_insert(AnvVector* vec, type* p_data, Size pos) { \
-        anv_vector_insert(vec, (void*)p_data, pos);                     \
+    FORCE_INLINE void prefix##_vector_insert(Vector* vec, type* p_data, Size pos) { \
+        vector_insert(vec, (void*)p_data, pos);                     \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_delete(AnvVector* vec, Size pos) { \
-        anv_vector_delete(vec, pos);                                    \
+    FORCE_INLINE void prefix##_vector_delete(Vector* vec, Size pos) { \
+        vector_delete(vec, pos);                                    \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* anv_##prefix##_vector_remove(AnvVector* vec, Size pos) { \
-        return (type*)(Uint64)anv_vector_remove(vec, pos);              \
+    FORCE_INLINE type* prefix##_vector_remove(Vector* vec, Size pos) { \
+        return (type*)(Uint64)vector_remove(vec, pos);              \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_insert_fast(AnvVector* vec, type* p_data, Size pos) { \
-        anv_vector_insert_fast(vec, (void*)p_data, pos);                \
+    FORCE_INLINE void prefix##_vector_insert_fast(Vector* vec, type* p_data, Size pos) { \
+        vector_insert_fast(vec, (void*)p_data, pos);                \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_delete_fast(AnvVector* vec, Size pos) { \
-        anv_vector_delete_fast(vec, pos);                               \
+    FORCE_INLINE void prefix##_vector_delete_fast(Vector* vec, Size pos) { \
+        vector_delete_fast(vec, pos);                               \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* anv_##prefix##_vector_remove_fast(AnvVector* vec, Size pos) { \
-        return (type*)(Uint64)anv_vector_remove_fast(vec, pos);         \
+    FORCE_INLINE type* prefix##_vector_remove_fast(Vector* vec, Size pos) { \
+        return (type*)(Uint64)vector_remove_fast(vec, pos);         \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_push_front(AnvVector* vec, type* p_data) { \
-        anv_vector_push_front(vec, (void*)p_data);                      \
+    FORCE_INLINE void prefix##_vector_push_front(Vector* vec, type* p_data) { \
+        vector_push_front(vec, (void*)p_data);                      \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* anv_##prefix##_vector_pop_front(AnvVector* vec) { \
-        return (type*)(Uint64)anv_vector_pop_front(vec);                \
+    FORCE_INLINE type* prefix##_vector_pop_front(Vector* vec) { \
+        return (type*)(Uint64)vector_pop_front(vec);                \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_push_front_fast(AnvVector* vec, type* p_data) { \
-        anv_vector_push_front_fast(vec, (void*)p_data);                 \
+    FORCE_INLINE void prefix##_vector_push_front_fast(Vector* vec, type* p_data) { \
+        vector_push_front_fast(vec, (void*)p_data);                 \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* anv_##prefix##_vector_pop_front_fast(AnvVector* vec) { \
-        return (type*)(Uint64)anv_vector_pop_front_fast(vec);           \
+    FORCE_INLINE type* prefix##_vector_pop_front_fast(Vector* vec) { \
+        return (type*)(Uint64)vector_pop_front_fast(vec);           \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_push_back(AnvVector* vec, type* p_data) { \
-        anv_vector_push_back(vec, (void*)p_data);                       \
+    FORCE_INLINE void prefix##_vector_push_back(Vector* vec, type* p_data) { \
+        vector_push_back(vec, (void*)p_data);                       \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* anv_##prefix##_vector_pop_back(AnvVector* vec) { \
-        return (type*)(Uint64)anv_vector_pop_back(vec);                 \
+    FORCE_INLINE type* prefix##_vector_pop_back(Vector* vec) { \
+        return (type*)(Uint64)vector_pop_back(vec);                 \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* anv_##prefix##_vector_data(AnvVector* vec) {     \
+    FORCE_INLINE type* prefix##_vector_data(Vector* vec) {     \
         return (type*)vec->p_data;                                      \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* anv_##prefix##_vector_peek(AnvVector* vec, Size pos) { \
-        return (type*)anv_##prefix##_vector_data(vec) + pos;            \
+    FORCE_INLINE type* prefix##_vector_peek(Vector* vec, Size pos) { \
+        return (type*)prefix##_vector_data(vec) + pos;            \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* anv_##prefix##_vector_front(AnvVector* vec) {    \
-        return (type*)anv_##prefix##_vector_data(vec);                  \
+    FORCE_INLINE type* prefix##_vector_front(Vector* vec) {    \
+        return (type*)prefix##_vector_data(vec);                  \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* anv_##prefix##_vector_back(AnvVector* vec) {     \
-        return (type*)anv_##prefix##_vector_data(vec) + (vec->length - 1); \
+    FORCE_INLINE type* prefix##_vector_back(Vector* vec) {     \
+        return (type*)prefix##_vector_data(vec) + (vec->length - 1); \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_print(AnvVector* vec, AnvPrintElementCallback printer) { \
-        anv_vector_print(vec, printer);                                 \
+    FORCE_INLINE void prefix##_vector_print(Vector* vec, PrintElementCallback printer) { \
+        vector_print(vec, printer);                                 \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_merge(AnvVector* vec, AnvVector* vec_other) { \
-        anv_vector_merge(vec, vec_other);                               \
+    FORCE_INLINE void prefix##_vector_merge(Vector* vec, Vector* vec_other) { \
+        vector_merge(vec, vec_other);                               \
     }                                                                   \
                                                                         \
-    FORCE_INLINE AnvVector* anv_##prefix##_vector_filter(AnvVector* vec, AnvFilterElementCallback filter, void* user_data) { \
-        return anv_vector_filter(vec, filter, user_data);               \
+    FORCE_INLINE Vector* prefix##_vector_filter(Vector* vec, FilterElementCallback filter, void* user_data) { \
+        return vector_filter(vec, filter, user_data);               \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_swap(AnvVector* vec, Size p1, Size p2) { \
-        anv_vector_swap(vec, p1, p2);                                   \
+    FORCE_INLINE void prefix##_vector_swap(Vector* vec, Size p1, Size p2) { \
+        vector_swap(vec, p1, p2);                                   \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_sort(AnvVector* vec, AnvCompareElementCallback compare) { \
-        anv_vector_sort(vec, compare);                                  \
+    FORCE_INLINE void prefix##_vector_sort(Vector* vec, CompareElementCallback compare) { \
+        vector_sort(vec, compare);                                  \
     }                                                                   \
                                                                         \
-    FORCE_INLINE Bool anv_##prefix##_vector_check_sorted(AnvVector* vec, AnvCompareElementCallback compare) { \
-        return anv_vector_check_sorted(vec, compare);                   \
+    FORCE_INLINE Bool prefix##_vector_check_sorted(Vector* vec, CompareElementCallback compare) { \
+        return vector_check_sorted(vec, compare);                   \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_insertion_sort(AnvVector* vec, AnvCompareElementCallback compare) { \
-        anv_vector_insertion_sort(vec, compare);                        \
+    FORCE_INLINE void prefix##_vector_insertion_sort(Vector* vec, CompareElementCallback compare) { \
+        vector_insertion_sort(vec, compare);                        \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void anv_##prefix##_vector_bubble_sort(AnvVector* vec, AnvCompareElementCallback compare) { \
-        anv_vector_bubble_sort(vec, compare);                           \
+    FORCE_INLINE void prefix##_vector_bubble_sort(Vector* vec, CompareElementCallback compare) { \
+        vector_bubble_sort(vec, compare);                           \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* anv_##prefix##_vector_address_at(AnvVector* vec, Size idx) { \
-        return (type*)anv_vector_address_at(vec, idx);                  \
+    FORCE_INLINE type* prefix##_vector_address_at(Vector* vec, Size idx) { \
+        return (type*)vector_address_at(vec, idx);                  \
     }
 
 
 
-#endif // ANV_UTILS_VECTOR_INTERFACE_H
+#endif // UTILS_VECTOR_INTERFACE_H

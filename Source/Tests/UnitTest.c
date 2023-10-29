@@ -22,10 +22,10 @@
 
 #include <Anvie/Test/UnitTest.h>
 
-IMPORT_UNIT_TEST(AnvIntegerVector)
-IMPORT_UNIT_TEST(AnvStructVector)
+IMPORT_UNIT_TEST(IntegerVector)
+IMPORT_UNIT_TEST(StructVector)
 
 BEGIN_UNIT_TESTS()
-    UNIT_TEST(AnvIntegerVector)
-    UNIT_TEST(AnvStructVector)
+    UNIT_TEST(IntegerVector)
+    UNIT_TEST(StructVector)
 END_UNIT_TESTS()

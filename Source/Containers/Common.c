@@ -30,7 +30,7 @@
  * @param to Pointer where new created string will be stored
  * @param p_data String to be copied
  * */
-void anv_string_create_copy(void* to, void* p_data) {
+void string_create_copy(void* to, void* p_data) {
     if(p_data) *(String*)to = strdup((String)p_data);
     else *(String*)to = NULL;
 }
@@ -38,18 +38,18 @@ void anv_string_create_copy(void* to, void* p_data) {
 /**
  * Destroy given string
  * */
-void anv_string_destroy_copy(void* p_data){
+void string_destroy_copy(void* p_data){
     if(p_data) FREE(*(String*)p_data);
 }
 
-void anv_print_i8(void* x, Size idx) { UNUSED(idx); printf("%d, ", (Int32)(Int64)x); }
-void anv_print_i16(void* x, Size idx) { UNUSED(idx); printf("%d, ", (Int32)(Int64)x); }
-void anv_print_i32(void* x, Size idx) { UNUSED(idx); printf("%d, ", (Int32)(Int64)x); }
-void anv_print_i64(void* x, Size idx) { UNUSED(idx); printf("%ld, ", (Int64)x); }
+void print_i8(void* x, Size idx) { UNUSED(idx); printf("%d, ", (Int32)(Int64)x); }
+void print_i16(void* x, Size idx) { UNUSED(idx); printf("%d, ", (Int32)(Int64)x); }
+void print_i32(void* x, Size idx) { UNUSED(idx); printf("%d, ", (Int32)(Int64)x); }
+void print_i64(void* x, Size idx) { UNUSED(idx); printf("%ld, ", (Int64)x); }
 
-void anv_print_u8(void* x, Size idx) { UNUSED(idx); printf("%u, ", (Uint32)(Uint64)x); }
-void anv_print_u16(void* x, Size idx) { UNUSED(idx); printf("%u, ", (Uint32)(Uint64)x); }
-void anv_print_u32(void* x, Size idx) { UNUSED(idx); printf("%u, ", (Uint32)(Uint64)x); }
-void anv_print_u64(void* x, Size idx) { UNUSED(idx); printf("%lu, ", (Uint64)x); }
+void print_u8(void* x, Size idx) { UNUSED(idx); printf("%u, ", (Uint32)(Uint64)x); }
+void print_u16(void* x, Size idx) { UNUSED(idx); printf("%u, ", (Uint32)(Uint64)x); }
+void print_u32(void* x, Size idx) { UNUSED(idx); printf("%u, ", (Uint32)(Uint64)x); }
+void print_u64(void* x, Size idx) { UNUSED(idx); printf("%lu, ", (Uint64)x); }
 
-void anv_print_string(void* x, Size idx) { UNUSED(idx); printf("%s ,", (String)x); }
+void print_string(void* x, Size idx) { UNUSED(idx); printf("%s ,", (String)x); }

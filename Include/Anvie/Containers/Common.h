@@ -33,7 +33,7 @@
  * typedef struct anvie_my_struct_t {
  *     void* memptr;
  *     Size size;
- * } AnvMyStruct;
+ * } MyStruct;
  * @endcode
  * To copy this, if we directly do a @c memcpy, the data pointed by @c memptr
  * is not copied and just pointer value is copied. This might lead to
@@ -47,29 +47,29 @@
  * @param dst Make a copy of @c src in @c dst.
  * @param src Element to make copy for.
  * */
-typedef void (*AnvCreateElementCopyCallback)(void* dst, void* src);
+typedef void (*CreateElementCopyCallback)(void* dst, void* src);
 
 /**
- * Similar to @c AnvElementCopyCallback, this will be used to free/destroy
+ * Similar to @c ElementCopyCallback, this will be used to free/destroy
  * the copied element.
  * If copy callback is set then free must also be set.
  * @param copy Copy of element to be destroyed.
  * */
-typedef void (*AnvDestroyElementCopyCallback)(void* copy);
+typedef void (*DestroyElementCopyCallback)(void* copy);
 
 /**
  * Typedef for callback functions that take an element print it.
  * @param p_element Element to be printed.
  * @param pos Positon of element in the array.
  * */
-typedef void (*AnvPrintElementCallback)(void* p_element, Size pos);
+typedef void (*PrintElementCallback)(void* p_element, Size pos);
 
 /**
  * To filter elements in a container.
  * @param p_element, Element passed to callback from container.
  * @param p_user_data User data passed to filter function.
  * */
-typedef Bool (*AnvFilterElementCallback)(void* p_element, void* p_user_data);
+typedef Bool (*FilterElementCallback)(void* p_element, void* p_user_data);
 
 /**
  * Compare two provided elements.
@@ -77,20 +77,20 @@ typedef Bool (*AnvFilterElementCallback)(void* p_element, void* p_user_data);
  * If return < 1 then first element is less than second element.
  * If return == 0 then first element and second element are equivalent
  * */
-typedef Int32 (*AnvCompareElementCallback)(void* p1, void* p2);
+typedef Int32 (*CompareElementCallback)(void* p1, void* p2);
 
-void anv_print_i8(void* x, Size idx);
-void anv_print_i16(void* x, Size idx);
-void anv_print_i32(void* x, Size idx);
-void anv_print_i64(void* x, Size idx);
+void print_i8(void* x, Size idx);
+void print_i16(void* x, Size idx);
+void print_i32(void* x, Size idx);
+void print_i64(void* x, Size idx);
 
-void anv_print_u8(void* x, Size idx);
-void anv_print_u16(void* x, Size idx);
-void anv_print_u32(void* x, Size idx);
-void anv_print_u64(void* x, Size idx);
+void print_u8(void* x, Size idx);
+void print_u16(void* x, Size idx);
+void print_u32(void* x, Size idx);
+void print_u64(void* x, Size idx);
 
-void anv_print_string(void* x, Size idx);
-void anv_string_create_copy(void* to, void* p_data);
-void anv_string_destroy_copy(void* p_data);
+void print_string(void* x, Size idx);
+void string_create_copy(void* to, void* p_data);
+void string_destroy_copy(void* p_data);
 
 #endif // ANVIE_UTILS_COMMON_H
