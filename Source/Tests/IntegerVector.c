@@ -334,7 +334,7 @@ TEST_FN Bool PopBack() {
 
     // delete all elements and check size
     for(Size iter = TEST_DATA_SIZE; iter; iter--) {
-        if(u32_vector_poback(vec) != iter-1) {
+        if(u32_vector_pop_back(vec) != iter-1) {
             DBG(__FUNCTION__, "PUSHED DATA MISMATCH AT ENTRY INDEX \"%zu\"\n", iter-1);
             res = False; break;
         }
@@ -399,7 +399,7 @@ TEST_FN Bool PopFront() {
 
     // delete all elements and check size
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        if(u32_vector_pofront(vec) != iter) {
+        if(u32_vector_pop_front(vec) != iter) {
             DBG(__FUNCTION__, "PUSHED DATA MISMATCH AT ENTRY INDEX \"%zu\"\n", iter);
             res = False; break;
         }

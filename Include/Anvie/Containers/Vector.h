@@ -99,13 +99,13 @@ void  vector_delete_fast(Vector* vec, Size pos);
 void* vector_remove_fast(Vector* vec, Size pos);
 
 void  vector_push_front(Vector* vec, void* data);
-void* vector_pofront(Vector* vec);
+void* vector_pop_front(Vector* vec);
 
 void  vector_push_front_fast(Vector* vec, void* data);
-void* vector_pofront_fast(Vector* vec);
+void* vector_pop_front_fast(Vector* vec);
 
 void  vector_push_back(Vector* vec, void* data);
-void* vector_poback(Vector* vec);
+void* vector_pop_back(Vector* vec);
 
 void* vector_peek(Vector* vec, Size pos);
 void* vector_front(Vector* vec);

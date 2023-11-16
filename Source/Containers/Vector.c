@@ -579,7 +579,7 @@ void vector_push_front(Vector* vec, void* data) {
  * @param vec
  * @return Removed element.
  * */
-void* vector_pofront(Vector* vec) {
+void* vector_pop_front(Vector* vec) {
     RETURN_VALUE_IF_FAIL(vec && vec->length, NULL, ERR_INVALID_ARGUMENTS);
     return vector_remove(vec, 0);
 }
@@ -601,7 +601,7 @@ void vector_push_front_fast(Vector* vec, void* data) {
  * @param vec
  * @return Removed element.
  * */
-void* vector_pofront_fast(Vector* vec) {
+void* vector_pop_front_fast(Vector* vec) {
     RETURN_VALUE_IF_FAIL(vec, NULL, ERR_INVALID_ARGUMENTS);
     return vector_remove(vec, 0);
 }
@@ -623,7 +623,7 @@ void vector_push_back(Vector* vec, void* data) {
  * @param vec
  * @return Removed element.
  * */
-FORCE_INLINE void* vector_poback(Vector* vec) {
+FORCE_INLINE void* vector_pop_back(Vector* vec) {
     RETURN_VALUE_IF_FAIL(vec && vec->length, NULL, ERR_INVALID_ARGUMENTS);
     return vector_remove_fast(vec, vec->length - 1);
 }

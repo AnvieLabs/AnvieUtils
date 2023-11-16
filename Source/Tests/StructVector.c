@@ -468,7 +468,7 @@ TEST_FN Bool PopBack() {
 
     // delete all elements and check size
     for(Size iter = TEST_DATA_SIZE; iter; iter--) {
-        StringEntry* ref = string_entry_vector_poback(vec);
+        StringEntry* ref = string_entry_vector_pop_back(vec);
 
         if(!CompareString(ref, &entry)) {
             DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
@@ -569,7 +569,7 @@ TEST_FN Bool PopFront() {
 
     // delete all elements and check size
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        StringEntry* ref = string_entry_vector_pofront(vec);
+        StringEntry* ref = string_entry_vector_pop_front(vec);
 
         if(!CompareString(ref, &entry)) {
             DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
