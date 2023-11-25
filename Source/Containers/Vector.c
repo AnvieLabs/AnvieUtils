@@ -820,7 +820,7 @@ void vector_insertion_sort(Vector* vec, CompareElementCallback compare, void* ud
 
     for(Size s = 1; s < vec->length; s++) {
         Size m = s;
-        while((m > 0) && (compare(vector_peek(vec, m-1), vector_peek(vec, m), udata) > 0)) {
+        while((m > 0) && (compare(vector_peek(vec, m), vector_peek(vec, m-1), udata) > 0)) {
             vector_swap(vec, m, m-1); m--;
         }
     }
@@ -849,45 +849,62 @@ void vector_bubble_sort(Vector* vec, CompareElementCallback compare, void* udata
     }
 }
 
-static inline void merge_sort(Vector* vec, CompareElementCallback compare, Size start, Size size, void* udata) {
-    if(size < 2) return;
+/**
+ * This merges two sorted sub vectors in a given vector.
+ * The first vector starts from low and continues till mid.
+ * The second vector starts from mid and continues till high.
+ * */
+static inline void merge_sort_merge(Vector* vec, CompareElementCallback compare, Size low, Size mid, Size high, void* udata) {
+    Vector* tmpvec = vector_create(vec->element_size, NULL, NULL);
+    vector_reserve(tmpvec, high - low);
 
+    Size s = low; /* iterator in first array */
+    Size m = mid; /* iterator in second array */
+
+    // merge
+    while((s < mid) && (m < high)) {
+        Int32 res = compare(vector_peek(vec, s), vector_peek(vec, m), udata);
+        if(res > 0) {
+            vector_push_back(tmpvec, vector_peek(vec, s++), NULL);
+        } else if (res < 0) {
+            vector_push_back(tmpvec, vector_peek(vec, m++), NULL);
+        } else {
+            vector_push_back(tmpvec, vector_peek(vec, s++), NULL);
+            vector_push_back(tmpvec, vector_peek(vec, m++), NULL);
+        }
+    }
+
+    while(s < mid) {
+        vector_push_back(tmpvec, vector_peek(vec, s++), NULL);
+    }
+    while(m < high) {
+        vector_push_back(tmpvec, vector_peek(vec, m++), NULL);
+    }
+
+    // copy back sorted array
+    memcpy(vector_address_at(vec, low), tmpvec->data, tmpvec->element_size * tmpvec->length);
+    vector_destroy(tmpvec, NULL);
+}
+
+/**
+ * Performs the sort operation in merge sort.
+ * */
+static inline void merge_sort_sort(Vector* vec, CompareElementCallback compare, Size start, Size size, void* udata) {
+    if(size < 2) return;
     RETURN_IF_FAIL(vec && compare && (start + size) <= vec->length, ERR_INVALID_ARGUMENTS);
 
-    if((size == 2) && (compare(vector_peek(vec, start), vector_peek(vec, start + 1), udata) > 0)) {
+    if((size == 2) && (compare(vector_peek(vec, start+1), vector_peek(vec, start), udata) > 0)) {
         vector_swap(vec, start, start+1);
         return;
     }
 
+    // sort by dividing into two
     Size mid = start + size/2;
-    merge_sort(vec, compare, start, size/2, udata);
-    merge_sort(vec, compare, mid, size - size/2, udata);
+    merge_sort_sort(vec, compare, start, size/2, udata);
+    merge_sort_sort(vec, compare, mid, size - size/2, udata);
 
-    Size s = start;
-    Size m = mid;
-
-    Vector* subvec = vector_get_subvector(vec, start, size, udata);
-    subvec->create_copy = NULL; // reduce mempy calls
-    subvec->destroy_copy = NULL;
-
-    vector_reserve(subvec, size);
-
-    // merge
-    while((s < mid) && (m < start + size - 1)) {
-        Int32 res = compare(vector_peek(vec, s), vector_peek(vec, m), udata);
-        if(res > 0) {
-            vector_push_back(subvec, vector_peek(vec, s++), NULL);
-        } else if (res < 0) {
-            vector_push_back(subvec, vector_peek(vec, m++), NULL);
-        } else {
-            vector_push_back(subvec, vector_peek(vec, s++), NULL);
-            vector_push_back(subvec, vector_peek(vec, m++), NULL);
-        }
-    }
-
-    // copy back sorted array
-    memcpy(vector_address_at(vec, start), subvec->data, subvec->element_size * subvec->length);
-    vector_destroy(subvec, NULL);
+    // then merge
+    merge_sort_merge(vec, compare, start, mid, start + size, udata);
 }
 
 
@@ -899,7 +916,7 @@ static inline void merge_sort(Vector* vec, CompareElementCallback compare, Size 
  * */
 void vector_merge_sort(Vector* vec, CompareElementCallback compare, void* udata) {
     RETURN_IF_FAIL(vec && compare, ERR_INVALID_ARGUMENTS);
-    merge_sort(vec, compare, 0, vec->length, udata);
+    merge_sort_sort(vec, compare, 0, vec->length, udata);
 }
 
 /**

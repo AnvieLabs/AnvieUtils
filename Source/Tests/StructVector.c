@@ -686,7 +686,7 @@ TEST_FN Bool Filter() {
     }
 
     // all elements greater than 0 and less than equal to zero are filtered
-    Vector* /* StringEntry */ vec_g5 = string_entry_vector_filter(vec, element_filter, (void*)5);
+    Vector* /* StringEntry */ vec_g5 = string_entry_vector_filter(vec, element_filter, &sd);
     if(!vec_g5){
         vector_destroy(vec, &sd);
         DBG(__FUNCTION__, "FAILED TO FILTER ELEMENTS (vec_g0)\n");
