@@ -53,32 +53,27 @@ static inline void string_entry_init(StringEntry* se, String s) {
     se->len = strlen(se->name);
 }
 
-void __StringEntry_CreateCopy___(void* dst, void* src, void* udata) {
+void __StringEntry_CreateCopy___(StringEntry* dst, StringEntry* src, StringData* udata) {
     RETURN_IF_FAIL(dst && src && udata, ERR_INVALID_ARGUMENTS);
-    StringEntry* to = (StringEntry*)dst;
-    StringEntry* from = (StringEntry*)src;
-    StringData* sd = (StringData*)udata;
 
-    RETURN_IF_FAIL(sd->create == CREATE_DATA, "PASSED USER DATA IS INVALID\n");
+    RETURN_IF_FAIL(udata->create == CREATE_DATA, "PASSED USER DATA IS INVALID\n");
 
-    if(from->name && from->len) {
-        to->name = strdup(from->name);
-        FATAL_IF(!to->name, ERR_OUT_OF_MEMORY);
-        to->len = from->len;
+    if(src->name && src->len) {
+        dst->name = strdup(src->name);
+        FATAL_IF(!dst->name, ERR_OUT_OF_MEMORY);
+        dst->len = src->len;
     }
 
-    allocated_strings[strid++] = to->name;
+    allocated_strings[strid++] = dst->name;
 }
 
-void __StringEntry_DestroyCopy___(void* copy, void* udata) {
+void __StringEntry_DestroyCopy___(StringEntry* copy, StringData* udata) {
     RETURN_IF_FAIL(copy && udata, ERR_INVALID_ARGUMENTS);
-    StringEntry* s = (StringEntry*)copy;
-    StringData* sd = (StringData*)udata;
-    RETURN_IF_FAIL(sd->destroy == DESTROY_DATA, "PASSED USER DATA IS INVALID\n");
+    RETURN_IF_FAIL(udata->destroy == DESTROY_DATA, "PASSED USER DATA IS INVALID\n");
 
     Bool b_found = False;
     for(Size i = 0; i < TEST_DATA_SIZE; i++) {
-        if(s->name && allocated_strings[i] == s->name) {
+        if(copy->name && allocated_strings[i] == copy->name) {
             allocated_strings[i] = NULL;
             b_found = True;
             break;
@@ -90,17 +85,17 @@ void __StringEntry_DestroyCopy___(void* copy, void* udata) {
         return;
     }
 
-    FREE(s->name);
-    s->len = 0;
-    s->name = NULL;
+    FREE(copy->name);
+    copy->len = 0;
+    copy->name = NULL;
 }
+
+DEF_STRUCT_VECTOR_INTERFACE(string_entry, StringEntry, __StringEntry_CreateCopy___, __StringEntry_DestroyCopy___);
 
 static inline Bool CompareString(StringEntry* s1, StringEntry* s2) {
     RETURN_VALUE_IF_FAIL(s1 && s2, False, ERR_INVALID_ARGUMENTS);
     return (s1->name && s2->name) && (s1->len && s2->len) && (s1->len == s2->len) && (strcmp(s1->name, s1->name) == 0);
 }
-
-DEF_STRUCT_VECTOR_INTERFACE(string_entry, StringEntry, __StringEntry_CreateCopy___, __StringEntry_DestroyCopy___);
 
 /**
  * @TEST
@@ -113,15 +108,19 @@ TEST_FN Bool Create1() {
     StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
     vector_destroy(vec, &sd);
     return True;
-}
 
+}
 /**
  * @TEST
  * Vector creation must fail when both create_copy()
  * and destory_copy() are not null or nonnull at the same time.
  * */
 TEST_FN Bool Create2() {
-    Vector* vec = vector_create(sizeof(StringEntry), __StringEntry_CreateCopy___, __StringEntry_DestroyCopy___);
+    Vector* vec = vector_create(
+        sizeof(StringEntry),
+        (CreateElementCopyCallback)(__StringEntry_CreateCopy___),
+        (DestroyElementCopyCallback)(__StringEntry_DestroyCopy___)
+    );
     RETURN_VALUE_IF_FAIL(vec, False, "FAILED TO CREATE vector\n");
     StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
     vector_destroy(vec, &sd);
@@ -134,7 +133,7 @@ TEST_FN Bool Create2() {
  * and destory_copy() are not null or nonnull at the same time.
  * */
 TEST_FN Bool Create3() {
-    Vector* vec = vector_create(sizeof(StringEntry), NULL, __StringEntry_DestroyCopy___);
+    Vector* vec = vector_create(sizeof(StringEntry), NULL, (DestroyElementCopyCallback)(__StringEntry_DestroyCopy___));
     RETURN_VALUE_IF_FAIL(!vec, False, "vector CREATION SHOULD HAVE FAILED\n");
     StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
     if(vec) vector_destroy(vec, &sd); // we don't actually need to destroy, but still...
@@ -147,7 +146,7 @@ TEST_FN Bool Create3() {
  * and destory_copy() are not null or nonnull at the same time.
  * */
 TEST_FN Bool Create4() {
-    Vector* vec = vector_create(sizeof(StringEntry), __StringEntry_CreateCopy___, NULL);
+    Vector* vec = vector_create(sizeof(StringEntry), (CreateElementCopyCallback)(__StringEntry_CreateCopy___), NULL);
     RETURN_VALUE_IF_FAIL(!vec, False, "vector CREATION SHOULD HAVE FAILED\n");
     StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
     if(vec) vector_destroy(vec, &sd); // we don't actually need to destroy, but still...
