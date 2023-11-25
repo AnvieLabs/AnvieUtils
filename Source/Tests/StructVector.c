@@ -28,10 +28,20 @@
 /**
  * Declare a test struct
  * */
-typedef struct string_entry_t {
+typedef struct StringEntry {
     String name;
     Size len;
 } StringEntry;
+
+#define CREATE_DATA 69
+#define DESTROY_DATA -69
+#define COMPARE_DATA 0
+
+typedef struct StringData {
+    Uint8 create; /**< should be 69 */
+    Uint8 compare; /**< should be 0 */
+    Int32 destroy; /**< should be -69 */
+} StringData;
 
 // NOTE: Size of this array might be cause of your segfault if everything seems fine
 static String allocated_strings[TEST_DATA_SIZE*2] = {0};
@@ -43,26 +53,32 @@ static inline void string_entry_init(StringEntry* se, String s) {
     se->len = strlen(se->name);
 }
 
-void __StringEntry_CreateCopy___(void* dst, void* src) {
+void __StringEntry_CreateCopy___(void* dst, void* src, void* udata) {
+    RETURN_IF_FAIL(dst && src && udata, ERR_INVALID_ARGUMENTS);
     StringEntry* to = (StringEntry*)dst;
     StringEntry* from = (StringEntry*)src;
-    RETURN_IF_FAIL(to && from && from->name && from->len , ERR_INVALID_ARGUMENTS);
+    StringData* sd = (StringData*)udata;
 
-    to->name = strdup(from->name);
-    FATAL_IF(!to->name, ERR_OUT_OF_MEMORY);
-    to->len = from->len;
+    RETURN_IF_FAIL(sd->create == CREATE_DATA, "PASSED USER DATA IS INVALID\n");
 
-//    DBG(__FUNCTION__, "STRID = \"%zu\"\n", strid);
+    if(from->name && from->len) {
+        to->name = strdup(from->name);
+        FATAL_IF(!to->name, ERR_OUT_OF_MEMORY);
+        to->len = from->len;
+    }
+
     allocated_strings[strid++] = to->name;
 }
 
-void __StringEntry_DestroyCopy___(void* copy) {
+void __StringEntry_DestroyCopy___(void* copy, void* udata) {
+    RETURN_IF_FAIL(copy && udata, ERR_INVALID_ARGUMENTS);
     StringEntry* s = (StringEntry*)copy;
-    RETURN_IF_FAIL(s && s->name && s->len , ERR_INVALID_ARGUMENTS);
+    StringData* sd = (StringData*)udata;
+    RETURN_IF_FAIL(sd->destroy == DESTROY_DATA, "PASSED USER DATA IS INVALID\n");
 
     Bool b_found = False;
     for(Size i = 0; i < TEST_DATA_SIZE; i++) {
-        if(allocated_strings[i] == s->name) {
+        if(s->name && allocated_strings[i] == s->name) {
             allocated_strings[i] = NULL;
             b_found = True;
             break;
@@ -81,7 +97,7 @@ void __StringEntry_DestroyCopy___(void* copy) {
 
 static inline Bool CompareString(StringEntry* s1, StringEntry* s2) {
     RETURN_VALUE_IF_FAIL(s1 && s2, False, ERR_INVALID_ARGUMENTS);
-    return (s1->len == s2->len) && (strcmp(s1->name, s1->name) == 0);
+    return (s1->name && s2->name) && (s1->len && s2->len) && (s1->len == s2->len) && (strcmp(s1->name, s1->name) == 0);
 }
 
 DEF_STRUCT_VECTOR_INTERFACE(string_entry, StringEntry, __StringEntry_CreateCopy___, __StringEntry_DestroyCopy___);
@@ -94,7 +110,8 @@ DEF_STRUCT_VECTOR_INTERFACE(string_entry, StringEntry, __StringEntry_CreateCopy_
 TEST_FN Bool Create1() {
     Vector* vec = vector_create(sizeof(StringEntry), NULL, NULL);
     RETURN_VALUE_IF_FAIL(vec, False, "FAILED TO CREATE vector\n");
-    vector_destroy(vec);
+    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
+    vector_destroy(vec, &sd);
     return True;
 }
 
@@ -106,7 +123,8 @@ TEST_FN Bool Create1() {
 TEST_FN Bool Create2() {
     Vector* vec = vector_create(sizeof(StringEntry), __StringEntry_CreateCopy___, __StringEntry_DestroyCopy___);
     RETURN_VALUE_IF_FAIL(vec, False, "FAILED TO CREATE vector\n");
-    vector_destroy(vec);
+    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
+    vector_destroy(vec, &sd);
     return True;
 }
 
@@ -118,7 +136,8 @@ TEST_FN Bool Create2() {
 TEST_FN Bool Create3() {
     Vector* vec = vector_create(sizeof(StringEntry), NULL, __StringEntry_DestroyCopy___);
     RETURN_VALUE_IF_FAIL(!vec, False, "vector CREATION SHOULD HAVE FAILED\n");
-    if(vec) vector_destroy(vec); // we don't actually need to destroy, but still...
+    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
+    if(vec) vector_destroy(vec, &sd); // we don't actually need to destroy, but still...
     return True;
 }
 
@@ -130,7 +149,8 @@ TEST_FN Bool Create3() {
 TEST_FN Bool Create4() {
     Vector* vec = vector_create(sizeof(StringEntry), __StringEntry_CreateCopy___, NULL);
     RETURN_VALUE_IF_FAIL(!vec, False, "vector CREATION SHOULD HAVE FAILED\n");
-    if(vec) vector_destroy(vec); // we don't actually need to destroy, but still...
+    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
+    if(vec) vector_destroy(vec, &sd); // we don't actually need to destroy, but still...
     return True;
 }
 
@@ -145,11 +165,12 @@ TEST_FN Bool Insert() {
         .name = "AnvieUtils",
         .len = strlen("AnvieUtils")
     };
+    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
     Vector* vec = string_entry_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        string_entry_vector_insert(vec, &entry, iter);
+        string_entry_vector_insert(vec, &entry, iter, &sd);
     }
 
     if(vec->length != TEST_DATA_SIZE) {
@@ -179,7 +200,7 @@ TEST_FN Bool Insert() {
         if(!res) break;
     }
 
-    string_entry_vector_destroy(vec);
+    string_entry_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -194,17 +215,18 @@ TEST_FN Bool Delete() {
         .name = "AnvieUtils",
         .len = strlen("AnvieUtils")
     };
+    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
     // first create vector with some valid data
     Vector* vec = string_entry_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        string_entry_vector_insert(vec, &entry, iter);
+        string_entry_vector_insert(vec, &entry, iter, &sd);
     }
 
     // delete all elements and check size
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        string_entry_vector_delete(vec, rand() % vec->length);
+        string_entry_vector_delete(vec, rand() % vec->length, &sd);
 
         if(vec->length != (TEST_DATA_SIZE - iter - 1)) {
             DBG(__FUNCTION__, "VECTOR LENGTH AFTER DELETING EXPECTED TO BE \"%zu\", FOUND \"%zu\"\n", TEST_DATA_SIZE - iter - 1, vec->length);
@@ -218,7 +240,7 @@ TEST_FN Bool Delete() {
         res = False;
     }
 
-    string_entry_vector_destroy(vec);
+    string_entry_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -233,11 +255,12 @@ TEST_FN Bool Remove() {
         .name = "AnvieUtils",
         .len = strlen("AnvieUtils")
     };
+    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
     Vector* vec = string_entry_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        string_entry_vector_insert(vec, &entry, iter);
+        string_entry_vector_insert(vec, &entry, iter, &sd);
     }
 
     // check whether data is correct or incorrect
@@ -254,14 +277,14 @@ TEST_FN Bool Remove() {
             res = False;
         }
 
-        __StringEntry_DestroyCopy___(ref);
+        __StringEntry_DestroyCopy___(ref, &sd);
         FREE(ref);
         ref = NULL;
 
         if(!res) break;
     }
 
-    string_entry_vector_destroy(vec);
+    string_entry_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -276,11 +299,12 @@ TEST_FN Bool InsertFast() {
         .name = "AnvieUtils",
         .len = strlen("AnvieUtils")
     };
+    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
     Vector* vec = string_entry_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        string_entry_vector_insert_fast(vec, &entry, iter);
+        string_entry_vector_insert_fast(vec, &entry, iter, &sd);
     }
 
     if(vec->length != TEST_DATA_SIZE) {
@@ -310,7 +334,7 @@ TEST_FN Bool InsertFast() {
         if(!res) break;
     }
 
-    string_entry_vector_destroy(vec);
+    string_entry_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -325,17 +349,18 @@ TEST_FN Bool DeleteFast() {
         .name = "AnvieUtils",
         .len = strlen("AnvieUtils")
     };
+    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
     // first create vector with some valid data
     Vector* vec = string_entry_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        string_entry_vector_insert_fast(vec, &entry, iter);
+        string_entry_vector_insert_fast(vec, &entry, iter, &sd);
     }
 
     // delete all elements and check size
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        string_entry_vector_delete_fast(vec, rand() % vec->length);
+        string_entry_vector_delete_fast(vec, rand() % vec->length, &sd);
 
         if(vec->length != (TEST_DATA_SIZE - iter - 1)) {
             DBG(__FUNCTION__, "VECTOR LENGTH AFTER DELETING EXPECTED TO BE \"%zu\", FOUND \"%zu\"\n", TEST_DATA_SIZE - iter - 1, vec->length);
@@ -350,7 +375,7 @@ TEST_FN Bool DeleteFast() {
 
     }
 
-    string_entry_vector_destroy(vec);
+    string_entry_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -365,11 +390,12 @@ TEST_FN Bool RemoveFast() {
         .name = "AnvieUtils",
         .len = strlen("AnvieUtils")
     };
+    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
     Vector* vec = string_entry_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        string_entry_vector_insert_fast(vec, &entry, iter);
+        string_entry_vector_insert_fast(vec, &entry, iter, &sd);
     }
 
     // check whether data is correct or incorrect
@@ -386,14 +412,14 @@ TEST_FN Bool RemoveFast() {
             res = False;
         }
 
-        __StringEntry_DestroyCopy___(ref);
+        __StringEntry_DestroyCopy___(ref, &sd);
         FREE(ref);
         ref = NULL;
 
         if(!res) break;
     }
 
-    string_entry_vector_destroy(vec);
+    string_entry_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -409,11 +435,12 @@ TEST_FN Bool PushBack() {
         .name = "AnvieUtils",
         .len = strlen("AnvieUtils")
     };
+    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
     Vector* vec = string_entry_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        string_entry_vector_push_back(vec, &entry);
+        string_entry_vector_push_back(vec, &entry, &sd);
     }
 
     if(vec->length != TEST_DATA_SIZE) {
@@ -443,7 +470,7 @@ TEST_FN Bool PushBack() {
         if(!res) break;
     }
 
-    string_entry_vector_destroy(vec);
+    string_entry_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -458,12 +485,13 @@ TEST_FN Bool PopBack() {
         .name = "AnvieUtils",
         .len = strlen("AnvieUtils")
     };
+    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
     // first create vector with some valid data
     Vector* vec = string_entry_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        string_entry_vector_push_back(vec, &entry);
+        string_entry_vector_push_back(vec, &entry, &sd);
     }
 
     // delete all elements and check size
@@ -480,7 +508,7 @@ TEST_FN Bool PopBack() {
             res = False;
         }
 
-        __StringEntry_DestroyCopy___(ref);
+        __StringEntry_DestroyCopy___(ref, &sd);
         FREE(ref);
         ref = NULL;
 
@@ -492,7 +520,7 @@ TEST_FN Bool PopBack() {
         res = False;
     }
 
-    string_entry_vector_destroy(vec);
+    string_entry_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -508,12 +536,13 @@ TEST_FN Bool PushFront() {
         .name = "AnvieUtils",
         .len = strlen("AnvieUtils")
     };
+    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
     Vector* vec = string_entry_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
         // insert array backwards
-        string_entry_vector_push_front(vec, &entry);
+        string_entry_vector_push_front(vec, &entry, &sd);
     }
 
     if(vec->length != TEST_DATA_SIZE) {
@@ -544,7 +573,7 @@ TEST_FN Bool PushFront() {
         if(!res) break;
     }
 
-    string_entry_vector_destroy(vec);
+    string_entry_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -559,12 +588,13 @@ TEST_FN Bool PopFront() {
         .name = "AnvieUtils",
         .len = strlen("AnvieUtils")
     };
+    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
     // first create vector with some valid data
     Vector* vec = string_entry_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        string_entry_vector_push_back(vec, &entry);
+        string_entry_vector_push_back(vec, &entry, &sd);
     }
 
     // delete all elements and check size
@@ -581,7 +611,7 @@ TEST_FN Bool PopFront() {
             res = False;
         }
 
-        __StringEntry_DestroyCopy___(ref);
+        __StringEntry_DestroyCopy___(ref, &sd);
         FREE(ref);
         ref = NULL;
 
@@ -593,7 +623,7 @@ TEST_FN Bool PopFront() {
         res = False;
     }
 
-    string_entry_vector_destroy(vec);
+    string_entry_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -604,31 +634,32 @@ TEST_FN Bool Merge() {
     Vector* /* String */ vec2 = string_entry_vector_create();
 
     StringEntry se;
+    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     // prepare data
     // vec1
     string_entry_init(&se, "Siddharth");
-    string_entry_vector_push_back(vec1, &se);
+    string_entry_vector_push_back(vec1, &se, &sd);
 
     string_entry_init(&se, "Mishra");
-    string_entry_vector_push_back(vec1, &se);
+    string_entry_vector_push_back(vec1, &se, &sd);
 
     // vec2
     string_entry_init(&se, "is");
-    string_entry_vector_push_back(vec2, &se);
+    string_entry_vector_push_back(vec2, &se, &sd);
 
     string_entry_init(&se, "@brightprogrammer");
-    string_entry_vector_push_back(vec2, &se);
+    string_entry_vector_push_back(vec2, &se, &sd);
 
     // merge
-    string_entry_vector_merge(vec1, vec2);
+    string_entry_vector_merge(vec1, vec2, &sd);
 
     // check merge
     RETURN_VALUE_IF_FAIL(!strcmp(string_entry_vector_peek(vec1, 2)->name, string_entry_vector_peek(vec2, 0)->name), False, "MERGE OPERATION IS INVALID! ELEMENTS DON'T MATCH!\n");
     RETURN_VALUE_IF_FAIL(!strcmp(string_entry_vector_peek(vec1, 3)->name, string_entry_vector_peek(vec2, 1)->name), False, "MERGE OPERATION IS INVALID! ELEMENTS DON'T MATCH!\n");
 
-    string_entry_vector_destroy(vec1);
-    string_entry_vector_destroy(vec2);
+    string_entry_vector_destroy(vec1, &sd);
+    string_entry_vector_destroy(vec2, &sd);
 
     return True;
 }
@@ -646,18 +677,19 @@ TEST_FN Bool Filter() {
     Vector* /* StringEntry */ vec = string_entry_vector_create();
     char str[11] = {0};
     StringEntry se;
+    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     // prepare data
     for(int i = 0; i < 10; i++) {
         str[i] = 'a';
         string_entry_init(&se, str);
-        string_entry_vector_push_back(vec, &se);
+        string_entry_vector_push_back(vec, &se, &sd);
     }
 
     // all elements greater than 0 and less than equal to zero are filtered
     Vector* /* StringEntry */ vec_g5 = string_entry_vector_filter(vec, element_filter, (void*)5);
     if(!vec_g5){
-        vector_destroy(vec);
+        vector_destroy(vec, &sd);
         DBG(__FUNCTION__, "FAILED TO FILTER ELEMENTS (vec_g0)\n");
         return False;
     }
@@ -667,8 +699,8 @@ TEST_FN Bool Filter() {
         RETURN_VALUE_IF_FAIL(strlen(string_entry_vector_peek(vec_g5, s)->name) > 5, False, "FILTERED VECTOR CONTAINS WRONG CONTENT\n");
     }
 
-    string_entry_vector_destroy(vec);
-    string_entry_vector_destroy(vec_g5);
+    string_entry_vector_destroy(vec, &sd);
+    string_entry_vector_destroy(vec_g5, &sd);
 
     return True;
 }

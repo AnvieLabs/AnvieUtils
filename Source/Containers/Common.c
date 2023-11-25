@@ -29,27 +29,31 @@
  * Copy constructor for strings
  * @param to Pointer where new created string will be stored
  * @param data String to be copied
+ * @param udata Unused here
  * */
-void string_create_copy(void* to, void* data) {
-    if(data) *(String*)to = strdup((String)data);
-    else *(String*)to = NULL;
+void string_create_copy(void* dst, void* src, void* udata) {
+    UNUSED(udata);
+    if(dst && src) *(String*)dst = strdup((String)src);
 }
 
 /**
  * Destroy given string
+ * @param copy Pointer to copy of string to be destroyed.
+ * @param udata Unused here
  * */
-void string_destroy_copy(void* data){
-    if(data) FREE(*(String*)data);
+void string_destroy_copy(void* copy, void* udata){
+    UNUSED(udata);
+    if(copy) FREE(*(String*)copy);
 }
 
-void print_i8(void* x, Size idx) { UNUSED(idx); printf("%d, ", (Int32)(Int64)x); }
-void print_i16(void* x, Size idx) { UNUSED(idx); printf("%d, ", (Int32)(Int64)x); }
-void print_i32(void* x, Size idx) { UNUSED(idx); printf("%d, ", (Int32)(Int64)x); }
-void print_i64(void* x, Size idx) { UNUSED(idx); printf("%ld, ", (Int64)x); }
+void print_i8(void* x, Size idx, void* udata) { UNUSED(idx && udata); printf("%d, ", (Int32)(Int64)x); }
+void print_i16(void* x, Size idx, void* udata) { UNUSED(idx && udata); printf("%d, ", (Int32)(Int64)x); }
+void print_i32(void* x, Size idx, void* udata) { UNUSED(idx && udata); printf("%d, ", (Int32)(Int64)x); }
+void print_i64(void* x, Size idx, void* udata) { UNUSED(idx && udata); printf("%ld, ", (Int64)x); }
 
-void print_u8(void* x, Size idx) { UNUSED(idx); printf("%u, ", (Uint32)(Uint64)x); }
-void print_u16(void* x, Size idx) { UNUSED(idx); printf("%u, ", (Uint32)(Uint64)x); }
-void print_u32(void* x, Size idx) { UNUSED(idx); printf("%u, ", (Uint32)(Uint64)x); }
-void print_u64(void* x, Size idx) { UNUSED(idx); printf("%lu, ", (Uint64)x); }
+void print_u8(void* x, Size idx, void* udata) { UNUSED(idx && udata); printf("%u, ", (Uint32)(Uint64)x); }
+void print_u16(void* x, Size idx, void* udata) { UNUSED(idx && udata); printf("%u, ", (Uint32)(Uint64)x); }
+void print_u32(void* x, Size idx, void* udata) { UNUSED(idx && udata); printf("%u, ", (Uint32)(Uint64)x); }
+void print_u64(void* x, Size idx, void* udata) { UNUSED(idx && udata); printf("%lu, ", (Uint64)x); }
 
-void print_string(void* x, Size idx) { UNUSED(idx); printf("%s ,", (String)x); }
+void print_string(void* x, Size idx, void* udata) { UNUSED(idx && udata); printf("%s ,", (String)x); }

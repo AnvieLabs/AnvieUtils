@@ -55,15 +55,48 @@
  * - this means a @c resize_factor of 1 means 2x resize and 2 means 3x resize.
  * - if @c free_when_possible is set to @c True, then array will autmatically be
  *   freed if new size is less than capcity/2. It is set to True by default.
+ *
+ * CALLBACKS
+ * Vector follows a callback based approach to allow user to control some key
+ * workings of how this vector works internally. This includes things like :
+ * - How elements in vector are created
+ * - How the elements are destroyed
+ * - How the elements are compared
+ * - How the elements are printed
+ * - How the elements are filtered
+ * All these callbacks allow user to pass in some extra data. This data can be
+ * NULL, a single integer or an array of values, a single struct or again an
+ * array of structs. This data is provided to vector in functions where these
+ * callbacks will be called.
+ *
+ * For eg: When doing a filter operation, the filter callback might need to
+ * compare the value to be equal to sum of multiple values in some other array.
+ * One will need this array of values as well passed to this filter function
+ * while filtering the elements, if the values keep changing.
+ * So, you pass this @c udata to the filter method in vector, and vector
+ * passes down this @c udata to the filter callback. But, here's some change,
+ * the vector also passes down this same @c udata to other callbacks as well.
+ *
+ * So, in order to handle callbacks well, and if different callbacks need
+ * to access different members of @c udata passed to this vector, create a
+ * struct with members set in such a way that each callback uses their associated
+ * members only and won't access other fields of this struct.
+ * If however for eg, you're passing this udata to a function that you believe won't
+ * call only one type of callback, then you can just pass the simple raw data,
+ * instead of wrapping it in a nice struct.
+ * A nice example of this case would be when the vector is destroyed, vector
+ * only calls copy destructor callback, or when an element is being inserted
+ * vector only calls copy constructor callback, but when elements are being
+ * overwritten a copy destructor as well copy constructor might be called.
  * */
-typedef struct anvie_dynamic_array_t {
-    Size                          element_size; /**< size of each element in array */
-    Size                          length; /**< number of active insertions, counted in number of elements */
-    Size                          capacity; /**< total number of elements array can hold */
-    UByteArray                    data; /**< data of array in form of Uint8 array */
+typedef struct Vector {
+    Size                       element_size; /**< size of each element in array */
+    Size                       length; /**< number of active insertions, counted in number of elements */
+    Size                       capacity; /**< total number of elements array can hold */
+    UByteArray                 data; /**< data of array in form of Uint8 array */
     CreateElementCopyCallback  create_copy; /**< copy constructor functor */
     DestroyElementCopyCallback destroy_copy; /**< copy destructor functor */
-    Float32                       resize_factor; /**< percent factor for resizing arrays, by defualt it's 1, this means 2x resize */
+    Float32                    resize_factor; /**< percent factor for resizing arrays, by defualt it's 1, this means 2x resize */
 } Vector;
 
 #define vector_at(vec, type, pos) ((type*)((vec)->data))[pos]
@@ -76,55 +109,55 @@ Vector* vector_create (
     CreateElementCopyCallback create_copy,
     DestroyElementCopyCallback destroy_copy
 );
-void vector_destroy(Vector* vec);
-
-Vector* vector_clone(Vector* vec);
+void vector_destroy(Vector* vec, void* udata);
+Vector* vector_clone(Vector* vec, void* udata);
 
 void vector_resize(Vector* vec, Size new_size);
 void vector_reserve(Vector* vec, Size capacity);
-void vector_clear(Vector* vec);
+void vector_clear(Vector* vec, void* udata);
 
-Vector* vector_get_subvector(Vector* vec, Size start, Size size);
+Vector* vector_get_subvector(Vector* vec, Size start, Size size, void* udata);
 
-void vector_copy(Vector* vec, Size to, Size from);
-void vector_move(Vector* vec, Size to, Size from);
-void vector_overwrite(Vector* vec, Size pos, void* data);
+void vector_copy(Vector* vec, Size to, Size from, void* udata);
+void vector_move(Vector* vec, Size to, Size from, void* udata);
+void vector_overwrite(Vector* vec, Size pos, void* data, void* udata);
 
-void  vector_insert(Vector* vec, void* data, Size pos);
-void  vector_delete(Vector* vec, Size pos);
+void  vector_insert(Vector* vec, void* data, Size pos, void* udata);
+void  vector_insert_fast(Vector* vec, void* data, Size pos, void* udata);
+
+void  vector_delete(Vector* vec, Size pos, void* udata);
+void  vector_delete_fast(Vector* vec, Size pos, void* udata);
+
 void* vector_remove(Vector* vec, Size pos);
-
-void  vector_insert_fast(Vector* vec, void* data, Size pos);
-void  vector_delete_fast(Vector* vec, Size pos);
 void* vector_remove_fast(Vector* vec, Size pos);
 
-void  vector_push_front(Vector* vec, void* data);
-void* vector_pop_front(Vector* vec);
+void  vector_push_front(Vector* vec, void* data, void* udata);
+void  vector_push_front_fast(Vector* vec, void* data, void* udata);
 
-void  vector_push_front_fast(Vector* vec, void* data);
+void* vector_pop_front(Vector* vec);
 void* vector_pop_front_fast(Vector* vec);
 
-void  vector_push_back(Vector* vec, void* data);
+void  vector_push_back(Vector* vec, void* data, void* udata);
 void* vector_pop_back(Vector* vec);
 
 void* vector_peek(Vector* vec, Size pos);
 void* vector_front(Vector* vec);
 void* vector_back(Vector* vec);
 
-void vector_print(Vector* vec, PrintElementCallback printer);
+void vector_print(Vector* vec, PrintElementCallback printer, void* udata);
 
-void vector_merge(Vector* vec, Vector* vec_other);
-Vector* vector_filter(Vector* vec, FilterElementCallback filter, void* user_data);
+void vector_merge(Vector* vec, Vector* other, void* udata);
+Vector* vector_filter(Vector* vec, FilterElementCallback filter, void* udata);
 // TODO: accumulate, sort, iterators, intersection, duplicate, slice, insert_range
 
 void vector_swap(Vector* vec, Size p1, Size p2);
-void vector_sort(Vector* vec, CompareElementCallback compare);
-Bool vector_check_sorted(Vector* vec, CompareElementCallback compare);
+void vector_sort(Vector* vec, CompareElementCallback compare, void* udata);
+Bool vector_check_sorted(Vector* vec, CompareElementCallback compare, void* udata);
 
 // sorting algorithms
-void vector_insertion_sort(Vector* vec, CompareElementCallback compare);
-void vector_bubble_sort(Vector* vec, CompareElementCallback compare);
-void vector_merge_sort(Vector* vec, CompareElementCallback compare);
+void vector_insertion_sort(Vector* vec, CompareElementCallback compare, void* udata);
+void vector_bubble_sort(Vector* vec, CompareElementCallback compare, void* udata);
+void vector_merge_sort(Vector* vec, CompareElementCallback compare, void* udata);
 
 /*---------------- DEFINE COMMON INTERFACES FOR TYPE-SAFETY-----------------*/
 
@@ -147,8 +180,8 @@ DEF_INTEGER_VECTOR_INTERFACE_WITH_COPY_AND_DESTROY(string, String, string_create
 DEF_INTEGER_VECTOR_INTERFACE(voidptr, void*);
 
 // define interface to contain vector of vectors
-void vector_create_copy(void* dst, void* src);
-void vector_destroy_copy(void* copy);
+void vector_create_copy(void* dst, void* src, void* udata);
+void vector_destroy_copy(void* copy, void* udata);
 DEF_STRUCT_VECTOR_INTERFACE(vector, Vector, vector_create_copy, vector_destroy_copy);
 DEF_INTEGER_VECTOR_INTERFACE(pvector, Vector*);
 
