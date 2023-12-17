@@ -48,8 +48,9 @@ Size chrono_get_time_as_microseconds(void) {
 }
 
 Size chrono_get_time_as_nanoseconds(void) {
-    return 0;
-    // TODO:
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return (Size)tv.tv_sec * 1000000000 + (Size)tv.tv_usec * 1000;
 }
 
 

@@ -33,9 +33,9 @@
  * We can experiment with this value based on application usage
  * requirements.
  * */
-#define AV_VECTOR_INIT_ELEMENT_COUNT 4
-#define AV_VECTOR_DEFAULT_RESIZE_FACTOR 1
-#define AV_VECTOR_DEFAULT_FREE_WHEN_POSSIBLE True
+#define VECTOR_INIT_ELEMENT_COUNT 4
+#define VECTOR_DEFAULT_RESIZE_FACTOR 1
+#define VECTOR_DEFAULT_FREE_WHEN_POSSIBLE True
 
 /**
  * Create a new dynamic array.
@@ -65,15 +65,15 @@ Vector* vector_create(Size element_size,
     RETURN_VALUE_IF_FAIL(vec, NULL, ERR_OUT_OF_MEMORY);
 
     // allocate initial memory
-    vec->data = ALLOCATE(Uint8, AV_VECTOR_INIT_ELEMENT_COUNT * element_size);
+    vec->data = ALLOCATE(Uint8, VECTOR_INIT_ELEMENT_COUNT * element_size);
     if(!vec->data) {
         WARN_IF(True, ERR_OUT_OF_MEMORY);
         FREE(vec);
         return NULL;
     }
-    vec->capacity = AV_VECTOR_INIT_ELEMENT_COUNT;
+    vec->capacity = VECTOR_INIT_ELEMENT_COUNT;
     vec->element_size = element_size;
-    vec->resize_factor = AV_VECTOR_DEFAULT_RESIZE_FACTOR;
+    vec->resize_factor = VECTOR_DEFAULT_RESIZE_FACTOR;
     vec->create_copy = create_copy;
     vec->destroy_copy = destroy_copy;
     return vec;
@@ -88,10 +88,15 @@ void vector_destroy(Vector* vec, void* udata) {
     RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
 
     // destroy all object copies if possible and memset whole array!
-    if(vec->length != 0) vector_clear(vec, udata);
+    if(vec->length != 0) {
+        vector_clear(vec, udata);
+    }
 
-    FREE(vec->data);
-    vec->data = NULL;
+    if(vec->data) {
+        FREE(vec->data);
+        vec->data = NULL;
+    }
+
     FREE(vec);
 }
 
@@ -633,14 +638,17 @@ inline void* vector_pop_back(Vector* vec) {
 }
 
 /**
- * Get mutable reference of element at position inside
- * array.
+ * Get mutable reference to element in vector if the size of
+ * element is not 1, 2, 4, or 8.
+ * Get value stored in vector at given position if the size
+ * of each element in vector is either 1, 2, 4 or 8.
  * @param vec
  * @param pos
- * @return Mutable reference to element at given position.
+ * @return Mutable reference or direct value stored at given position.
  * */
 inline void* vector_peek(Vector* vec, Size pos) {
     RETURN_VALUE_IF_FAIL(vec, NULL, ERR_INVALID_ARGUMENTS);
+    if(pos >= vec->length) return NULL;
     switch(vec->element_size) {
         case 8: return (void*)vector_at(vec, Uint64, pos); break;
         case 4: return (void*)(Uint64)vector_at(vec, Uint32, pos); break;
@@ -799,9 +807,11 @@ void vector_sort(Vector* vec, CompareElementCallback cmp, void* udata) {
  * */
 Bool vector_check_sorted(Vector* vec, CompareElementCallback compare, void* udata) {
     RETURN_VALUE_IF_FAIL(vec && compare, False, ERR_INVALID_ARGUMENTS);
-    for(Size s = 1; s < vec->length; s++)
-        if(compare(vector_peek(vec, s), vector_peek(vec, s-1), udata) > 0)
+    for(Size s = 1; s < vec->length; s++) {
+        if(compare(vector_peek(vec, s), vector_peek(vec, s-1), udata) < 0) {
             return False;
+        }
+    }
     return True;
 }
 
@@ -838,7 +848,7 @@ void vector_bubble_sort(Vector* vec, CompareElementCallback compare, void* udata
     Bool b_swapped;
     for (Size i = 0; i < vec->length; i++) {
         b_swapped = False;
-        for (Size j = 0; j < vec->length; j++) {
+        for (Size j = 0; j < vec->length-1; j++) {
             if (compare(vector_peek(vec, j+1), vector_peek(vec, j), udata) > 0) {
                 vector_swap(vec, j, j+1);
                 b_swapped = True;
