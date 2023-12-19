@@ -23,7 +23,6 @@
 
 #include <Anvie/Containers/DenseMap.h>
 #include <Anvie/HelperDefines.h>
-#include <Anvie/Simd/Simd.h>
 #include <string.h>
 
 #define MDATA_OCCUPANCY_MASK (1 << 7)
@@ -34,12 +33,12 @@
  * Callback data to be passed to copy constructor and copy destructor of
  * @c DenseMapItem.
  * */
-typedef struct DenseMapItemCallbackData {
+typedef struct CallbackData {
     void*                     udata; /**< User data passed to callbacks. */
     DenseMap*                 map; /**< @c DenseMap to which @c DenseMapItem will be inserted*/
-} DenseMapItemCallbackData;
-void create_dmi_copy(DenseMapItem* dst, DenseMapItem* src,  DenseMapItemCallbackData* clbk_data);
-void destroy_dmi_copy(DenseMapItem* copy, DenseMapItemCallbackData* clbk_data);
+} CallbackData;
+void create_dmi_copy(DenseMapItem* dst, DenseMapItem* src,  CallbackData* clbk_data);
+void destroy_dmi_copy(DenseMapItem* copy, CallbackData* clbk_data);
 DEF_STRUCT_VECTOR_INTERFACE(dmi, DenseMapItem, create_dmi_copy, destroy_dmi_copy);
 
 static FORCE_INLINE Size compute_next_power_of_two(Size n);
@@ -128,7 +127,7 @@ DenseMap* dense_map_create(
     map->key_size          = key_size;
     map->is_multimap       = is_multimap;
     map->max_load_factor   = max_load_factor;
-    map->filled_slot_count = 0;
+    map->item_count = 0;
 
     return map;
 }
@@ -144,7 +143,7 @@ void dense_map_destroy(DenseMap* map, void* udata) {
     RETURN_IF_FAIL(map, ERR_INVALID_ARGUMENTS);
 
     if(map->map) {
-        DenseMapItemCallbackData clbk_data = {
+        CallbackData clbk_data = {
             .udata = udata,
             .map   = map
         };
@@ -171,9 +170,19 @@ void dense_map_destroy(DenseMap* map, void* udata) {
  * the size in power of two allows the implementation to replace
  * modulo operation with logical and which is many many many times
  * faster!
+ *
  * The implementation will in the end force the hash map to keep
  * the size in power of 2. So, for example if size is 200, the actual
  * size of hash map will be 256. If new size is 1024, then it stays 1024.
+ *
+ * If ater resize, there are collisions, then it'll be resolved,
+ * as if this were a multimap. But when using the insert operation
+ * after resize, it'll fallback to it's old behaviour.
+ *
+ * Using resize, one cannot reduce the size of hash map. This implementation
+ * does not reduce size, even when the whole hash map becomes empty at once
+ * stage.
+ *
  * @param map DenseMap to be resized.
  * @param size New size. The actual size of hash map will be next power of 2 from given size.
  * @param udata User data passed to callback functions.
@@ -181,6 +190,9 @@ void dense_map_destroy(DenseMap* map, void* udata) {
  * */
 void dense_map_resize(DenseMap* map, Size size, void* udata) {
     RETURN_IF_FAIL(map, ERR_INVALID_ARGUMENTS);
+    if(size <= map->item_count) {
+        return;
+    }
 
     // when we reach a size greater than or equal to given size and  that's also a power of 2, then we break.
     Size sz = compute_next_power_of_two(size);
@@ -219,11 +231,11 @@ void dense_map_resize(DenseMap* map, Size size, void* udata) {
     map->map       = dmi_vec;
     map->metadata  = mdata_vec;
     map->probe_len = psl_vec;
-    map->filled_slot_count = 0;
+    map->item_count = 0;
 
     // rehash and insert
-    Size map_len = map->map->length;
-    for(Size s = 0; s < map_len; s++) {
+    Size old_map_len = old_dmi_vec->length;
+    for(Size s = 0; s < old_map_len; s++) {
         const Uint8 mdata = u8_vector_peek(old_mdata_vec, s);
         if(mdata & MDATA_OCCUPANCY_MASK) {
             /* insert directly without creating any more copies of data */
@@ -253,13 +265,13 @@ void dense_map_resize(DenseMap* map, Size size, void* udata) {
 DenseMapItem* dense_map_insert(DenseMap* map, void* key, void* value, void* udata) {
     RETURN_VALUE_IF_FAIL(map, NULL, ERR_INVALID_ARGUMENTS);
 
-    Float32 load_factor = ((Float32)map->filled_slot_count + 1)/((Float32)map->map->length);
+    Float32 load_factor = ((Float32)map->item_count + 1)/((Float32)map->map->length);
     if(load_factor > map->max_load_factor) {
         dense_map_resize(map, map->map->length * 2, udata);
     }
 
     // set callback data and a temporary instance of DenseMapItem that we'll create copy of
-    DenseMapItemCallbackData clbk_data = {
+    CallbackData clbk_data = {
         .udata = udata,
         .map   = map
     };
@@ -267,7 +279,7 @@ DenseMapItem* dense_map_insert(DenseMap* map, void* key, void* value, void* udat
 
     // if not multimap, then first find any entry with same key
     if(!map->is_multimap) {
-        // if an element with same key exists then insert this new data there.
+        // if an element with same key exists then insert this new data there by deleting old one.
         DenseMapItem* searched_dmi = dense_map_search(map, key, udata);
         if(searched_dmi) {
             // destroy whatever's present at the given place
@@ -285,7 +297,14 @@ DenseMapItem* dense_map_insert(DenseMap* map, void* key, void* value, void* udat
     create_dmi_copy(&this_dmi, &tmp_dmi, &clbk_data);
 
     // next insert in such a way that no more copy constructors will be called.
-    return insert_into_dense_map_directly(map, &this_dmi, udata);
+    DenseMapItem* inserted_item = insert_into_dense_map_directly(map, &this_dmi, udata);
+    if(!inserted_item) {
+        destroy_dmi_copy(&this_dmi, &clbk_data);
+        ERR(__FUNCTION__, "Failed to insert into DenseMap.\n");
+        return NULL;
+    }
+
+    return inserted_item;
 }
 
 /**
@@ -334,7 +353,7 @@ DenseMapItem* dense_map_search(DenseMap* map, void* key, void* udata) {
 void dense_map_delete(DenseMap* map, void* key, void* udata) {
     RETURN_IF_FAIL(map, ERR_INVALID_ARGUMENTS);
 
-    DenseMapItemCallbackData clbk_data = {
+    CallbackData clbk_data = {
         .udata = udata,
         .map   = map
     };
@@ -342,10 +361,10 @@ void dense_map_delete(DenseMap* map, void* key, void* udata) {
     // search for item with given key
     DenseMapItem* item = dense_map_search(map, key, udata);
     destroy_dmi_copy(item, &clbk_data);
-    map->filled_slot_count--;
+    map->item_count--;
     while(map->compare_key(++item->key, key, udata) == 0) {
         destroy_dmi_copy(item, &clbk_data);
-        map->filled_slot_count--;
+        map->item_count--;
     }
 }
 
@@ -353,6 +372,9 @@ void dense_map_delete(DenseMap* map, void* key, void* udata) {
 
 /**
  * Macro to create code for wrapper over copy constructors
+ * @param d Data variable name.
+ * @param s Src variable name.
+ * @param n Name of copy constructor (key/data).
  * */
 #define CREATE_COPY(d, s, n)                                            \
     do {                                                                \
@@ -372,6 +394,8 @@ void dense_map_delete(DenseMap* map, void* key, void* udata) {
 
 /**
  * Macro to create code for wrapper over copy destructors
+ * @param c Copy variable name.
+ * @param n Name of copy destructor (key/data).
  * */
 #define DESTROY_COPY(c, n)                                      \
     do {                                                        \
@@ -391,7 +415,7 @@ void dense_map_delete(DenseMap* map, void* key, void* udata) {
  * @param src Pointer where original copy of @c DenseMapItem relies.
  * @param clbk_data Callback data passed to copy constructor
  * */
-void create_dmi_copy(DenseMapItem* dst, DenseMapItem* src, DenseMapItemCallbackData* clbk_data){
+void create_dmi_copy(DenseMapItem* dst, DenseMapItem* src, CallbackData* clbk_data){
     RETURN_IF_FAIL(dst && clbk_data, ERR_INVALID_ARGUMENTS);
 
     CREATE_COPY(dst, src, data);
@@ -403,7 +427,7 @@ void create_dmi_copy(DenseMapItem* dst, DenseMapItem* src, DenseMapItemCallbackD
  * @param copy Pointer to DenseMapItem copy to be destroyed
  * @param clbk_data Callback data
  * */
-void destroy_dmi_copy(DenseMapItem* copy, DenseMapItemCallbackData* clbk_data) {
+void destroy_dmi_copy(DenseMapItem* copy, CallbackData* clbk_data) {
     RETURN_IF_FAIL(copy && clbk_data, ERR_INVALID_ARGUMENTS);
 
     DESTROY_COPY(copy, data);
@@ -470,13 +494,12 @@ static inline DenseMapItem* insert_into_dense_map_directly(DenseMap* map, DenseM
     Uint8 this_mdata = MDATA_OCCUPANCY_MASK | (hash & MDATA_HASH_MASK);
 
     /* if total size of psl vector is less than maximum size of vector, use unoptimized search */
-    if((!SIMD_ENABLED) || (len_wrap_mask <= SIMD_VECTOR_REGISTER_SIZE)) {
-        while(True) {
-            /* when this becomes poor as compared to iterated position, swap values */
-            if(this_psl > iter_psl) {
-                /* swap metadata before, to know the occupancy status. */
-                Uint8 tmp_mdata = u8_vector_peek(map->metadata, iter);
-                u8_vector_overwrite(map->metadata, iter, this_mdata, NULL);
+    while(True) {
+        /* when this becomes poor as compared to iterated position, swap values */
+        if(this_psl > iter_psl) {
+            /* swap metadata before, to know the occupancy status. */
+            Uint8 tmp_mdata = u8_vector_peek(map->metadata, iter);
+            u8_vector_overwrite(map->metadata, iter, this_mdata, NULL);
                 this_mdata = tmp_mdata;
 
                 /* swap items */
@@ -500,21 +523,21 @@ static inline DenseMapItem* insert_into_dense_map_directly(DenseMap* map, DenseM
                 if(!(this_mdata & MDATA_OCCUPANCY_MASK)) {
                     break;
                 }
-            }
-
-            /* psl of element not yet inserted in the map will keep increasing */
-            this_psl++;
-
-            /* increase iterator and fecth metadata as well as probe sequence length */
-            iter = (iter + 1) & len_wrap_mask;
-            iter_psl = u8_vector_peek(map->probe_len, iter);
         }
+
+        /* psl of element not yet inserted in the map will keep increasing */
+        this_psl++;
+
+        /* increase iterator and fecth metadata as well as probe sequence length */
+        iter = (iter + 1) & len_wrap_mask;
+        iter_psl = u8_vector_peek(map->probe_len, iter);
     }
 
     // finally return the stored item
-    map->filled_slot_count++;
+    map->item_count++;
     return dmi_vector_peek(map->map, iter);
 }
+
 
 /**
  * Compute next power of two compared to given number n in constant time.

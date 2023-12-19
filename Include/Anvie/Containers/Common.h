@@ -85,6 +85,20 @@ typedef Bool (*FilterElementCallback)(void* element, void* udata);
  * */
 typedef Int32 (*CompareElementCallback)(void* p1, void* p2, void* udata);
 
+/**
+ * A hash function will take data and convert it to a
+ * 64 bit hash value that'll be used to place elements
+ * into the array.
+ * @param key Key of hash function. This key can be an integer value,
+ * a pointer to some memory or some struct, anything at all! It can be
+ * a function as well! All depends on the @c HashCallback.
+ * @param udata User data provided when doing insertion or any other
+ * related operation. This can be used to pass in extra things that
+ * keep changing through the program.
+ * @return A unique hash value associated with given data.
+ * */
+typedef Size (*HashCallback)(void* key, void* udata);
+
 void print_i8(void* x, Size idx, void* udata);
 void print_i16(void* x, Size idx, void* udata);
 void print_i32(void* x, Size idx, void* udata);

@@ -31,6 +31,10 @@
 #define MODULE_NAME "Utils"
 #endif//MODULE_NAME
 
+// basic min/max
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
 #define LINE80() println("================================================================================")
 #define newline() putchar(0xa)
 

@@ -28,20 +28,6 @@
 #include "Common.h"
 
 /**
- * A hash function will take data and convert it to a
- * 64 bit hash value that'll be used to place elements
- * into the array.
- * @param key Key of hash function. This key can be an integer value,
- * a pointer to some memory or some struct, anything at all! It can be
- * a function as well! All depends on the @c HashCallback.
- * @param udata User data provided when doing insertion or any other
- * related operation. This can be used to pass in extra things that
- * keep changing through the program.
- * @return A unique hash value associated with given data.
- * */
-typedef Size (*HashCallback)(void* key, void* udata);
-
-/**
  * Represents a single item in the hash table.
  *
  * This is a complex structure that has two fields that might need
@@ -92,9 +78,7 @@ typedef struct DenseMapItem {
  * - Multimap : Multiple items with same key may coexist in the same hashmap. When search
  *   is performed, the first entry with given matching key is returned and it is guaranteed
  *   that all the following entries will either have same key or have same hash value up until
- *   certain number of entries. To get this size, one may call the @c dense_map_count_same_hash()
- *   method to get exact number of entries with same hash value or @c dense_map_count_same_key()
- *   method to get exact number of entries with same key.
+ *   certain number of entries.
  *
  * The above feature is dependent on the `is_multimap` member of @c DenseMap object. This can
  * be changed anytime but is also required as an argument to the constructor of @c DenseMap.
@@ -110,7 +94,7 @@ typedef struct DenseMap {
     Size                       key_size; /**< Size of key in bytes. */
     Bool                       is_multimap; /**< True when contains multiple items with same key. False otherwise. */
     Float32                    max_load_factor; /**< Maximum load factor tolerance before we resize the hash table. */
-    Size                       filled_slot_count; /**< Total number of slots filled in the hash table. */
+    Size                       item_count; /**< Total number of slots filled in the hash table. */
     Vector*                    probe_len; /**< Vector<Uint8> to store probing length for each corresponding item in the map. */
     Vector*                    metadata; /**< Vector<Uint8> to store metadata about each corresponding element in map. */
     Vector*                    map; /**< Vector<DenseMapItem> A vector to store all elements in the map. */
@@ -173,7 +157,7 @@ DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(u32_str, U32_Str_,
 DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(u64_str, U64_Str_, hash_u64, Uint64, NULL,    NULL,     compare_u64, String, string_create_copy, string_destroy_copy, True,        DENSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
 
 /*                                                            prefix   prefix   hash         ktype   kcreate             kdestroy             kcompare        dtype   dcreate             ddestroy             is_multimap  max_load_factor */
-DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(str_str, Str_Str, hash_string, String, string_create_copy, string_destroy_copy, compare_string, String, string_create_copy, string_destroy_copy, True,        DENSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
+DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(str_str, Str_Str_, hash_string, String, string_create_copy, string_destroy_copy, compare_string, String, string_create_copy, string_destroy_copy, True,        DENSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
 
 
 #endif // ANVIE_UTILS_CONTAINERS_DENSE_MAP_H
