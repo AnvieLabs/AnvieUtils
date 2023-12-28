@@ -22,7 +22,7 @@
 
 #include <Anvie/Maths/Entropy.h>
 #include <Anvie/HelperDefines.h>
-
+#include <Anvie/Error.h>
 #include <math.h>
 
 /**
@@ -32,7 +32,7 @@
  * @param sz Size of data in bytes.
  * */
 Float32 compute_shannon_entropy(void* data, Size sz) {
-    RETURN_VALUE_IF_FAIL(data, 0.f, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(data, 0.f, ERR_INVALID_ARGUMENTS);
 
     if(sz < 2) return 0;
 

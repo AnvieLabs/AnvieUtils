@@ -22,54 +22,55 @@
 
 #include <Anvie/Containers/Vector.h>
 #include <Anvie/Test/UnitTest.h>
+#include <Anvie/Error.h>
 
 #define TEST_DATA_SIZE ((Size)91)
 
 /**
  * Declare a test struct
  * */
-typedef struct StringEntry {
-    String name;
+typedef struct ZStringEntry {
+    ZString name;
     Size len;
-} StringEntry;
+} ZStringEntry;
 
 #define CREATE_DATA 69
 #define DESTROY_DATA -69
 #define COMPARE_DATA 0
 
-typedef struct StringData {
+typedef struct ZStringData {
     Uint8 create; /**< should be 69 */
     Uint8 compare; /**< should be 0 */
     Int32 destroy; /**< should be -69 */
-} StringData;
+} ZStringData;
 
 // NOTE: Size of this array might be cause of your segfault if everything seems fine
-static String allocated_strings[TEST_DATA_SIZE*2] = {0};
+static ZString allocated_strings[TEST_DATA_SIZE*2] = {0};
 static Size strid = 0;
 
-static inline void string_entry_init(StringEntry* se, String s) {
-    RETURN_IF_FAIL(se && s, ERR_INVALID_ARGUMENTS);
+static inline void se_init(ZStringEntry* se, ZString s) {
+    ERR_RETURN_IF_FAIL(se && s, ERR_INVALID_ARGUMENTS);
     se->name = s;
     se->len = strlen(se->name);
 }
 
-void __StringEntry_CreateCopy___(StringEntry* dst, StringEntry* src, StringData* udata) {
-    RETURN_IF_FAIL(dst && src && udata, ERR_INVALID_ARGUMENTS);
+void __ZStringEntry_CreateCopy___(ZStringEntry* dst, ZStringEntry* src, ZStringData* udata) {
+    ERR_RETURN_IF_FAIL(dst && src && udata, ERR_INVALID_ARGUMENTS);
 
-    RETURN_IF_FAIL(udata->create == CREATE_DATA, "PASSED USER DATA IS INVALID\n");
+    ERR_RETURN_IF_FAIL(udata->create == CREATE_DATA, ERR_INVALID_USER_DATA);
 
     if(src->name && src->len) {
         dst->name = strdup(src->name);
-        FATAL_IF(!dst->name, ERR_OUT_OF_MEMORY);
+        FATAL_IF(!dst->name, ERRMSG(ERR_OUT_OF_MEMORY));
         dst->len = src->len;
     }
 
     allocated_strings[strid++] = dst->name;
 }
 
-void __StringEntry_DestroyCopy___(StringEntry* copy, StringData* udata) {
-    RETURN_IF_FAIL(copy && udata, ERR_INVALID_ARGUMENTS);
-    RETURN_IF_FAIL(udata->destroy == DESTROY_DATA, "PASSED USER DATA IS INVALID\n");
+void __ZStringEntry_DestroyCopy___(ZStringEntry* copy, ZStringData* udata) {
+    ERR_RETURN_IF_FAIL(copy && udata, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(udata->destroy == DESTROY_DATA, ERR_INVALID_USER_DATA);
 
     Bool b_found = False;
     for(Size i = 0; i < TEST_DATA_SIZE; i++) {
@@ -90,10 +91,10 @@ void __StringEntry_DestroyCopy___(StringEntry* copy, StringData* udata) {
     copy->name = NULL;
 }
 
-DEF_STRUCT_VECTOR_INTERFACE(string_entry, StringEntry, __StringEntry_CreateCopy___, __StringEntry_DestroyCopy___);
+DEF_STRUCT_VECTOR_INTERFACE(se, SE_, ZStringEntry, __ZStringEntry_CreateCopy___, __ZStringEntry_DestroyCopy___);
 
-static inline Bool CompareString(StringEntry* s1, StringEntry* s2) {
-    RETURN_VALUE_IF_FAIL(s1 && s2, False, ERR_INVALID_ARGUMENTS);
+static inline Bool CompareZString(ZStringEntry* s1, ZStringEntry* s2) {
+    ERR_RETURN_VALUE_IF_FAIL(s1 && s2, False, ERR_INVALID_ARGUMENTS);
     return (s1->name && s2->name) && (s1->len && s2->len) && (s1->len == s2->len) && (strcmp(s1->name, s1->name) == 0);
 }
 
@@ -103,9 +104,9 @@ static inline Bool CompareString(StringEntry* s1, StringEntry* s2) {
  * and destory_copy() are not null or nonnull at the same time.
  * */
 TEST_FN Bool Create1() {
-    Vector* vec = vector_create(sizeof(StringEntry), NULL, NULL);
-    RETURN_VALUE_IF_FAIL(vec, False, "FAILED TO CREATE vector\n");
-    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
+    SE_Vector* vec = vector_create(sizeof(ZStringEntry), NULL, NULL);
+    ERR_RETURN_VALUE_IF_FAIL(vec, False, ERR_INVALID_OBJECT);
+    ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
     vector_destroy(vec, &sd);
     return True;
 
@@ -116,13 +117,13 @@ TEST_FN Bool Create1() {
  * and destory_copy() are not null or nonnull at the same time.
  * */
 TEST_FN Bool Create2() {
-    Vector* vec = vector_create(
-        sizeof(StringEntry),
-        (CreateElementCopyCallback)(__StringEntry_CreateCopy___),
-        (DestroyElementCopyCallback)(__StringEntry_DestroyCopy___)
+    SE_Vector* vec = vector_create(
+        sizeof(ZStringEntry),
+        (CreateElementCopyCallback)(__ZStringEntry_CreateCopy___),
+        (DestroyElementCopyCallback)(__ZStringEntry_DestroyCopy___)
     );
-    RETURN_VALUE_IF_FAIL(vec, False, "FAILED TO CREATE vector\n");
-    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
+    ERR_RETURN_VALUE_IF_FAIL(vec, False, ERR_INVALID_OBJECT);
+    ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
     vector_destroy(vec, &sd);
     return True;
 }
@@ -133,9 +134,9 @@ TEST_FN Bool Create2() {
  * and destory_copy() are not null or nonnull at the same time.
  * */
 TEST_FN Bool Create3() {
-    Vector* vec = vector_create(sizeof(StringEntry), NULL, (DestroyElementCopyCallback)(__StringEntry_DestroyCopy___));
-    RETURN_VALUE_IF_FAIL(!vec, False, "vector CREATION SHOULD HAVE FAILED\n");
-    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
+    SE_Vector* vec = vector_create(sizeof(ZStringEntry), NULL, (DestroyElementCopyCallback)(__ZStringEntry_DestroyCopy___));
+    ERR_RETURN_VALUE_IF_FAIL(!vec, False, ERR_UNEXPECTED);
+    ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
     if(vec) vector_destroy(vec, &sd); // we don't actually need to destroy, but still...
     return True;
 }
@@ -146,9 +147,9 @@ TEST_FN Bool Create3() {
  * and destory_copy() are not null or nonnull at the same time.
  * */
 TEST_FN Bool Create4() {
-    Vector* vec = vector_create(sizeof(StringEntry), (CreateElementCopyCallback)(__StringEntry_CreateCopy___), NULL);
-    RETURN_VALUE_IF_FAIL(!vec, False, "vector CREATION SHOULD HAVE FAILED\n");
-    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
+    SE_Vector* vec = vector_create(sizeof(ZStringEntry), (CreateElementCopyCallback)(__ZStringEntry_CreateCopy___), NULL);
+    ERR_RETURN_VALUE_IF_FAIL(!vec, False, ERR_UNEXPECTED);
+    ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
     if(vec) vector_destroy(vec, &sd); // we don't actually need to destroy, but still...
     return True;
 }
@@ -160,16 +161,16 @@ TEST_FN Bool Create4() {
 TEST_FN Bool Insert() {
     strid = 0;
 
-    StringEntry entry = {
+    ZStringEntry entry = {
         .name = "AnvieUtils",
         .len = strlen("AnvieUtils")
     };
-    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
+    ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
-    Vector* vec = string_entry_vector_create();
+    SE_Vector* vec = se_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        string_entry_vector_insert(vec, &entry, iter, &sd);
+        se_vector_insert(vec, &entry, iter, &sd);
     }
 
     if(vec->length != TEST_DATA_SIZE) {
@@ -184,14 +185,14 @@ TEST_FN Bool Insert() {
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        StringEntry* ref = string_entry_vector_peek(vec, iter);
+        ZStringEntry* ref = se_vector_peek(vec, iter);
 
         if(ref->name == entry.name) {
             DBG(__FUNCTION__, "BOTH STRINGS MUST NOT POINT TO SAME ADDRESS\n");
             res = False;
         }
 
-        if(!CompareString(ref, &entry)) {
+        if(!CompareZString(ref, &entry)) {
             DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
             res = False;
         }
@@ -199,7 +200,7 @@ TEST_FN Bool Insert() {
         if(!res) break;
     }
 
-    string_entry_vector_destroy(vec, &sd);
+    se_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -210,22 +211,22 @@ TEST_FN Bool Insert() {
 TEST_FN Bool Delete() {
     strid = 0;
 
-    StringEntry entry = {
+    ZStringEntry entry = {
         .name = "AnvieUtils",
         .len = strlen("AnvieUtils")
     };
-    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
+    ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
     // first create vector with some valid data
-    Vector* vec = string_entry_vector_create();
+    SE_Vector* vec = se_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        string_entry_vector_insert(vec, &entry, iter, &sd);
+        se_vector_insert(vec, &entry, iter, &sd);
     }
 
     // delete all elements and check size
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        string_entry_vector_delete(vec, rand() % vec->length, &sd);
+        se_vector_delete(vec, rand() % vec->length, &sd);
 
         if(vec->length != (TEST_DATA_SIZE - iter - 1)) {
             DBG(__FUNCTION__, "VECTOR LENGTH AFTER DELETING EXPECTED TO BE \"%zu\", FOUND \"%zu\"\n", TEST_DATA_SIZE - iter - 1, vec->length);
@@ -239,7 +240,7 @@ TEST_FN Bool Delete() {
         res = False;
     }
 
-    string_entry_vector_destroy(vec, &sd);
+    se_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -250,23 +251,23 @@ TEST_FN Bool Delete() {
 TEST_FN Bool Remove() {
     strid = 0;
 
-    StringEntry entry = {
+    ZStringEntry entry = {
         .name = "AnvieUtils",
         .len = strlen("AnvieUtils")
     };
-    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
+    ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
-    Vector* vec = string_entry_vector_create();
+    SE_Vector* vec = se_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        string_entry_vector_insert(vec, &entry, iter, &sd);
+        se_vector_insert(vec, &entry, iter, &sd);
     }
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        StringEntry* ref = string_entry_vector_remove(vec, 0);
+        ZStringEntry* ref = se_vector_remove(vec, 0);
 
-        if(!CompareString(ref, &entry)) {
+        if(!CompareZString(ref, &entry)) {
             DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
             res = False;
         }
@@ -276,14 +277,14 @@ TEST_FN Bool Remove() {
             res = False;
         }
 
-        __StringEntry_DestroyCopy___(ref, &sd);
+        __ZStringEntry_DestroyCopy___(ref, &sd);
         FREE(ref);
         ref = NULL;
 
         if(!res) break;
     }
 
-    string_entry_vector_destroy(vec, &sd);
+    se_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -294,16 +295,16 @@ TEST_FN Bool Remove() {
 TEST_FN Bool InsertFast() {
     strid = 0;
 
-    StringEntry entry = {
+    ZStringEntry entry = {
         .name = "AnvieUtils",
         .len = strlen("AnvieUtils")
     };
-    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
+    ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
-    Vector* vec = string_entry_vector_create();
+    SE_Vector* vec = se_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        string_entry_vector_insert_fast(vec, &entry, iter, &sd);
+        se_vector_insert_fast(vec, &entry, iter, &sd);
     }
 
     if(vec->length != TEST_DATA_SIZE) {
@@ -318,9 +319,9 @@ TEST_FN Bool InsertFast() {
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        StringEntry* ref = string_entry_vector_peek(vec, iter);
+        ZStringEntry* ref = se_vector_peek(vec, iter);
 
-        if(!CompareString(ref, &entry)) {
+        if(!CompareZString(ref, &entry)) {
             DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
             res = False;
         }
@@ -333,7 +334,7 @@ TEST_FN Bool InsertFast() {
         if(!res) break;
     }
 
-    string_entry_vector_destroy(vec, &sd);
+    se_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -344,22 +345,22 @@ TEST_FN Bool InsertFast() {
 TEST_FN Bool DeleteFast() {
     strid = 0;
 
-    StringEntry entry = {
+    ZStringEntry entry = {
         .name = "AnvieUtils",
         .len = strlen("AnvieUtils")
     };
-    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
+    ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
     // first create vector with some valid data
-    Vector* vec = string_entry_vector_create();
+    SE_Vector* vec = se_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        string_entry_vector_insert_fast(vec, &entry, iter, &sd);
+        se_vector_insert_fast(vec, &entry, iter, &sd);
     }
 
     // delete all elements and check size
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        string_entry_vector_delete_fast(vec, rand() % vec->length, &sd);
+        se_vector_delete_fast(vec, rand() % vec->length, &sd);
 
         if(vec->length != (TEST_DATA_SIZE - iter - 1)) {
             DBG(__FUNCTION__, "VECTOR LENGTH AFTER DELETING EXPECTED TO BE \"%zu\", FOUND \"%zu\"\n", TEST_DATA_SIZE - iter - 1, vec->length);
@@ -374,7 +375,7 @@ TEST_FN Bool DeleteFast() {
 
     }
 
-    string_entry_vector_destroy(vec, &sd);
+    se_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -385,40 +386,34 @@ TEST_FN Bool DeleteFast() {
 TEST_FN Bool RemoveFast() {
     strid = 0;
 
-    StringEntry entry = {
+    ZStringEntry entry = {
         .name = "AnvieUtils",
         .len = strlen("AnvieUtils")
     };
-    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
+    ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
-    Vector* vec = string_entry_vector_create();
+    SE_Vector* vec = se_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        string_entry_vector_insert_fast(vec, &entry, iter, &sd);
+        se_vector_insert_fast(vec, &entry, iter, &sd);
     }
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        StringEntry* ref = string_entry_vector_remove_fast(vec, 0);
-        if(!CompareString(ref, &entry)) {
-
+        ZStringEntry* ref = se_vector_remove_fast(vec, 0);
+        if(!CompareZString(ref, &entry) || (ref->name == entry.name)) {
             DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
             res = False;
         }
 
-        if(ref->name == entry.name) {
-            DBG(__FUNCTION__, "BOTH STRINGS MUST NOT POINT TO SAME ADDRESS\n");
-            res = False;
-        }
-
-        __StringEntry_DestroyCopy___(ref, &sd);
+        __ZStringEntry_DestroyCopy___(ref, &sd);
         FREE(ref);
         ref = NULL;
 
         if(!res) break;
     }
 
-    string_entry_vector_destroy(vec, &sd);
+    se_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -430,46 +425,41 @@ TEST_FN Bool RemoveFast() {
 TEST_FN Bool PushBack() {
     strid = 0;
 
-    StringEntry entry = {
+    ZStringEntry entry = {
         .name = "AnvieUtils",
         .len = strlen("AnvieUtils")
     };
-    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
+    ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
-    Vector* vec = string_entry_vector_create();
+    SE_Vector* vec = se_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        string_entry_vector_push_back(vec, &entry, &sd);
+        se_vector_push_back(vec, &entry, &sd);
     }
 
     if(vec->length != TEST_DATA_SIZE) {
-        DBG(__FUNCTION__, "VECTOR LENGTH MISMATCH | EXPECTED : \"%zu\" | GOT : \"%zu\"\n", TEST_DATA_SIZE, vec->length);
+        DBG(__FUNCTION__, ERRMSG(ERR_INVALID_LENGTH));
         res = False;
     }
 
     if(vec->capacity < vec->length) {
-        DBG(__FUNCTION__, "VECTOR CAPACITY CANNOT BE LESS THAN VECTOR LENGTH\n");
+        DBG(__FUNCTION__, ERRMSG(ERR_INVALID_CAPACITY));
         res = False;
     }
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        StringEntry* ref = string_entry_vector_peek(vec, iter);
+        ZStringEntry* ref = se_vector_peek(vec, iter);
 
-        if(!CompareString(ref, &entry)) {
-            DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
-            res = False;
-        }
-
-        if(ref->name == entry.name) {
-            DBG(__FUNCTION__, "BOTH STRINGS MUST NOT POINT TO SAME ADDRESS\n");
+        if(!CompareZString(ref, &entry) || (ref->name == entry.name)) {
+            DBG(__FUNCTION__, ERRMSG(ERR_INVALID_CONTENTS));
             res = False;
         }
 
         if(!res) break;
     }
 
-    string_entry_vector_destroy(vec, &sd);
+    se_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -480,34 +470,29 @@ TEST_FN Bool PushBack() {
 TEST_FN Bool PopBack() {
     strid = 0;
 
-    StringEntry entry = {
+    ZStringEntry entry = {
         .name = "AnvieUtils",
         .len = strlen("AnvieUtils")
     };
-    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
+    ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
     // first create vector with some valid data
-    Vector* vec = string_entry_vector_create();
+    SE_Vector* vec = se_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        string_entry_vector_push_back(vec, &entry, &sd);
+        se_vector_push_back(vec, &entry, &sd);
     }
 
     // delete all elements and check size
     for(Size iter = TEST_DATA_SIZE; iter; iter--) {
-        StringEntry* ref = string_entry_vector_pop_back(vec);
+        ZStringEntry* ref = se_vector_pop_back(vec);
 
-        if(!CompareString(ref, &entry)) {
-            DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
+        if(!CompareZString(ref, &entry) || (ref->name == entry.name)) {
+            DBG(__FUNCTION__, ERRMSG(ERR_INVALID_CONTENTS));
             res = False;
         }
 
-        if(ref->name == entry.name) {
-            DBG(__FUNCTION__, "BOTH STRINGS MUST NOT POINT TO SAME ADDRESS\n");
-            res = False;
-        }
-
-        __StringEntry_DestroyCopy___(ref, &sd);
+        __ZStringEntry_DestroyCopy___(ref, &sd);
         FREE(ref);
         ref = NULL;
 
@@ -515,11 +500,11 @@ TEST_FN Bool PopBack() {
     }
 
     if(vec->length != 0) {
-        DBG(__FUNCTION__, "VECTOR LENGTH AFTER DELETING ALL ENTRIES MUST BE ZERO, FOUND \"%zu\"\n", vec->length);
+        DBG(__FUNCTION__, ERRMSG(ERR_INVALID_LENGTH));
         res = False;
     }
 
-    string_entry_vector_destroy(vec, &sd);
+    se_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -531,48 +516,42 @@ TEST_FN Bool PopBack() {
 TEST_FN Bool PushFront() {
     strid = 0;
 
-    StringEntry entry = {
+    ZStringEntry entry = {
         .name = "AnvieUtils",
         .len = strlen("AnvieUtils")
     };
-    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
+    ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
-    Vector* vec = string_entry_vector_create();
+    SE_Vector* vec = se_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
         // insert array backwards
-        string_entry_vector_push_front(vec, &entry, &sd);
+        se_vector_push_front(vec, &entry, &sd);
     }
 
     if(vec->length != TEST_DATA_SIZE) {
-        DBG(__FUNCTION__, "VECTOR LENGTH MISMATCH\n");
+        DBG(__FUNCTION__, ERRMSG(ERR_INVALID_LENGTH));
         res = False;
     }
 
     if(vec->capacity < vec->length) {
-        DBG(__FUNCTION__, "VECTOR CAPACITY CANNOT BE LESS THAN VECTOR LENGTH\n");
+        DBG(__FUNCTION__, ERRMSG(ERR_INVALID_CAPACITY));
         res = False;
     }
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        StringEntry* ref = string_entry_vector_peek(vec, iter);
+        ZStringEntry* ref = se_vector_peek(vec, iter);
 
-        if(!CompareString(ref, &entry)) {
-            DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
-            DBG(__FUNCTION__, "REF = \"%p\" | REF.STRING = \"%s\" | REF.LEN = \"%zu\"\n", ref, ref->name, ref->len);
-            res = False;
-        }
-
-        if(ref->name == entry.name) {
-            DBG(__FUNCTION__, "BOTH STRINGS MUST NOT POINT TO SAME ADDRESS\n");
+        if(!CompareZString(ref, &entry) || (ref->name == entry.name)) {
+            DBG(__FUNCTION__, ERRMSG(ERR_INVALID_CONTENTS));
             res = False;
         }
 
         if(!res) break;
     }
 
-    string_entry_vector_destroy(vec, &sd);
+    se_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -583,34 +562,29 @@ TEST_FN Bool PushFront() {
 TEST_FN Bool PopFront() {
     strid = 0;
 
-    StringEntry entry = {
+    ZStringEntry entry = {
         .name = "AnvieUtils",
         .len = strlen("AnvieUtils")
     };
-    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
+    ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
     // first create vector with some valid data
-    Vector* vec = string_entry_vector_create();
+    SE_Vector* vec = se_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        string_entry_vector_push_back(vec, &entry, &sd);
+        se_vector_push_back(vec, &entry, &sd);
     }
 
     // delete all elements and check size
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        StringEntry* ref = string_entry_vector_pop_front(vec);
+        ZStringEntry* ref = se_vector_pop_front(vec);
 
-        if(!CompareString(ref, &entry)) {
+        if(!CompareZString(ref, &entry) || (ref->name == entry.name)) {
             DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
             res = False;
         }
 
-        if(ref->name == entry.name) {
-            DBG(__FUNCTION__, "BOTH STRINGS MUST NOT POINT TO SAME ADDRESS\n");
-            res = False;
-        }
-
-        __StringEntry_DestroyCopy___(ref, &sd);
+        __ZStringEntry_DestroyCopy___(ref, &sd);
         FREE(ref);
         ref = NULL;
 
@@ -618,53 +592,53 @@ TEST_FN Bool PopFront() {
     }
 
     if(vec->length != 0) {
-        DBG(__FUNCTION__, "VECTOR LENGTH AFTER DELETING ALL ENTRIES MUST BE ZERO, FOUND \"%zu\"\n", vec->length);
+        DBG(__FUNCTION__, ERRMSG(ERR_INVALID_LENGTH));
         res = False;
     }
 
-    string_entry_vector_destroy(vec, &sd);
+    se_vector_destroy(vec, &sd);
     return res;
 }
 
 TEST_FN Bool Merge() {
     strid = 0;
 
-    Vector* /* String */ vec1 = string_entry_vector_create();
-    Vector* /* String */ vec2 = string_entry_vector_create();
+    SE_Vector* vec1 = se_vector_create();
+    SE_Vector* vec2 = se_vector_create();
 
-    StringEntry se;
-    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
+    ZStringEntry se;
+    ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     // prepare data
     // vec1
-    string_entry_init(&se, "Siddharth");
-    string_entry_vector_push_back(vec1, &se, &sd);
+    se_init(&se, "Siddharth");
+    se_vector_push_back(vec1, &se, &sd);
 
-    string_entry_init(&se, "Mishra");
-    string_entry_vector_push_back(vec1, &se, &sd);
+    se_init(&se, "Mishra");
+    se_vector_push_back(vec1, &se, &sd);
 
     // vec2
-    string_entry_init(&se, "is");
-    string_entry_vector_push_back(vec2, &se, &sd);
+    se_init(&se, "is");
+    se_vector_push_back(vec2, &se, &sd);
 
-    string_entry_init(&se, "@brightprogrammer");
-    string_entry_vector_push_back(vec2, &se, &sd);
+    se_init(&se, "@brightprogrammer");
+    se_vector_push_back(vec2, &se, &sd);
 
     // merge
-    string_entry_vector_merge(vec1, vec2, &sd);
+    se_vector_merge(vec1, vec2, &sd);
 
     // check merge
-    RETURN_VALUE_IF_FAIL(!strcmp(string_entry_vector_peek(vec1, 2)->name, string_entry_vector_peek(vec2, 0)->name), False, "MERGE OPERATION IS INVALID! ELEMENTS DON'T MATCH!\n");
-    RETURN_VALUE_IF_FAIL(!strcmp(string_entry_vector_peek(vec1, 3)->name, string_entry_vector_peek(vec2, 1)->name), False, "MERGE OPERATION IS INVALID! ELEMENTS DON'T MATCH!\n");
+    ERR_RETURN_VALUE_IF_FAIL(!strcmp(se_vector_peek(vec1, 2)->name, se_vector_peek(vec2, 0)->name), False, ERR_OPERATION_FAILED);
+    ERR_RETURN_VALUE_IF_FAIL(!strcmp(se_vector_peek(vec1, 3)->name, se_vector_peek(vec2, 1)->name), False, ERR_OPERATION_FAILED);
 
-    string_entry_vector_destroy(vec1, &sd);
-    string_entry_vector_destroy(vec2, &sd);
+    se_vector_destroy(vec1, &sd);
+    se_vector_destroy(vec2, &sd);
 
     return True;
 }
 
 static inline Bool element_filter(void* x, void* udata) {
-    StringEntry* v = (StringEntry*)x;
+    ZStringEntry* v = (ZStringEntry*)x;
     Size sz_limit = (Size)udata;
 
     return strlen(v->name) > sz_limit;
@@ -673,33 +647,33 @@ static inline Bool element_filter(void* x, void* udata) {
 TEST_FN Bool Filter() {
     strid = 0;
 
-    Vector* /* StringEntry */ vec = string_entry_vector_create();
+    SE_Vector* vec = se_vector_create();
     char str[11] = {0};
-    StringEntry se;
-    StringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
+    ZStringEntry se;
+    ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     // prepare data
     for(int i = 0; i < 10; i++) {
         str[i] = 'a';
-        string_entry_init(&se, str);
-        string_entry_vector_push_back(vec, &se, &sd);
+        se_init(&se, str);
+        se_vector_push_back(vec, &se, &sd);
     }
 
     // all elements greater than 0 and less than equal to zero are filtered
-    Vector* /* StringEntry */ vec_g5 = string_entry_vector_filter(vec, element_filter, &sd);
+    SE_Vector* vec_g5 = se_vector_filter(vec, element_filter, &sd);
     if(!vec_g5){
         vector_destroy(vec, &sd);
-        DBG(__FUNCTION__, "FAILED TO FILTER ELEMENTS (vec_g0)\n");
+        DBG(__FUNCTION__, ERRMSG(ERR_OPERATION_FAILED));
         return False;
     }
 
     // check length of all elements in vec_g5 are greater than 5
     for(Size s = 0; s < vec_g5->length; s++) {
-        RETURN_VALUE_IF_FAIL(strlen(string_entry_vector_peek(vec_g5, s)->name) > 5, False, "FILTERED VECTOR CONTAINS WRONG CONTENT\n");
+        ERR_RETURN_VALUE_IF_FAIL(strlen(se_vector_peek(vec_g5, s)->name) > 5, False, ERR_INVALID_CONTENTS);
     }
 
-    string_entry_vector_destroy(vec, &sd);
-    string_entry_vector_destroy(vec_g5, &sd);
+    se_vector_destroy(vec, &sd);
+    se_vector_destroy(vec_g5, &sd);
 
     return True;
 }

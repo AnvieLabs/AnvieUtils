@@ -109,21 +109,21 @@ void print_u16(void* x, Size idx, void* udata);
 void print_u32(void* x, Size idx, void* udata);
 void print_u64(void* x, Size idx, void* udata);
 
-void print_string(void* x, Size idx, void* udata);
-void string_create_copy(void* to, void* data, void* udata);
-void string_destroy_copy(void* data, void* udata);
+void print_zstr(ZString x, Size idx, void* udata);
+void zstr_create_copy(ZString* to, ZString data, void* udata);
+void zstr_destroy_copy(ZString* data, void* udata);
 
 /* hash functions always take 64 bit values and return 64 bit values */
 Uint64 hash_u8(Uint64 val, void* udata);
 Uint64 hash_u16(Uint64 val, void* udata);
 Uint64 hash_u32(Uint64 val, void* udata);
 Uint64 hash_u64(Uint64 val, void* udata);
-Uint64 hash_string(String val, void* udata);
+Uint64 hash_zstr(ZString val, void* udata);
 
 Int32 compare_u8(Uint64 v1, Uint64 v2, void* udata);
 Int32 compare_u16(Uint64 v1, Uint64 v2, void* udata);
 Int32 compare_u32(Uint64 v1, Uint64 v2, void* udata);
 Int32 compare_u64(Uint64 v1, Uint64 v2, void* udata);
-Int32 compare_string(String v1, String v2, void* udata);
+Int32 compare_zstr(ZString v1, ZString v2, void* udata);
 
 #endif // ANVIE_UTILS_COMMON_H

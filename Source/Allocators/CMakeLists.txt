@@ -1,0 +1,2 @@
+file(GLOB_RECURSE UTILS_ALLOCATOR_SRCS ${CMAKE_CURRENT_SOURCE_DIR} "*.c")
+add_library(anvutils_allocators ${UTILS_ALLOCATOR_SRCS})

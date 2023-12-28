@@ -22,6 +22,8 @@
 
 #include <Anvie/Containers/BitVector.h>
 #include <Anvie/HelperDefines.h>
+#include <Anvie/BitManipulation.h>
+#include <Anvie/Error.h>
 #include <string.h>
 
 /**
@@ -30,40 +32,34 @@
  * Each time bitvector is resized to store more booleans, the size is
  * incremented by this value. Meaning, the capacity of bitvector is always
  * in multiples of this value. */
-#define BITVECTOR_DEFAULT_INCREMENT_SIZE 32 /* 256 bits at once */
+#define BITVEC_DEFAULT_INCREMENT_SIZE 32 /* 256 bits at once */
 
 /**
  * Macro to generate next multiple of increment size.
- * This is where we need the @c BITVECTOR_DEFAULT_INCREMENT_SIZE
+ * This is where we need the @c BITVEC_DEFAULT_INCREMENT_SIZE
  * to be a power of two. This will help us quickly compute next
  * multiple values.
  * @param bytelen Length of BitVector in terms of bytes
  * */
-#define BITVECTOR_NEXT_INCREMENTED_LENGTH(bytelen)                      \
-    (((bytelen) & (~(BITVECTOR_DEFAULT_INCREMENT_SIZE - 1))) + BITVECTOR_DEFAULT_INCREMENT_SIZE)
-
-
-/**
- * Create a Uint8 flag with n-th bit set
- * */
-#define U8_SET_NTH_BIT(n) (Uint8)(1 << (n))
+#define BITVEC_NEXT_INCREMENTED_LENGTH(bytelen)                      \
+    (((bytelen) & (~(BITVEC_DEFAULT_INCREMENT_SIZE - 1))) + BITVEC_DEFAULT_INCREMENT_SIZE)
 
 /**
  * Create a new @c BitVector.
  * @return BitVector* A valid pointer on success.
  * @return BitVector* @c NULL on failure.
  * */
-BitVector* bitvector_create() {
+BitVector* bitvec_create() {
     BitVector* bv = NEW(BitVector);
-    RETURN_VALUE_IF_FAIL(bv, NULL, ERR_OUT_OF_MEMORY);
+    ERR_RETURN_VALUE_IF_FAIL(bv, NULL, ERR_OUT_OF_MEMORY);
 
-    bv->data = ALLOCATE(Uint8, BITVECTOR_DEFAULT_INCREMENT_SIZE);
+    bv->data = ALLOCATE(Uint8, BITVEC_DEFAULT_INCREMENT_SIZE);
     if(!bv->data) {
         FREE(bv);
-        ERR(__FUNCTION__, ERR_OUT_OF_MEMORY);
+        ERR(__FUNCTION__, ERRFMT, ERRMSG(ERR_OUT_OF_MEMORY));
     }
 
-    bv->capacity = BITVECTOR_DEFAULT_INCREMENT_SIZE*8;
+    bv->capacity = MUL8(BITVEC_DEFAULT_INCREMENT_SIZE);
 
     return bv;
 }
@@ -72,13 +68,14 @@ BitVector* bitvector_create() {
  * Destroy given @c BitVector.
  * @param bv @c BitVector.
  * */
-void bitvector_destroy(BitVector* bv) {
-    RETURN_IF_FAIL(bv, ERR_INVALID_ARGUMENTS);
+void bitvec_destroy(BitVector* bv) {
+    ERR_RETURN_IF_FAIL(bv, ERR_INVALID_ARGUMENTS);
 
     if(bv->data) {
         FREE(bv->data);
         bv->data = NULL;
     }
+
     FREE(bv);
 }
 
@@ -88,14 +85,14 @@ void bitvector_destroy(BitVector* bv) {
  * @return BitVector* valid pointer on success.
  * @return BitVector* NULL otherwise.
  * */
-BitVector* bitvector_clone(BitVector* bv) {
-    RETURN_VALUE_IF_FAIL(bv, NULL, ERR_INVALID_ARGUMENTS);
+BitVector* bitvec_clone(BitVector* bv) {
+    ERR_RETURN_VALUE_IF_FAIL(bv, NULL, ERR_INVALID_ARGUMENTS);
 
-    BitVector* bvclone = bitvector_create();
-    RETURN_VALUE_IF_FAIL(bvclone, NULL, ERR_INVALID_ARGUMENTS);
+    BitVector* bvclone = bitvec_create();
+    ERR_RETURN_VALUE_IF_FAIL(bvclone, NULL, ERR_INVALID_OBJECT);
 
-    bitvector_resize(bvclone, bv->length);
-    memcpy(bvclone->data, bv->data, (bv->length >> 3) + 1);
+    bitvec_resize(bvclone, bv->length);
+    memcpy(bvclone->data, bv->data, DIV8(bv->capacity));
 
     return bvclone;
 }
@@ -107,25 +104,35 @@ BitVector* bitvector_clone(BitVector* bv) {
  * the end will match @p srcbv. The capacity is not guaranteed
  * to change in same manner, just the content is guaranteed to
  * be exactly same.
+ *
  * @param dstbv
  * @param srcbv
  * */
-void bitvector_set_equal(BitVector* dstbv, BitVector* srcbv) {
-    RETURN_IF_FAIL(dstbv && srcbv, ERR_INVALID_ARGUMENTS);
+void bitvec_set_equal(BitVector* dstbv, BitVector* srcbv) {
+    ERR_RETURN_IF_FAIL(dstbv && srcbv, ERR_INVALID_ARGUMENTS);
 
-    bitvector_resize(dstbv, srcbv->length);
-    memcpy(dstbv->data, srcbv->data, 1 + (srcbv->length >> 3));
+    /* resize as well as clear contents after length boundary in dstbv */
+    bitvec_resize(dstbv, srcbv->length);
+
+    /* if length is not 8bit aligned, then set last byte carefully */
+    Size sz = DIV8(srcbv->length);
+    Uint8 rem = MOD8(srcbv->length);
+    if(rem) {
+        dstbv->data[sz + 1] = srcbv->data[sz + 1];
+    }
+    memcpy(dstbv->data, srcbv->data, sz);
 }
 
 /**
  * Reserve space to store @p numbools number of booleans.
  * This results in capacity increase of @c BitVector but not
  * increase in length.
+ *
  * @param bv
  * @param numbools Number of booleans.
  * */
-void bitvector_reserve(BitVector* bv, Size numbools) {
-    RETURN_IF_FAIL(bv && numbools, ERR_INVALID_ARGUMENTS);
+void bitvec_reserve(BitVector* bv, Size numbools) {
+    ERR_RETURN_IF_FAIL(bv && numbools, ERR_INVALID_ARGUMENTS);
 
     /* no change in size of new reserved size is less than current capacity */
     if(numbools < bv->capacity) {
@@ -133,15 +140,18 @@ void bitvector_reserve(BitVector* bv, Size numbools) {
     }
 
     /* recompute new size and resize */
-    Size newsz = BITVECTOR_NEXT_INCREMENTED_LENGTH(numbools >> 3); /* next multiple */
-    bv->data = realloc(bv->data, newsz);
+    Size newsz = BITVEC_NEXT_INCREMENTED_LENGTH(DIV8(numbools)); /* next multiple */
+    Uint8* tmp = realloc(bv->data, newsz);
+    ERR_RETURN_IF_FAIL(tmp, ERR_OUT_OF_MEMORY);
+    bv->data = tmp;
 
     /* clear all bits in allocated new memory */
-    Size cap = bv->capacity >> 3; /* divide by 8 */
-    memset(bv->data + cap, 0, newsz - cap);
+    Size ol = bv->length;
+    bitvec_clear_range(bv, bv->capacity, MUL8(newsz) - bv->capacity);
+    bv->length = ol;
 
     /* since capacity indicates total number of booleans, we multiply by 8 */
-    bv->capacity = newsz << 3; /* multiply with 8 to count number of bits */
+    bv->capacity = MUL8(newsz);
 }
 
 /**
@@ -149,16 +159,19 @@ void bitvector_reserve(BitVector* bv, Size numbools) {
  * This will result in capacity as well as length increase.
  * Current implementation of @c BitVector does not decrease
  * capacity, even if length goes to 0.
+ *
+ * @p numbools must be strictly less than (1 << 63).
+ *
  * @param bv
  * @param numbools Number of booleans.
  * */
-void bitvector_resize(BitVector* bv, Size numbools) {
-    RETURN_IF_FAIL(bv && numbools, ERR_INVALID_ARGUMENTS);
+void bitvec_resize(BitVector* bv, Size numbools) {
+    ERR_RETURN_IF_FAIL(bv && numbools, ERR_INVALID_ARGUMENTS);
 
     if(numbools < bv->length) {
-        bitvector_clear_range(bv, numbools, bv->length);
+        bitvec_clear_range(bv, numbools, bv->length - numbools);
     } else if(numbools > bv->capacity) {
-        bitvector_reserve(bv, numbools);
+        bitvec_reserve(bv, numbools);
     }
 
     bv->length = numbools;
@@ -169,21 +182,21 @@ void bitvector_resize(BitVector* bv, Size numbools) {
  * @param bv @c BitVector.
  * @param val @c Bool value to be pushed.
  * */
-void bitvector_push_back(BitVector* bv, Bool val) {
-    RETURN_IF_FAIL(bv, ERR_INVALID_ARGUMENTS);
+void bitvec_push(BitVector* bv, Bool val) {
+    ERR_RETURN_IF_FAIL(bv, ERR_INVALID_ARGUMENTS);
 
-    if(bv->length == bv->capacity) {
-        bitvector_reserve(bv, bv->length+1);
+    if(bv->length >= bv->capacity) {
+        bitvec_reserve(bv, bv->length + 1); /* create space to store just one more bool */
     }
 
-    Size len = bv->length >> 3; /* divide by 8 */
-    Size rem = bv->length & 7; /* take modulo with 8, but faster */
+    Size pos = DIV8(bv->length);
+    Size rem = MOD8(bv->length);
     if(val) {
-        bv->data[len] |= U8_SET_NTH_BIT(rem);
+        SET8_BIT(bv->data[pos], rem);
     } else {
-        bv->data[len] &= ~(U8_SET_NTH_BIT(rem));
+        CLR8_BIT(bv->data[pos], rem);
     }
-
+    bv->length++;
 }
 
 /**
@@ -192,31 +205,37 @@ void bitvector_push_back(BitVector* bv, Bool val) {
  * @return True if last boolean is True.
  * @return False if last boolean is False.
  * */
-Bool bitvector_pop_back(BitVector* bv) {
-    RETURN_VALUE_IF_FAIL(bv, False, ERR_INVALID_ARGUMENTS);
-    RETURN_VALUE_IF_FAIL(bv->length, False, "Cannot remove from BitVector. No booleans previously stored.\n");
+Bool bitvec_pop(BitVector* bv) {
+    ERR_RETURN_VALUE_IF_FAIL(bv, False, ERR_INVALID_ARGUMENTS);
 
-    Size len = bv->length >> 3;
-    Size rem = bv->length & 7; /* remainder when divided by 8 */
-    Bool val = bv->data[len] & U8_SET_NTH_BIT(rem); /* retrieve the bit */
-    bv->data[len] &= ~(U8_SET_NTH_BIT(rem)); /* unflag the bit */
-    bv->length--; /*  decrement size */
-    return val;
+    if(!bv->length) {
+        return False;
+    }
+
+    bv->length--;
+    Size pos = DIV8(bv->length);
+    Size rem = MOD8(bv->length);
+    Bool v = GET8_BIT(bv->data[pos], rem);
+    CLR8_BIT(bv->data[pos], rem);
+    return v;
 }
 
 /**
  * Get boolean value at given index.
+ *
+ * @p index must be strictly less than (1 << 63).
+ *
  * @param bv
  * @param index Index of boolean to retrieve.
  * @return True if boolean at given index is True.
  * @return False if boolean at given index is False.
  * */
-Bool bitvector_peek(BitVector* bv, Size index) {
-    RETURN_VALUE_IF_FAIL(bv, False, ERR_INVALID_ARGUMENTS);
+Bool bitvec_peek(BitVector* bv, Size index) {
+    ERR_RETURN_VALUE_IF_FAIL(bv, False, ERR_INVALID_ARGUMENTS);
 
-    Size len = index >> 3;
-    Size rem = index & 7;
-    return (bv->data[len] & (U8_SET_NTH_BIT(rem))) != 0;
+    Size len = DIV8(index);
+    Size rem = MOD8(index);
+    return GET8_BIT(bv->data[len], rem);
 }
 
 /**
@@ -226,27 +245,30 @@ Bool bitvector_peek(BitVector* bv, Size index) {
  * This will automatically resize the @c BitVector
  * to store at least @p index number of booleans if @p index
  * exceeds total length of @c BitVector.
+ *
+ * @p index must be strictly less than (1 << 63).
+ *
  * @param bv
  * @param index Index of bit to be set/flagged.
  * */
-inline void bitvector_set(BitVector* bv, Size index) {
-    RETURN_IF_FAIL(bv, ERR_INVALID_ARGUMENTS);
+inline void bitvec_set(BitVector* bv, Size index) {
+    ERR_RETURN_IF_FAIL(bv, ERR_INVALID_ARGUMENTS);
 
     /* if write position exceeds the capacity, then reserve more space */
-    if(index > bv->capacity) {
-        bitvector_reserve(bv, index);
+    if(index >= bv->capacity) {
+        bitvec_reserve(bv, index);
     }
 
     /* if we wrote directly after the length of bitvector,
      * then length automatically increases */
     if(index >= bv->length) {
-        bv->length = index;
+        bv->length = index + 1;
     }
 
     /* set the bit */
-    Size pos = index >> 3; /* divide by 8 */
-    Size rem = index & 7; /* take modulo with 8, but faster */
-    bv->data[pos] |= U8_SET_NTH_BIT(rem); /* set bit */
+    Size pos = DIV8(index);
+    Size rem = MOD8(index);
+    SET8_BIT(bv->data[pos], rem);
 }
 
 /**
@@ -259,83 +281,94 @@ inline void bitvector_set(BitVector* bv, Size index) {
  * @param bv
  * @param index Index of bit to be set/flagged.
  * */
-inline void bitvector_clear(BitVector* bv, Size index) {
-    RETURN_IF_FAIL(bv, ERR_INVALID_ARGUMENTS);
+inline void bitvec_clear(BitVector* bv, Size index) {
+    ERR_RETURN_IF_FAIL(bv, ERR_INVALID_ARGUMENTS);
 
     /* if write position exceeds the capacity, then reserve more space */
-    if(index > bv->capacity) {
-        bitvector_reserve(bv, index);
+    if(index >= bv->capacity) {
+        bitvec_reserve(bv, index);
     }
 
     /* if we wrote directly after the length of bitvector,
      * then length automatically increases */
     if(index >= bv->length) {
-        bv->length = index;
+        bv->length = index + 1;
     }
 
     /* clear the bit */
-    Size pos = index >> 3; /* divide by 8 */
-    Size rem = index & 7; /* take modulo with 8, but faster */
-    bv->data[pos] &= ~(U8_SET_NTH_BIT(rem)); /* unset bit */
+    Size pos = DIV8(index);
+    Size rem = MOD8(index);
+    CLR8_BIT(bv->data[pos], rem);
 }
 
 /**
  * This will set all boolean(s)/bit(s) in
- * the whole @c BitVector. Not just length,
- * but whole capacity.
+ * the whole @c BitVector.
+ * If length is 0, then call is redundant.
+ *
  * @param bv
  * */
-void bitvector_set_all(BitVector* bv) {
-    RETURN_IF_FAIL(bv, ERR_INVALID_ARGUMENTS);
-    memset(bv->data, 0xff, bv->capacity << 3);
+void bitvec_set_all(BitVector* bv) {
+    ERR_RETURN_IF_FAIL(bv, ERR_INVALID_ARGUMENTS);
+    if(bv->length) bitvec_set_range(bv, 0, bv->length);
 }
 
 /**
  * This will clear/unset all boolean(s)/bit(s) in
- * the whole @c BitVector. Not just length,
- * but whole capacity.
+ * the whole @c BitVector.
+ * If length is 0, then call is redundant.
+ *
  * @param bv
  * */
-inline void bitvector_clear_all(BitVector* bv) {
-    RETURN_IF_FAIL(bv, ERR_INVALID_ARGUMENTS);
-    memset(bv->data, 0, bv->capacity << 3);
+inline void bitvec_clear_all(BitVector* bv) {
+    ERR_RETURN_IF_FAIL(bv, ERR_INVALID_ARGUMENTS);
+    if(bv->length) bitvec_clear_range(bv, 0, bv->length);
 }
 
 /**
  * Set all bits in a given range.
+ *
+ * @p range_begin must be strictly less than (1 << 63).
+ * @p range_size must be strictly less than (1 << 63).
+ *
  * @param bv
  * @param range_begin
  * @param range_size
  * */
-inline void bitvector_set_range(BitVector* bv, Size range_begin, Size range_size) {
-    RETURN_IF_FAIL(bv && range_size, ERR_INVALID_ARGUMENTS);
+inline void bitvec_set_range(BitVector* bv, Size range_begin, Size range_size) {
+    if(!range_size) return;
+    ERR_RETURN_IF_FAIL(bv, ERR_INVALID_ARGUMENTS);
 
-    Size rem = (range_begin & 7); /* remainder after dividing by 8 */
+    /* reserve more space if needed */
+    if(range_begin + range_size > bv->capacity) {
+        bitvec_reserve(bv, range_begin + range_size);
+    }
+    bv->length = MAX(range_begin + range_size, bv->length);
+
+    Size rem = MOD8(range_begin);
 
     /* align beginning of clear range to 8 bit boundary*/
     /* if range begins from middle of a byte, then clear from the beginning, for that byte only */
     if(rem) {
         /* clear bits very selectively */
-        Uint8 clearbitsz = MIN(range_size, 8-rem);
-        for(Uint8 s = 0; s < clearbitsz; s++) {
-            bitvector_set(bv, range_begin + s);
-        }
+        Uint8 setbitsz = MIN(range_size, (8 - rem));
+        SET8_RANGE(bv->data[DIV8(range_begin)], rem, setbitsz);
 
         /* if range size fits between starting of clear region and ending of the byte, then make an early exit */
-        if(range_size <= 8-rem) {
+        if(range_size <= (8 - rem)) {
             return;
         }
 
         /* if not then adjust size marking that we cleared and we're not starting from a new boundary, 8 bit aligned */
-        range_size -= clearbitsz;
-        range_begin += clearbitsz;
+        range_size = MAX(TO_INT64(range_size) - setbitsz, 0);
+        range_begin += setbitsz;
     }
 
     /* align ending of clear range to 8 bit boundary */
-    rem = ((range_begin + range_size) & 7); /* now checking whether range ends between a byte */
+    rem = MOD8(range_begin + range_size); /* now checking whether range ends between a byte */
     if(rem) {
-        Size pos = ((range_begin + range_size) >> 3);
-        bv->data[pos] |= (-1U << (8-rem));
+        Size pos = DIV8(range_begin + range_size);
+        SET8_LO(bv->data[pos], rem);
 
         /* if we've clear all bits then exit */
         if(range_size <= rem) {
@@ -343,50 +376,68 @@ inline void bitvector_set_range(BitVector* bv, Size range_begin, Size range_size
         }
 
         /* now the range end is aligned to 8 bit boundary as well */
-        range_size -= rem;
+        range_size = MAX(TO_INT64(range_size) - rem, 0);
     }
 
     /* if more bits need to be cleared, we can directly perform a memset, since everything is 8 bit aligned. */
     if(range_size) {
-        memset(bv->data + (range_begin >> 3), 1, range_size >> 3); /* do not adjust size by 1 in this case, because now size is 8 bit aligned */
+        /* do not adjust size by 1 in this case, because now size is 8 bit aligned */
+        memset(bv->data + DIV8(range_begin), 0xff, DIV8(range_size));
     }
 }
 
 /**
  * Clear all bits in a given range.
+ *
+ * @p range_begin must be strictly less than (1 << 63).
+ * @p range_size must be strictly less than (1 << 63).
+ *
  * @param bv
  * @param range_begin
  * @param range_size
  * */
-void bitvector_clear_range(BitVector* bv, Size range_begin, Size range_size) {
-    RETURN_IF_FAIL(bv && range_size, ERR_INVALID_ARGUMENTS);
+void bitvec_clear_range(BitVector* bv, Size range_begin, Size range_size) {
+    if(!range_size) return;
+    ERR_RETURN_IF_FAIL(bv, ERR_INVALID_ARGUMENTS);
 
-    Size rem = (range_begin & 7); /* remainder after dividing by 8 */
+    /* reserve more space if needed */
+    if(range_begin + range_size > bv->capacity) {
+        /* calling resize here causes infnite recursion */
+        /* bitvec_reserve(bv, range_begin + range_size); */
 
-    /* align beginning of clear range to 8 bit boundary*/
+        /* resize manually here */
+        Size newsz = BITVEC_NEXT_INCREMENTED_LENGTH(DIV8(range_begin + range_size)); /* next multiple */
+        Uint8* tmp = realloc(bv->data, newsz);
+        ERR_RETURN_IF_FAIL(tmp, ERR_OUT_OF_MEMORY);
+        bv->data = tmp;
+        bv->capacity = MUL8(newsz);
+    }
+    bv->length = MAX(range_begin + range_size, bv->length);
+
+    Size rem = MOD8(range_begin);
+
+    /* align beginning of clear range to 8 bit boundary */
     /* if range begins from middle of a byte, then clear from the beginning, for that byte only */
     if(rem) {
         /* clear bits very selectively */
-        Uint8 clearbitsz = MIN(range_size, 8-rem);
-        for(Uint8 s = 0; s < clearbitsz; s++) {
-            bitvector_clear(bv, range_begin + s);
-        }
+        Uint8 clearbitsz = MIN(range_size, (8 - rem));
+        CLR8_RANGE(bv->data[DIV8(range_begin)], rem, clearbitsz);
 
         /* if range size fits between starting of clear region and ending of the byte, then make an early exit */
-        if(range_size <= 8-rem) {
+        if(range_size <= (8 - rem)) {
             return;
         }
 
         /* if not then adjust size marking that we cleared and we're not starting from a new boundary, 8 bit aligned */
-        range_size -= clearbitsz;
+        range_size = MAX(TO_INT64(range_size) - clearbitsz, 0);
         range_begin += clearbitsz;
     }
 
     /* align ending of clear range to 8 bit boundary */
-    rem = ((range_begin + range_size) & 7); /* now checking whether range ends between a byte */
+    rem = MOD8(range_begin + range_size); /* now checking whether range ends between a byte */
     if(rem) {
-        Size pos = ((range_begin + range_size) >> 3);
-        bv->data[pos] &= ~(-1U << (8-rem));
+        Size pos = DIV8(range_begin + range_size);
+        CLR8_LO(bv->data[pos], MIN(rem, range_size));
 
         /* if we've clear all bits then exit */
         if(range_size <= rem) {
@@ -394,35 +445,28 @@ void bitvector_clear_range(BitVector* bv, Size range_begin, Size range_size) {
         }
 
         /* now the range end is aligned to 8 bit boundary as well */
-        range_size -= rem;
+        range_size = MAX(TO_INT64(range_size) - rem, 0);
     }
 
     /* if more bits need to be cleared, we can directly perform a memset, since everything is 8 bit aligned. */
     if(range_size) {
-        memset(bv->data + (range_begin >> 3), 0, range_size >> 3); /* do not adjust size by 1 in this case, because now size is 8 bit aligned */
+        memset(bv->data + DIV8(range_begin), 0, DIV8(range_size)); /* do not adjust size by 1 in this case, because now size is 8 bit aligned */
     }
 }
-
-#define LOGXOR(v1, v2) ((v1) ^ (v2))
-#define LOGAND(v1, v2) ((v1) & (v2))
-#define LOGOR(v1, v2) ((v1) | (v2))
-#define LOGXNOR(v1, v2) (~((v1) ^ (v2)))
-#define LOGNAND(v1, v2) (~((v1) & (v2)))
-#define LOGNOR(v1, v2) (~((v1) | (v2)))
 
 #define OPERATE_ON_BIT_VECTORS(bv1, bv2, OP)                            \
     do {                                                                \
         /* Check for valid arguments */                                 \
-        RETURN_VALUE_IF_FAIL(bv1 && bv2, NULL, ERR_INVALID_ARGUMENTS);  \
+        ERR_RETURN_VALUE_IF_FAIL(bv1 && bv2, NULL, ERR_INVALID_ARGUMENTS);  \
                                                                         \
         /* Calculate minimum and maximum lengths */                     \
         Size minlen = MIN(bv1->length, bv2->length);                    \
         Size maxlen = MAX(bv1->length, bv2->length);                    \
                                                                         \
         /* Create a BitVector to store the result of the operation */   \
-        BitVector* bvres = bitvector_create();                          \
-        bitvector_resize(bvres, maxlen);                                \
-        RETURN_VALUE_IF_FAIL(bvres, NULL, "Failed to create a BitVector to store result of operation.\n"); \
+        BitVector* bvres = bitvec_create();                             \
+        bitvec_resize(bvres, maxlen);                                   \
+        ERR_RETURN_VALUE_IF_FAIL(bvres, NULL, ERR_INVALID_OBJECT);      \
                                                                         \
         Uint64* dres = (Uint64*)bvres->data;                            \
         Uint64* d1 = (Uint64*)bv1->data;                                \
@@ -435,7 +479,7 @@ void bitvector_clear_range(BitVector* bv, Size range_begin, Size range_size) {
          * after length and before capacity are always 0, which makes
          * sure that taking xor with a little extra won't change
          * the desired result */                                        \
-        Size num64bitblocks = BITVECTOR_NEXT_INCREMENTED_LENGTH(minlen >> 3) >> 3; \
+        Size num64bitblocks = DIV8(BITVEC_NEXT_INCREMENTED_LENGTH(DIV8(minlen))); \
         for (Size s = 0; s < num64bitblocks; s++) {                     \
             *dres++ = OP(*d1++, *d2++);                                 \
         }                                                               \
@@ -443,7 +487,7 @@ void bitvector_clear_range(BitVector* bv, Size range_begin, Size range_size) {
         /* Handle remaining data, copy from the BitVector with the
          * maximum length */                                            \
         Uint64* d = (maxlen == bv1->length) ? d1 : d2;                  \
-        for (Size s = num64bitblocks; s < (maxlen >> 6); s++) {         \
+        for (Size s = num64bitblocks; s < DIV64(maxlen); s++) {         \
             *dres++ = *d++;                                             \
         }                                                               \
         return bvres;                                                   \
@@ -467,8 +511,8 @@ void bitvector_clear_range(BitVector* bv, Size range_begin, Size range_size) {
  * @return BitVector* A valid @c BitVector on success.
  * @return BitVector* NULL on failure.
  * */
-BitVector* bitvector_xor(BitVector* bv1, BitVector* bv2) {
-    OPERATE_ON_BIT_VECTORS(bv1, bv2, LOGXOR);
+BitVector* bitvec_xor(BitVector* bv1, BitVector* bv2) {
+    OPERATE_ON_BIT_VECTORS(bv1, bv2, XOR);
 }
 
 /**
@@ -489,8 +533,8 @@ BitVector* bitvector_xor(BitVector* bv1, BitVector* bv2) {
  * @return BitVector* A valid @c BitVector on success.
  * @return BitVector* NULL on failure.
  * */
-BitVector* bitvector_and(BitVector* bv1, BitVector* bv2) {
-    OPERATE_ON_BIT_VECTORS(bv1, bv2, LOGAND);
+BitVector* bitvec_and(BitVector* bv1, BitVector* bv2) {
+    OPERATE_ON_BIT_VECTORS(bv1, bv2, AND);
 }
 
 /**
@@ -511,8 +555,8 @@ BitVector* bitvector_and(BitVector* bv1, BitVector* bv2) {
  * @return BitVector* A valid @c BitVector on success.
  * @return BitVector* NULL on failure.
  * */
-BitVector* bitvector_or(BitVector* bv1, BitVector* bv2) {
-    OPERATE_ON_BIT_VECTORS(bv1, bv2, LOGOR);
+BitVector* bitvec_or(BitVector* bv1, BitVector* bv2) {
+    OPERATE_ON_BIT_VECTORS(bv1, bv2, OR);
 }
 
 /**
@@ -533,8 +577,8 @@ BitVector* bitvector_or(BitVector* bv1, BitVector* bv2) {
  * @return BitVector* A valid @c BitVector on success.
  * @return BitVector* NULL on failure.
  * */
-BitVector* bitvector_xnor(BitVector* bv1, BitVector* bv2) {
-    OPERATE_ON_BIT_VECTORS(bv1, bv2, LOGXNOR);
+BitVector* bitvec_xnor(BitVector* bv1, BitVector* bv2) {
+    OPERATE_ON_BIT_VECTORS(bv1, bv2, XNOR);
 }
 
 /**
@@ -555,8 +599,8 @@ BitVector* bitvector_xnor(BitVector* bv1, BitVector* bv2) {
  * @return BitVector* A valid @c BitVector on success.
  * @return BitVector* NULL on failure.
  * */
-BitVector* bitvector_nand(BitVector* bv1, BitVector* bv2) {
-    OPERATE_ON_BIT_VECTORS(bv1, bv2, LOGNAND);
+BitVector* bitvec_nand(BitVector* bv1, BitVector* bv2) {
+    OPERATE_ON_BIT_VECTORS(bv1, bv2, NAND);
 }
 
 /**
@@ -577,17 +621,11 @@ BitVector* bitvector_nand(BitVector* bv1, BitVector* bv2) {
  * @return BitVector* A valid @c BitVector on success.
  * @return BitVector* NULL on failure.
  * */
-BitVector* bitvector_nor(BitVector* bv1, BitVector* bv2) {
-    OPERATE_ON_BIT_VECTORS(bv1, bv2, LOGNOR);
+BitVector* bitvec_nor(BitVector* bv1, BitVector* bv2) {
+    OPERATE_ON_BIT_VECTORS(bv1, bv2, NOR);
 }
 
 #undef OPERATE_ON_BIT_VECTORS
-#undef LOGXNOR
-#undef LOGNAND
-#undef LOGNOR
-#undef LOGOR
-#undef LOGAND
-#undef LOGXOR
 
 /**
  * Compute logical NOT of two @c BitVector values and
@@ -603,20 +641,37 @@ BitVector* bitvector_nor(BitVector* bv1, BitVector* bv2) {
  * @return BitVector* A valid @c BitVector on success.
  * @return BitVector* NULL on failure.
  * */
-BitVector* bitvector_not(BitVector* bv) {
-    RETURN_VALUE_IF_FAIL(bv, NULL, ERR_INVALID_ARGUMENTS);
+BitVector* bitvec_not(BitVector* bv) {
+    ERR_RETURN_VALUE_IF_FAIL(bv, NULL, ERR_INVALID_ARGUMENTS);
 
     /* create new bitvector to store result */
-    BitVector* notbv = bitvector_create();
-    RETURN_VALUE_IF_FAIL(notbv, NULL, ERR_INVALID_ARGUMENTS);
-    bitvector_reserve(notbv, bv->length);
+    BitVector* notbv = bitvec_create();
+    ERR_RETURN_VALUE_IF_FAIL(notbv, NULL, ERR_INVALID_ARGUMENTS);
+
+    /* create space to store result*/
+    bitvec_resize(notbv, bv->length);
 
     Uint64* dres = (Uint64*)notbv->data;
     Uint64* d    = (Uint64*)bv->data;
 
-    Size num64bitblocks = bv->length >> 6;
+    /* process blocks of 64 bit data first */
+    Size num64bitblocks = DIV64(notbv->length);
     for(Size s = 0; s < num64bitblocks; s++) {
-        *dres++ = ~*d++;
+        *dres++ = NOT(*d++);
+    }
+
+    /* process remaining blocks of 8 bit data */
+    Size rem8bitblocks = DIV8(MOD64(notbv->length));
+    Size start = MUL8(num64bitblocks);
+    for(Size s = start; s < start + rem8bitblocks; s++) {
+        notbv->data[s] = NOT(bv->data[s]);
+    }
+
+    /* process remaining unaligned bits */
+    Uint8 rembits = MOD8(notbv->length);
+    if(rembits) {
+        start = DIV8(notbv->length);
+        notbv->data[start] = TO_UINT8(AND(NOT(bv->data[start]), MASK_LO(rembits)));
     }
 
     return notbv;
@@ -626,32 +681,40 @@ BitVector* bitvector_not(BitVector* bv) {
  * Perform shift-left (<<) operation on given @c BitVector.
  * Length of the resulting @c BitVector will exactly same as
  * that of given @c BitVector @p bv.
- * @param bv
- * @param index
+ *
+ * @p index must be strictly less than (1 << 63).
+ *
+ * @param bv.
+ * @param index.
  */
-BitVector* bitvector_shl(BitVector* bv, Size index) {
-    RETURN_VALUE_IF_FAIL(bv, NULL, ERR_INVALID_ARGUMENTS);
+BitVector* bitvec_shl(BitVector* bv, Size index) {
+    ERR_RETURN_VALUE_IF_FAIL(bv, NULL, ERR_INVALID_ARGUMENTS);
 
-    BitVector* newbv = bitvector_create();
-    RETURN_VALUE_IF_FAIL(newbv, NULL, "Failed to create BitVector to store result of operation\n");
-    bitvector_reserve(newbv, bv->length - index + 8);
+    /* create bitvec to store result */
+    BitVector* newbv = bitvec_create();
+    ERR_RETURN_VALUE_IF_FAIL(newbv, NULL, ERR_INVALID_OBJECT);
 
-    Uint8 rem = (index & 7); /* remainder when index is divided by 8 */
+    /* reserve space to store in new bitvector */
+    Int64 newbvlen = TO_INT64(bv->length) - TO_INT64(index);
+    if(newbvlen <= 0) {
+        return newbv;
+    } else {
+        bitvec_reserve(newbv, newbvlen);
+    }
 
+    /* process differently if not 8bit aligned and if 8bit aligned */
+    Uint8 rem = MOD8(index);
     if(rem) {
-        Uint8 mask1 = (-1U) << (8 - rem); /* to select lower (rem) bits at once */
-        Uint8 mask2 = (-1U) >> rem; /* to select higher (8-rem) bits at once */
-
-        Size pos = (index >> 3);
-        Size end = (bv->length - index) >> 3;
-        for(Size s = 0; s < end; s++) {
-            newbv->data[s] |= (bv->data[pos] & mask2) << rem; /* select high 8-rem bits and shift them down */
-            newbv->data[s] |= (bv->data[pos+1] & mask1) >> (8-rem); /* select low rem bits from next byte and shift them up */
+        Size pos = DIV8(index);
+        Size sz = DIV8(bv->length - index);
+        for(Size s = 0; s < sz; s++) {
+            newbv->data[s] |= GET8_HI(bv->data[pos], 8-rem); /* select high 8-rem bits (already adjusted) */
+            newbv->data[s] |= SHR(GET8_LO(bv->data[pos+1], rem), 8-rem); /* select low rem bits from next byte and shift them up */
             pos++;
         }
     } else {
         /* if bit shift is aligned to 8 bit boundary, then direct memcpy is fast */
-        memcpy(newbv->data, bv->data + (index >> 8), 1 + ((bv->length - index) >> 3));
+        memcpy(newbv->data, bv->data + DIV8(index), DIV8(bv->length - index));
     }
 
     /* keep the length same as that of given bitvector. */
@@ -662,32 +725,32 @@ BitVector* bitvector_shl(BitVector* bv, Size index) {
 
 /**
  * Perform shift-right (>>) operation on given @c BitVector.
+ *
+ * @p index must be strictly less than (1 << 63).
+ *
  * @param bv
  * @param index
  * */
-BitVector* bitvector_shr(BitVector* bv, Size index) {
-    RETURN_VALUE_IF_FAIL(bv, NULL, ERR_INVALID_ARGUMENTS);
+BitVector* bitvec_shr(BitVector* bv, Size index) {
+    ERR_RETURN_VALUE_IF_FAIL(bv, NULL, ERR_INVALID_ARGUMENTS);
 
-    BitVector* newbv = bitvector_create();
-    RETURN_VALUE_IF_FAIL(newbv, NULL, "Failed to create BitVector to store result of operation\n");
-    bitvector_reserve(newbv, bv->length + index + 8); /* need space for extra 8 bits for cases when new length escapes boundary */
+    BitVector* newbv = bitvec_create();
+    ERR_RETURN_VALUE_IF_FAIL(newbv, NULL, ERR_INVALID_OBJECT);
+    bitvec_reserve(newbv, bv->length + index + 8); /* need space for extra 8 bits for cases when new length escapes boundary */
 
-    Uint8 rem = (index & 7); /* remainder when index is divided by 8 */
+    Uint8 rem = MOD8(index); /* remainder when index is divided by 8 */
 
     if(rem) {
-        Uint8 mask1 = (-1U) >> (8 - rem); /* to select higher (rem) bits at once */
-        Uint8 mask2 = (-1U) << rem; /* to select lower (8-rem) bits at once */
-
-        Size pos = (index >> 3);
-        Size end = bv->length >> 3;
-        for(Size s = 0; s < end; s++) {
-            newbv->data[pos]   |= (bv->data[s] & mask2) >> rem; /* select lower 8-rem bits and place them first */
-            newbv->data[pos+1] |= (bv->data[s] & mask1) << (8-rem); /* select remaining higher rem bits and place them after */
+        Size pos = DIV8(index);
+        Size sz = DIV8(bv->length);
+        for(Size s = 0; s < sz; s++) {
+            newbv->data[pos]   |= GET8_LO(bv->data[s], 8-rem); /* select lower 8-rem bits */
+            newbv->data[pos+1] |= SHL(GET8_HI(bv->data[s], rem), (8-rem)); /* select remaining higher rem bits and place them after */
             pos++;
         }
     } else {
         /* if bit shift is aligned to 8 bit boundary, then direct memcpy is fast */
-        memcpy(newbv->data + (index >> 3), bv->data, 1 + (bv->length >> 3));
+        memcpy(newbv->data + DIV8(index), bv->data, DIV8(bv->length));
     }
 
     newbv->length = bv->length + index;
@@ -706,15 +769,15 @@ BitVector* bitvector_shr(BitVector* bv, Size index) {
  * @return True if bv1 and bv2 are equal.
  * @return False otherwise.
  * */
-Bool bitvector_cmpeq(BitVector* bv1, BitVector* bv2) {
-    RETURN_VALUE_IF_FAIL(bv1 && bv2, False, ERR_INVALID_ARGUMENTS);
+Bool bitvec_cmpeq(BitVector* bv1, BitVector* bv2) {
+    ERR_RETURN_VALUE_IF_FAIL(bv1 && bv2, False, ERR_INVALID_ARGUMENTS);
 
     Uint64* d1 = (Uint64*)bv1->data;
     Uint64* d2 = (Uint64*)bv2->data;
 
-    /* compare 8n blocks first */
-    Size minlen = MIN(bv1->length, bv2->length);
-    Size commonlen = 1 + (minlen >> 3); /* number of bytes common between the two, always atleat 1 byte is common */
+    /* compare 8bit aligned blocks first */
+    Size minlen = MIN(bv1->capacity, bv2->capacity);
+    Size commonlen = DIV8(minlen); /* number of bytes common between the two, always atleat 1 byte is common */
     if(memcmp(d1, d2, commonlen) != 0) {
         return False;
     }
@@ -726,7 +789,7 @@ Bool bitvector_cmpeq(BitVector* bv1, BitVector* bv2) {
 
     /* check if remaining bits in bitvector of maxm length are 0 or not */
     Uint8* d = (Uint8*)((minlen == bv1->length) ? d2 : d1); /* bv data of maxm length */
-    Size max8bitblocks = MAX(bv1->length, bv2->length) >> 3;
+    Size max8bitblocks = DIV8(MAX(bv1->length, bv2->length));
     for(Size s = commonlen; s < max8bitblocks; s++) {
         if(d[s]) return False;
     }

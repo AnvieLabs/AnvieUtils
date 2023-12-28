@@ -21,7 +21,7 @@
  * */
 
 #include <Anvie/Containers/Tree.h>
-
+#include <Anvie/Error.h>
 #include <string.h>
 
 // private functions
@@ -40,7 +40,7 @@ static void tree_node_decrement_size(TreeNode* node); /* used as a recursive ope
  * of create copy of every @c TreeNode in the provided src @c TreeNode.
  * */
 void tree_node_create_copy(void* dst, void* src, void* udata) {
-    RETURN_IF_FAIL(dst && src, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(dst && src, ERR_INVALID_ARGUMENTS);
 
     TreeNode* node_src = TO_TREE_NODE(src);
     Tree* tree = node_src->tree_parent;
@@ -55,7 +55,7 @@ void tree_node_create_copy(void* dst, void* src, void* udata) {
     if(tree->create_copy || (tree->element_size > 8)) {
         node_dst->data = ALLOCATE(Uint8, tree->element_size);
         if(!node_dst->data) {
-            ERR(__FUNCTION__, ERR_OUT_OF_MEMORY);
+            ERR(__FUNCTION__, ERRFMT, ERRMSG(ERR_OUT_OF_MEMORY));
             return;
         }
     }
@@ -73,7 +73,7 @@ void tree_node_create_copy(void* dst, void* src, void* udata) {
     if(node_src->children) {
         node_dst->children = tree_node_vector_clone(node_src->children, udata);
         if(!node_dst->children) {
-            ERR(__FUNCTION__, "Failed to create Vector<TreeNode> clone\n");
+            ERR(__FUNCTION__, ERRFMT, ERRMSG(ERR_INVALID_OBJECT));
             FREE(node_dst->data);
             node_dst->data = NULL;
         }
@@ -88,7 +88,7 @@ void tree_node_create_copy(void* dst, void* src, void* udata) {
  * of destroy every @c TreeNode in the provided @c TreeNode.
  * */
 void tree_node_destroy_copy(void* copy, void* udata) {
-    RETURN_IF_FAIL(copy, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(copy, ERR_INVALID_ARGUMENTS);
 
     TreeNode* node = TO_TREE_NODE(copy);
     Tree* tree = TREE_PARENT(node);
@@ -137,7 +137,7 @@ Size tree_node_height(TreeNode* node) {
  * @return Pointer to first child node.
  * */
 TreeNode* tree_node_front(TreeNode* node) {
-    RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
     if(!node->children || !node->children->length) {
         return NULL;
     }
@@ -150,7 +150,7 @@ TreeNode* tree_node_front(TreeNode* node) {
  * @return Pointer to last child node.
  * */
 TreeNode* tree_node_back(TreeNode* node) {
-    RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
 
     if(!node->children || !node->children->length) {
         return NULL;
@@ -166,12 +166,12 @@ TreeNode* tree_node_back(TreeNode* node) {
  * @return Pointer to first child node.
  * */
 TreeNode* tree_node_peek(TreeNode* node, Size idx) {
-    RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
 
     if(!node->children || !node->children->length) {
         return NULL;
     }
-    RETURN_VALUE_IF_FAIL(idx < node->children->length, NULL, "Provided index is exceeding the last index in array of child nodes\n")
+    ERR_RETURN_VALUE_IF_FAIL(idx < node->children->length, NULL, ERR_INVALID_INDEX)
 
     return tree_node_vector_peek(node->children, idx);
 }
@@ -187,7 +187,7 @@ TreeNode* tree_node_peek(TreeNode* node, Size idx) {
  * */
 #define TREE_PUSH(place)                                                \
     TreeNode* tree_node_push_##place(TreeNode* node, void* data, void* udata) { \
-        RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);        \
+        ERR_RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);    \
                                                                         \
         TreeNode node_child;                                            \
         node_child.node_parent = node;                                  \
@@ -225,7 +225,7 @@ TREE_PUSH(back)
  * @return Pointer to new inserted node.
  * */
 TreeNode* tree_node_insert(TreeNode* node, void* data, Size index, void* udata) {
-    RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
 
     // create temporary child node object
     TreeNode node_child;
@@ -264,8 +264,8 @@ TreeNode* tree_node_insert(TreeNode* node, void* data, Size index, void* udata) 
  * @return Pointer to removed child node on success, NULL otherwise.
  * */
 TreeNode* tree_node_remove(TreeNode* node, Size index) {
-    RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
-    RETURN_VALUE_IF_FAIL(node->children && (index < node->children->length), NULL, "Provided index is exceeding the last index in array of child nodes\n");
+    ERR_RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(node->children && (index < node->children->length), NULL, ERR_INVALID_INDEX);
 
     TreeNode* node_child = tree_node_vector_remove(node->children, index);
 
@@ -290,8 +290,8 @@ TreeNode* tree_node_remove(TreeNode* node, Size index) {
  * to destroy this @c TreeNode's copy of data.
  * */
 void tree_node_delete(TreeNode* node, Size index, void* udata) {
-    RETURN_IF_FAIL(node, ERR_INVALID_ARGUMENTS);
-    RETURN_IF_FAIL(node->children && (index < node->children->length), "Provided index is exceeding the last index in array of child nodes\n");
+    ERR_RETURN_IF_FAIL(node, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(node->children && (index < node->children->length), ERR_INVALID_INDEX);
 
     tree_node_vector_delete(node->children, index, udata);
 
@@ -315,7 +315,7 @@ void tree_node_delete(TreeNode* node, Size index, void* udata) {
  * @return Pointer to new added node.
  * */
 TreeNode* tree_node_push_front_fast(TreeNode* node, void* data, void* udata) {
-    RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
 
     // create temporary child node object
     TreeNode node_child;
@@ -348,7 +348,7 @@ TreeNode* tree_node_push_front_fast(TreeNode* node, void* data, void* udata) {
  * @return Pointer to removed child node on success, NULL otherwise.
  * */
 TreeNode* tree_node_insert_fast(TreeNode* node, void* data, Size index, void* udata) {
-    RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
 
     // create temporary child node object
     TreeNode node_child;
@@ -380,8 +380,8 @@ TreeNode* tree_node_insert_fast(TreeNode* node, void* data, Size index, void* ud
  * @return Pointer to removed child node on success, NULL otherwise.
  * */
 TreeNode* tree_node_remove_fast(TreeNode* node, Size index) {
-    RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
-    RETURN_VALUE_IF_FAIL(node->children && (index < node->children->length), NULL, "Provided index is exceeding the last index in array of child nodes\n");
+    ERR_RETURN_VALUE_IF_FAIL(node, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(node->children && (index < node->children->length), NULL, ERR_INVALID_INDEX);
 
     TreeNode* node_child = tree_node_vector_remove_fast(node->children, index);
 
@@ -404,8 +404,8 @@ TreeNode* tree_node_remove_fast(TreeNode* node, Size index) {
  * to create this @c TreeNode's copy of data.
  * */
 void tree_node_delete_fast(TreeNode* node, Size index, void* udata) {
-    RETURN_IF_FAIL(node, ERR_INVALID_ARGUMENTS);
-    RETURN_IF_FAIL(node->children && (index < node->children->length), "Provided index is exceeding the last index in array of child nodes\n");
+    ERR_RETURN_IF_FAIL(node, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(node->children && (index < node->children->length), ERR_INVALID_INDEX);
 
     tree_node_vector_delete_fast(node->children, index, udata);
 

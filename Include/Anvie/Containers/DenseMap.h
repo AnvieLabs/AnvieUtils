@@ -144,20 +144,20 @@ DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE(u64_u16, U64_U16_, hash_u64, Uint64, com
 DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE(u64_u32, U64_U32_, hash_u64, Uint64, compare_u64, Uint32);
 DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE(u64_u64, U64_U64_, hash_u64, Uint64, compare_u64, Uint64);
 
-/*                                                            prefix   prefix    hash         ktype   kcreate             kdestroy             kcompare        dtype   dcreate  ddestroy  is_multimap  max_load_factor */
-DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(str_u8,  Str_U8_,  hash_string, String, string_create_copy, string_destroy_copy, compare_string, Uint8 , NULL,    NULL,     True,        DENSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
-DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(str_u16, Str_U16_, hash_string, String, string_create_copy, string_destroy_copy, compare_string, Uint16, NULL,    NULL,     True,        DENSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
-DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(str_u32, Str_U32_, hash_string, String, string_create_copy, string_destroy_copy, compare_string, Uint32, NULL,    NULL,     True,        DENSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
-DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(str_u64, Str_U64_, hash_string, String, string_create_copy, string_destroy_copy, compare_string, Uint64, NULL,    NULL,     True,        DENSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
+/*                                                            prefix    prefix     hash       ktype    kcreate           kdestroy           kcompare      dtype   dcreate  ddestroy  is_multimap  max_load_factor */
+DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(zstr_u8,  ZStr_U8_,  hash_zstr, ZString, zstr_create_copy, zstr_destroy_copy, compare_zstr, Uint8 , NULL,    NULL,     True,        DENSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
+DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(zstr_u16, ZStr_U16_, hash_zstr, ZString, zstr_create_copy, zstr_destroy_copy, compare_zstr, Uint16, NULL,    NULL,     True,        DENSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
+DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(zstr_u32, ZStr_U32_, hash_zstr, ZString, zstr_create_copy, zstr_destroy_copy, compare_zstr, Uint32, NULL,    NULL,     True,        DENSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
+DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(zstr_u64, ZStr_U64_, hash_zstr, ZString, zstr_create_copy, zstr_destroy_copy, compare_zstr, Uint64, NULL,    NULL,     True,        DENSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
 
-/*                                                            prefix   prefix    hash      ktype   kcreate  kdestroy  kcompare     dtype   dcreate             ddestroy             is_multimap  max_load_factor */
-DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(u8_str,  U8_Str_,  hash_u8 , Uint8 , NULL,    NULL,     compare_u8 , String, string_create_copy, string_destroy_copy, True,        DENSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
-DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(u16_str, U16_Str_, hash_u16, Uint16, NULL,    NULL,     compare_u16, String, string_create_copy, string_destroy_copy, True,        DENSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
-DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(u32_str, U32_Str_, hash_u32, Uint32, NULL,    NULL,     compare_u32, String, string_create_copy, string_destroy_copy, True,        DENSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
-DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(u64_str, U64_Str_, hash_u64, Uint64, NULL,    NULL,     compare_u64, String, string_create_copy, string_destroy_copy, True,        DENSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
+/*                                                            prefix    prefix     hash      ktype   kcreate  kdestroy  kcompare     dtype    dcreate           ddestroy           is_multimap  max_load_factor */
+DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(u8_zstr,  U8_ZStr_,  hash_u8 , Uint8 , NULL,    NULL,     compare_u8 , ZString, zstr_create_copy, zstr_destroy_copy, True,        DENSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
+DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(u16_zstr, U16_ZStr_, hash_u16, Uint16, NULL,    NULL,     compare_u16, ZString, zstr_create_copy, zstr_destroy_copy, True,        DENSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
+DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(u32_zstr, U32_ZStr_, hash_u32, Uint32, NULL,    NULL,     compare_u32, ZString, zstr_create_copy, zstr_destroy_copy, True,        DENSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
+DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(u64_zstr, U64_ZStr_, hash_u64, Uint64, NULL,    NULL,     compare_u64, ZString, zstr_create_copy, zstr_destroy_copy, True,        DENSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
 
-/*                                                            prefix   prefix   hash         ktype   kcreate             kdestroy             kcompare        dtype   dcreate             ddestroy             is_multimap  max_load_factor */
-DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(str_str, Str_Str_, hash_string, String, string_create_copy, string_destroy_copy, compare_string, String, string_create_copy, string_destroy_copy, True,        DENSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
+/*                                                            prefix     prefix      hash       ktype    kcreate           kdestroy           kcompare      dtype    dcreate           ddestroy           is_multimap  max_load_factor */
+DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(zstr_zstr, ZStr_ZStr_, hash_zstr, ZString, zstr_create_copy, zstr_destroy_copy, compare_zstr, ZString, zstr_create_copy, zstr_destroy_copy, True,        DENSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
 
 
 #endif // ANVIE_UTILS_CONTAINERS_DENSE_MAP_H

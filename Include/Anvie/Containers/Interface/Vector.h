@@ -26,291 +26,296 @@
 
 #include <Anvie/HelperDefines.h>
 
-#define DEF_INTEGER_VECTOR_INTERFACE(prefix, type) DEF_INTEGER_VECTOR_INTERFACE_WITH_COPY_AND_DESTROY(prefix, type, NULL, NULL)
+#define DEF_INTEGER_VECTOR_INTERFACE(api_prefix, type_prefix, type) DEF_INTEGER_VECTOR_INTERFACE_WITH_COPY_AND_DESTROY(api_prefix, type_prefix, type, NULL, NULL)
 
-#define DEF_INTEGER_VECTOR_INTERFACE_WITH_COPY_AND_DESTROY(prefix, type, copy, destroy) \
-    FORCE_INLINE Vector* prefix##_vector_create() {                     \
-        return vector_create(sizeof(type), copy, destroy);              \
+#define DEF_INTEGER_VECTOR_INTERFACE_WITH_COPY_AND_DESTROY(api_prefix, type_prefix, type, copy, destroy) \
+    typedef Vector type_prefix##Vector;                                 \
+    FORCE_INLINE type_prefix##Vector* api_prefix##_vector_create() {    \
+        return vector_create(sizeof(type),                              \
+                             (CreateElementCopyCallback)(void*)(copy),  \
+                             (DestroyElementCopyCallback)(void*)destroy); \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_destroy(Vector* vec, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_destroy(type_prefix##Vector* vec, void* udata) { \
         vector_destroy(vec, udata);                                     \
     }                                                                   \
                                                                         \
-    FORCE_INLINE Vector* prefix##_vector_clone(Vector* vec, void* udata) { \
+    FORCE_INLINE type_prefix##Vector* api_prefix##_vector_clone(type_prefix##Vector* vec, void* udata) { \
         return vector_clone(vec, udata);                                \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_resize(Vector* vec, Size sz) {    \
+    FORCE_INLINE void api_prefix##_vector_resize(type_prefix##Vector* vec, Size sz) { \
         vector_resize(vec, sz);                                         \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_reserve(Vector* vec, Size sz) {   \
+    FORCE_INLINE void api_prefix##_vector_reserve(type_prefix##Vector* vec, Size sz) { \
         vector_reserve(vec, sz);                                        \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_clear(Vector* vec, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_clear(type_prefix##Vector* vec, void* udata) { \
         vector_clear(vec, udata);                                       \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_get_subvector(Vector* vec, Size start, Size size, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_get_subvector(type_prefix##Vector* vec, Size start, Size size, void* udata) { \
         vector_get_subvector(vec, start, size, udata);                  \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_copy(Vector* vec, Size to, Size from, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_copy(type_prefix##Vector* vec, Size to, Size from, void* udata) { \
         vector_copy(vec, to, from, udata);                              \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_move(Vector* vec, Size to, Size from, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_move(type_prefix##Vector* vec, Size to, Size from, void* udata) { \
         vector_move(vec, to, from, udata);                              \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_overwrite(Vector* vec, Size to, type value, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_overwrite(type_prefix##Vector* vec, Size to, type value, void* udata) { \
         vector_overwrite(vec, to, (void*)(Uint64)value, udata);         \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_insert(Vector* vec, type value, Size pos, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_insert(type_prefix##Vector* vec, type value, Size pos, void* udata) { \
         vector_insert(vec, (void*)(Uint64)value, pos, udata);           \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_delete(Vector* vec, Size pos, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_delete(type_prefix##Vector* vec, Size pos, void* udata) { \
         vector_delete(vec, pos, udata);                                 \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type prefix##_vector_remove(Vector* vec, Size pos) {   \
+    FORCE_INLINE type api_prefix##_vector_remove(type_prefix##Vector* vec, Size pos) { \
         return (type)(Uint64)vector_remove(vec, pos);                   \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_insert_fast(Vector* vec, type value, Size pos, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_insert_fast(type_prefix##Vector* vec, type value, Size pos, void* udata) { \
         vector_insert_fast(vec, (void*)(Uint64)value, pos, udata);      \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_delete_fast(Vector* vec, Size pos, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_delete_fast(type_prefix##Vector* vec, Size pos, void* udata) { \
         vector_delete_fast(vec, pos, udata);                            \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type prefix##_vector_remove_fast(Vector* vec, Size pos) { \
+    FORCE_INLINE type api_prefix##_vector_remove_fast(type_prefix##Vector* vec, Size pos) { \
         return (type)(Uint64)vector_remove_fast(vec, pos);              \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_push_front(Vector* vec, type value, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_push_front(type_prefix##Vector* vec, type value, void* udata) { \
         vector_push_front(vec, (void*)(Uint64)value, udata);            \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type prefix##_vector_pop_front(Vector* vec) {          \
+    FORCE_INLINE type api_prefix##_vector_pop_front(type_prefix##Vector* vec) { \
         return (type)(Uint64)vector_pop_front(vec);                     \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_push_front_fast(Vector* vec, type value, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_push_front_fast(type_prefix##Vector* vec, type value, void* udata) { \
         vector_push_front_fast(vec, (void*)(Uint64)value, udata);       \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type prefix##_vector_pop_front_fast(Vector* vec) {     \
+    FORCE_INLINE type api_prefix##_vector_pop_front_fast(type_prefix##Vector* vec) { \
         return (type)(Uint64)vector_pop_front_fast(vec);                \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_push_back(Vector* vec, type value, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_push_back(type_prefix##Vector* vec, type value, void* udata) { \
         vector_push_back(vec, (void*)(Uint64)value, udata);             \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type prefix##_vector_pop_back(Vector* vec) {           \
+    FORCE_INLINE type api_prefix##_vector_pop_back(type_prefix##Vector* vec) { \
         return (type)(Uint64)vector_pop_back(vec);                      \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type prefix##_vector_peek(Vector* vec, Size pos) {     \
+    FORCE_INLINE type api_prefix##_vector_peek(type_prefix##Vector* vec, Size pos) { \
         return (type)(Uint64)vector_peek(vec, pos);                     \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type prefix##_vector_front(Vector* vec) {              \
+    FORCE_INLINE type api_prefix##_vector_front(type_prefix##Vector* vec) { \
         return (type)(Uint64)vector_front(vec);                         \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type prefix##_vector_back(Vector* vec) {               \
+    FORCE_INLINE type api_prefix##_vector_back(type_prefix##Vector* vec) { \
         return (type)(Uint64)vector_back(vec);                          \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_print(Vector* vec, PrintElementCallback printer, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_print(type_prefix##Vector* vec, PrintElementCallback printer, void* udata) { \
         vector_print(vec, printer, udata);                              \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_merge(Vector* vec, Vector* vec_other, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_merge(type_prefix##Vector* vec, type_prefix##Vector* vec_other, void* udata) { \
         vector_merge(vec, vec_other, udata);                            \
     }                                                                   \
                                                                         \
-    FORCE_INLINE Vector* prefix##_vector_filter(Vector* vec, FilterElementCallback filter, void* udata) { \
+    FORCE_INLINE type_prefix##Vector* api_prefix##_vector_filter(type_prefix##Vector* vec, FilterElementCallback filter, void* udata) { \
         return vector_filter(vec, filter, udata);                       \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_swap(Vector* vec, Size p1, Size p2) { \
+    FORCE_INLINE void api_prefix##_vector_swap(type_prefix##Vector* vec, Size p1, Size p2) { \
         vector_swap(vec, p1, p2);                                       \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_sort(Vector* vec, CompareElementCallback compare, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_sort(type_prefix##Vector* vec, CompareElementCallback compare, void* udata) { \
         vector_sort(vec, compare, udata);                               \
     }                                                                   \
                                                                         \
-    FORCE_INLINE Bool prefix##_vector_check_sorted(Vector* vec, CompareElementCallback compare, void* udata) { \
+    FORCE_INLINE Bool api_prefix##_vector_check_sorted(type_prefix##Vector* vec, CompareElementCallback compare, void* udata) { \
         return vector_check_sorted(vec, compare, udata);                \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_insertion_sort(Vector* vec, CompareElementCallback compare, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_insertion_sort(type_prefix##Vector* vec, CompareElementCallback compare, void* udata) { \
         vector_insertion_sort(vec, compare, udata);                     \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_bubble_sort(Vector* vec, CompareElementCallback compare, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_bubble_sort(type_prefix##Vector* vec, CompareElementCallback compare, void* udata) { \
         vector_bubble_sort(vec, compare, udata);                        \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_merge_sort(Vector* vec, CompareElementCallback compare, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_merge_sort(type_prefix##Vector* vec, CompareElementCallback compare, void* udata) { \
         vector_merge_sort(vec, compare, udata);                         \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* prefix##_vector_data(Vector* vec) {              \
+    FORCE_INLINE type* api_prefix##_vector_data(type_prefix##Vector* vec) { \
         return (type*)vec->data;                                        \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* prefix##_vector_address_at(Vector* vec, Size idx) { \
+    FORCE_INLINE type* api_prefix##_vector_address_at(type_prefix##Vector* vec, Size idx) { \
         return (type*)vector_address_at(vec, idx);                      \
     }
 
-#define DEF_STRUCT_VECTOR_INTERFACE(prefix, type, copy_create, copy_destroy) \
-    FORCE_INLINE Vector* prefix##_vector_create() {                     \
+#define DEF_STRUCT_VECTOR_INTERFACE(api_prefix, type_prefix, type, copy_create, copy_destroy) \
+    typedef Vector type_prefix##Vector;                                 \
+                                                                        \
+    FORCE_INLINE type_prefix##Vector* api_prefix##_vector_create() {    \
         return vector_create(sizeof(type), (CreateElementCopyCallback)(copy_create), (DestroyElementCopyCallback)(copy_destroy)); \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_destroy(Vector* vec, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_destroy(type_prefix##Vector* vec, void* udata) { \
         vector_destroy(vec, udata);                                     \
     }                                                                   \
                                                                         \
-    FORCE_INLINE Vector* prefix##_vector_clone(Vector* vec, void* udata) { \
+    FORCE_INLINE type_prefix##Vector* api_prefix##_vector_clone(type_prefix##Vector* vec, void* udata) { \
         return vector_clone(vec, udata);                                \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_resize(Vector* vec, Size sz) {    \
+    FORCE_INLINE void api_prefix##_vector_resize(type_prefix##Vector* vec, Size sz) { \
         vector_resize(vec, sz);                                         \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_reserve(Vector* vec, Size sz) {   \
+    FORCE_INLINE void api_prefix##_vector_reserve(type_prefix##Vector* vec, Size sz) { \
         vector_reserve(vec, sz);                                        \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_clear(Vector* vec, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_clear(type_prefix##Vector* vec, void* udata) { \
         vector_clear(vec, udata);                                       \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_get_subvector(Vector* vec, Size start, Size size, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_get_subvector(type_prefix##Vector* vec, Size start, Size size, void* udata) { \
         vector_get_subvector(vec, start, size, udata);                  \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_copy(Vector* vec, Size to, Size from, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_copy(type_prefix##Vector* vec, Size to, Size from, void* udata) { \
         vector_copy(vec, to, from, udata);                              \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_move(Vector* vec, Size to, Size from, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_move(type_prefix##Vector* vec, Size to, Size from, void* udata) { \
         vector_move(vec, to, from, udata);                              \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_overwrite(Vector* vec, Size to, type* data, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_overwrite(type_prefix##Vector* vec, Size to, type* data, void* udata) { \
         vector_overwrite(vec, to, (void*)data, udata);                  \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_insert(Vector* vec, type* data, Size pos, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_insert(type_prefix##Vector* vec, type* data, Size pos, void* udata) { \
         vector_insert(vec, (void*)data, pos, udata);                    \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_delete(Vector* vec, Size pos, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_delete(type_prefix##Vector* vec, Size pos, void* udata) { \
         vector_delete(vec, pos, udata);                                 \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* prefix##_vector_remove(Vector* vec, Size pos) {  \
+    FORCE_INLINE type* api_prefix##_vector_remove(type_prefix##Vector* vec, Size pos) { \
         return (type*)(Uint64)vector_remove(vec, pos);                  \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_insert_fast(Vector* vec, type* data, Size pos, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_insert_fast(type_prefix##Vector* vec, type* data, Size pos, void* udata) { \
         vector_insert_fast(vec, (void*)data, pos, udata);               \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_delete_fast(Vector* vec, Size pos, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_delete_fast(type_prefix##Vector* vec, Size pos, void* udata) { \
         vector_delete_fast(vec, pos, udata);                            \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* prefix##_vector_remove_fast(Vector* vec, Size pos) { \
+    FORCE_INLINE type* api_prefix##_vector_remove_fast(type_prefix##Vector* vec, Size pos) { \
         return (type*)(Uint64)vector_remove_fast(vec, pos);             \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_push_front(Vector* vec, type* data, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_push_front(type_prefix##Vector* vec, type* data, void* udata) { \
         vector_push_front(vec, (void*)data, udata);                     \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* prefix##_vector_pop_front(Vector* vec) {         \
+    FORCE_INLINE type* api_prefix##_vector_pop_front(type_prefix##Vector* vec) { \
         return (type*)(Uint64)vector_pop_front(vec);                    \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_push_front_fast(Vector* vec, type* data, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_push_front_fast(type_prefix##Vector* vec, type* data, void* udata) { \
         vector_push_front_fast(vec, (void*)data, udata);                \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* prefix##_vector_pop_front_fast(Vector* vec) {    \
+    FORCE_INLINE type* api_prefix##_vector_pop_front_fast(type_prefix##Vector* vec) { \
         return (type*)(Uint64)vector_pop_front_fast(vec);               \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_push_back(Vector* vec, type* data, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_push_back(type_prefix##Vector* vec, type* data, void* udata) { \
         vector_push_back(vec, (void*)data, udata);                      \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* prefix##_vector_pop_back(Vector* vec) {          \
+    FORCE_INLINE type* api_prefix##_vector_pop_back(type_prefix##Vector* vec) { \
         return (type*)(Uint64)vector_pop_back(vec);                     \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* prefix##_vector_data(Vector* vec) {              \
+    FORCE_INLINE type* api_prefix##_vector_data(type_prefix##Vector* vec) { \
         return (type*)vec->data;                                        \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* prefix##_vector_peek(Vector* vec, Size pos) {    \
-        return (type*)prefix##_vector_data(vec) + pos;                  \
+    FORCE_INLINE type* api_prefix##_vector_peek(type_prefix##Vector* vec, Size pos) { \
+        return (type*)api_prefix##_vector_data(vec) + pos;              \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* prefix##_vector_front(Vector* vec) {             \
-        return (type*)prefix##_vector_data(vec);                        \
+    FORCE_INLINE type* api_prefix##_vector_front(type_prefix##Vector* vec) { \
+        return (type*)api_prefix##_vector_data(vec);                    \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* prefix##_vector_back(Vector* vec) {              \
-        return (type*)prefix##_vector_data(vec) + (vec->length - 1);    \
+    FORCE_INLINE type* api_prefix##_vector_back(type_prefix##Vector* vec) { \
+        return (type*)api_prefix##_vector_data(vec) + (vec->length - 1); \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_print(Vector* vec, PrintElementCallback printer, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_print(type_prefix##Vector* vec, PrintElementCallback printer, void* udata) { \
         vector_print(vec, printer, udata);                              \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_merge(Vector* vec, Vector* vec_other, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_merge(type_prefix##Vector* vec, type_prefix##Vector* vec_other, void* udata) { \
         vector_merge(vec, vec_other, udata);                            \
     }                                                                   \
                                                                         \
-    FORCE_INLINE Vector* prefix##_vector_filter(Vector* vec, FilterElementCallback filter, void* udata) { \
+    FORCE_INLINE type_prefix##Vector* api_prefix##_vector_filter(type_prefix##Vector* vec, FilterElementCallback filter, void* udata) { \
         return vector_filter(vec, filter, udata);                       \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_swap(Vector* vec, Size p1, Size p2) { \
+    FORCE_INLINE void api_prefix##_vector_swap(type_prefix##Vector* vec, Size p1, Size p2) { \
         vector_swap(vec, p1, p2);                                       \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_sort(Vector* vec, CompareElementCallback compare, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_sort(type_prefix##Vector* vec, CompareElementCallback compare, void* udata) { \
         vector_sort(vec, compare, udata);                               \
     }                                                                   \
                                                                         \
-    FORCE_INLINE Bool prefix##_vector_check_sorted(Vector* vec, CompareElementCallback compare, void* udata) { \
+    FORCE_INLINE Bool api_prefix##_vector_check_sorted(type_prefix##Vector* vec, CompareElementCallback compare, void* udata) { \
         return vector_check_sorted(vec, compare, udata);                \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_insertion_sort(Vector* vec, CompareElementCallback compare, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_insertion_sort(type_prefix##Vector* vec, CompareElementCallback compare, void* udata) { \
         vector_insertion_sort(vec, compare, udata);                     \
     }                                                                   \
                                                                         \
-    FORCE_INLINE void prefix##_vector_bubble_sort(Vector* vec, CompareElementCallback compare, void* udata) { \
+    FORCE_INLINE void api_prefix##_vector_bubble_sort(type_prefix##Vector* vec, CompareElementCallback compare, void* udata) { \
         vector_bubble_sort(vec, compare, udata);                        \
     }                                                                   \
                                                                         \
-    FORCE_INLINE type* prefix##_vector_address_at(Vector* vec, Size idx) { \
+    FORCE_INLINE type* api_prefix##_vector_address_at(type_prefix##Vector* vec, Size idx) { \
         return (type*)vector_address_at(vec, idx);                      \
     }
 

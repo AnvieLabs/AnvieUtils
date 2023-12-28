@@ -22,9 +22,9 @@
 
 #include <Anvie/Maths/Matrix4f.h>
 #include <Anvie/Maths/Vector3f.h>
-#include <math.h>
-
 #include <Anvie/HelperDefines.h>
+#include <Anvie/Error.h>
+#include <math.h>
 
 /**
  * Create a new Matrix4f.
@@ -33,7 +33,7 @@
  * */
 Matrix4f* matrix_4f_create() {
     Matrix4f* mat = NEW(Matrix4f);
-    RETURN_VALUE_IF_FAIL(mat, NULL, ERR_OUT_OF_MEMORY);
+    ERR_RETURN_VALUE_IF_FAIL(mat, NULL, ERR_OUT_OF_MEMORY);
 
     return mat;
 }
@@ -54,7 +54,7 @@ void matrix_4f_destroy(Matrix4f* mat) {
  * @param mat2
  * */
 void matrix_4f_mul(Matrix4f* mat1, Matrix4f* mat2) {
-    RETURN_IF_FAIL(mat1 && mat2, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(mat1 && mat2, ERR_INVALID_ARGUMENTS);
 
 #define M1(r, c) mat1->data[r][c]
 #define M2(r, c) mat2->data[r][c]
@@ -90,7 +90,7 @@ void matrix_4f_mul(Matrix4f* mat1, Matrix4f* mat2) {
  * @param mat2
  * */
 void matrix_4f_add(Matrix4f* mat1, Matrix4f* mat2) {
-    RETURN_IF_FAIL(mat1 && mat2, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(mat1 && mat2, ERR_INVALID_ARGUMENTS);
 
 #define M1(r, c) mat1->data[r][c]
 #define M2(r, c) mat2->data[r][c]
@@ -126,7 +126,7 @@ void matrix_4f_add(Matrix4f* mat1, Matrix4f* mat2) {
  * @param mat2
  * */
 void matrix_4f_sub(Matrix4f* mat1, Matrix4f* mat2) {
-    RETURN_IF_FAIL(mat1 && mat2, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(mat1 && mat2, ERR_INVALID_ARGUMENTS);
 
 #define M1(r, c) mat1->data[r][c]
 #define M2(r, c) mat2->data[r][c]
@@ -162,7 +162,7 @@ void matrix_4f_sub(Matrix4f* mat1, Matrix4f* mat2) {
  * */
 Matrix4f* matrix_4f_identity() {
     Matrix4f* mat = matrix_4f_create();
-    RETURN_VALUE_IF_FAIL(mat, NULL, "Failed to create identity matrix\n");
+    ERR_RETURN_VALUE_IF_FAIL(mat, NULL, ERR_INVALID_OBJECT);
 
     mat->data[0][0] = 1.f;
     mat->data[1][1] = 1.f;
@@ -189,10 +189,10 @@ Matrix4f* matrix_4f_frustum(
     Float32 top, Float32 bottom,
     Float32 near, Float32 far)
 {
-    RETURN_VALUE_IF_FAIL((left < right) && (top < bottom) && (near < far), NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL((left < right) && (top < bottom) && (near < far), NULL, ERR_INVALID_ARGUMENTS);
 
     Matrix4f* mat = matrix_4f_create();
-    RETURN_VALUE_IF_FAIL(mat, NULL, "Failed to create perspective projection matrix\n");
+    ERR_RETURN_VALUE_IF_FAIL(mat, NULL, ERR_INVALID_OBJECT);
 
 #define M(r, c) mat->data[r][c]
 
@@ -224,7 +224,7 @@ Matrix4f* matrix_4f_projection_perspective(
     Float32 aspect, Float32 fov,
     Float32 near, Float32 far
 ) {
-    RETURN_VALUE_IF_FAIL((aspect != 0) && (fov != 0) && (near < far), NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL((aspect != 0) && (fov != 0) && (near < far), NULL, ERR_INVALID_ARGUMENTS);
 
     Float32 scale = tan(fov * 0.5 * M_PI / 180) * near;
     Float32 r = fov * scale;
@@ -252,7 +252,7 @@ Matrix4f* matrix_4f_projection_orthographic(
     Float32 top, Float32 bottom,
     Float32 far, Float32 near) {
     Matrix4f* mat = matrix_4f_create();
-    RETURN_VALUE_IF_FAIL(mat, NULL, "Failed to create orthographic projection matrix\n");
+    ERR_RETURN_VALUE_IF_FAIL(mat, NULL, ERR_INVALID_OBJECT);
 
 #define M(r, c) mat->data[r][c]
 
@@ -293,7 +293,7 @@ Matrix4f* matrix_4f_look_at(
     Float32 upX, Float32 upY, Float32 upZ
 ) {
     Matrix4f* mat = matrix_4f_identity();
-    RETURN_VALUE_IF_FAIL(mat, NULL, "Failed to create LookAt matrix\n");
+    ERR_RETURN_VALUE_IF_FAIL(mat, NULL, ERR_INVALID_OBJECT);
 
     Vector3f* eye = vector_3f_create(eyeX, eyeY, eyeZ);
     Vector3f* target = vector_3f_create(targetX, targetY, targetZ);
@@ -344,7 +344,7 @@ Matrix4f* matrix_4f_look_at(
  * */
 Matrix4f* matrix_4f_translation_matrix(Float32 dx, Float32 dy, Float32 dz) {
     Matrix4f* mat = matrix_4f_identity();
-    RETURN_VALUE_IF_FAIL(mat, NULL, "Failed to create translation matrix\n");
+    ERR_RETURN_VALUE_IF_FAIL(mat, NULL, ERR_INVALID_OBJECT);
 
 #define M(r, c) mat->data[r][c]
     M(0, 3) = dx;
@@ -367,7 +367,7 @@ Matrix4f* matrix_4f_translation_matrix(Float32 dx, Float32 dy, Float32 dz) {
  * */
 Matrix4f* matrix_4f_rotation_matrix(Float32 yaw, Float32 pitch, Float32 roll) {
     Matrix4f* mat = matrix_4f_identity();
-    RETURN_VALUE_IF_FAIL(mat, NULL, "Failed to create rotation matrix\n");
+    ERR_RETURN_VALUE_IF_FAIL(mat, NULL, ERR_INVALID_OBJECT);
 
 #define M(r, c) mat->data[r][c]
     M(0, 0) = cos(pitch)*cos(yaw);
@@ -397,7 +397,7 @@ Matrix4f* matrix_4f_rotation_matrix(Float32 yaw, Float32 pitch, Float32 roll) {
  * */
 Matrix4f* matrix_4f_scale_matrix(Float32 sx, Float32 sy, Float32 sz) {
     Matrix4f* mat = matrix_4f_identity();
-    RETURN_VALUE_IF_FAIL(mat, NULL, "Failed to create scale matrix\n");
+    ERR_RETURN_VALUE_IF_FAIL(mat, NULL, ERR_INVALID_OBJECT);
 
 #define M(r, c) mat->data[r][c]
     M(0, 0) = sx;
@@ -417,9 +417,9 @@ Matrix4f* matrix_4f_scale_matrix(Float32 sx, Float32 sy, Float32 sz) {
  * @param dz Change in Z axis
  * */
 void matrix_4f_translate(Matrix4f* mat, Float32 dx, Float32 dy, Float32 dz) {
-    RETURN_IF_FAIL(mat, "Failed to create translation matrix\n");
+    ERR_RETURN_IF_FAIL(mat, ERR_INVALID_OBJECT);
     Matrix4f* trmat = matrix_4f_translation_matrix(dx, dy, dz);
-    RETURN_IF_FAIL(trmat, "Failed to create translation matrix\n");
+    ERR_RETURN_IF_FAIL(trmat, ERR_INVALID_OBJECT);
     matrix_4f_mul(mat, trmat);
     matrix_4f_destroy(trmat);
 }
@@ -434,9 +434,9 @@ void matrix_4f_translate(Matrix4f* mat, Float32 dx, Float32 dy, Float32 dz) {
  * @param roll Rotation about X axis.
  * */
 void matrix_4f_rotate(Matrix4f* mat, Float32 yaw, Float32 pitch, Float32 roll) {
-    RETURN_IF_FAIL(mat, "Failed to create translation matrix\n");
+    ERR_RETURN_IF_FAIL(mat, ERR_INVALID_OBJECT);
     Matrix4f* rotmat = matrix_4f_rotation_matrix(yaw, pitch, roll);
-    RETURN_IF_FAIL(rotmat, "Failed to create rotation matrix\n");
+    ERR_RETURN_IF_FAIL(rotmat, ERR_INVALID_OBJECT);
     matrix_4f_mul(mat, rotmat);
     matrix_4f_destroy(rotmat);
 }
@@ -451,9 +451,9 @@ void matrix_4f_rotate(Matrix4f* mat, Float32 yaw, Float32 pitch, Float32 roll) {
  * @param sz Scale about Z axis.
  * */
 void matrix_4f_scale(Matrix4f* mat, Float32 sx, Float32 sy, Float32 sz) {
-    RETURN_IF_FAIL(mat, "Failed to create translation matrix\n");
+    ERR_RETURN_IF_FAIL(mat, ERR_INVALID_OBJECT);
     Matrix4f* scalemat = matrix_4f_scale_matrix(sx, sy, sz);
-    RETURN_IF_FAIL(scalemat, "Failed to create scale matrix\n");
+    ERR_RETURN_IF_FAIL(scalemat, ERR_INVALID_OBJECT);
     matrix_4f_mul(mat, scalemat);
     matrix_4f_destroy(scalemat);
 }

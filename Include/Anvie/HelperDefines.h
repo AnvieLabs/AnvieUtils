@@ -35,19 +35,21 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
+#define MIN3(a, b, c) MIN(a, MIN(b, c))
+#define MAX3(a, b, c) MAX(a, MAX(b, c))
+
 #define LINE80() println("================================================================================")
 #define newline() putchar(0xa)
-
-// strings for some error types
-#define ERR_OUT_OF_MEMORY "out of memory (allocation failed)\n"
-#define ERR_INVALID_ARGUMENTS "invalid arguments\n"
-#define ERR_FUNCTION_INTERNAL_ERROR "internal function error\n"
-#define ERR_CONTAINER_UNDERFLOW "container underflow\n"
 
 // allocation heloers
 #define ALLOCATE(type, count) (type*)calloc(count, sizeof(type))
 #define NEW(type) ALLOCATE(type, 1)
 #define FREE(x) free((void*)x)
+
+// get array size
+#define ARRAY_SIZE(a) sizeof(a) / sizeof(a[0])
+// ceate packed enums, unions, structs etc...
+#define PACKED __attribute__((__packed__))
 
 // print helpers
 #define print(...) printf(__VA_ARGS__)
@@ -59,70 +61,5 @@
 
 // use when a function is to be forced to be inlined
 #define FORCE_INLINE inline __attribute__((always_inline))
-
-// print an error message
-#define ERR(tag, ...) do {                                              \
-    fprintf(stderr, COLOR_BOLD_RED"[-]"COLOR_RESET " [" COLOR_BOLD_BLUE MODULE_NAME COLOR_RESET "] ["COLOR_BOLD_RED" %s "COLOR_RESET"] : ", tag); \
-    fprintf(stderr, __VA_ARGS__);                                        \
-        } while(0)
-
-// print a debug message
-#define DBG(tag, ...) do {                                              \
-    fprintf(stderr, COLOR_BOLD_YELLOW"[!]"COLOR_RESET " [" COLOR_BOLD_BLUE MODULE_NAME COLOR_RESET "] ["COLOR_BOLD_YELLOW" %s "COLOR_RESET"] : ", tag); \
-    fprintf(stderr, __VA_ARGS__);                                       \
-        } while(0)
-
-// print a success message
-#define OK(tag, ...) do {                                                   \
-    fprintf(stderr, COLOR_BOLD_GREEN"[+]"COLOR_RESET " [" COLOR_BOLD_BLUE MODULE_NAME COLOR_RESET "] ["COLOR_BOLD_GREEN" %s "COLOR_RESET"] : ", tag); \
-    fprintf(stderr, __VA_ARGS__);                                       \
-        } while(0)
-
-// make an assertion
-#define ASSERT(cond, ...)                           \
-    if(!(cond)) {                                   \
-        ERR(__FUNCTION__, __VA_ARGS__);             \
-        exit(1);                                    \
-    }
-
-// print success if condition is met
-#define SUCCESS_IF(cond, ...)                          \
-    if(cond) {                                         \
-        OK(__FUNCTION__, __VA_ARGS__);                 \
-    }
-
-// print debug if condition is met
-#define WARN_IF(cond, ...)                             \
-    if(cond) {                                         \
-        DBG(__FUNCTION__, __VA_ARGS__);                \
-    }
-
-// print error if condition is met
-#define FATAL_IF(cond, ...)                         \
-    if(cond) {                                      \
-        ERR(__FUNCTION__, __VA_ARGS__);             \
-    }
-
-
-// return if condition fails to be true
-#define RETURN_IF_FAIL(cond, ...)                      \
-    {                                                  \
-        Bool ________res____ = !(cond);                \
-        FATAL_IF(________res____, __VA_ARGS__);        \
-        if(________res____) return;                    \
-    }
-
-// return value if condition fails to be true
-#define RETURN_VALUE_IF_FAIL(cond, value, ...)                       \
-    {                                                                \
-        Bool _________res_____ = !(cond);                            \
-        FATAL_IF(_________res_____, __VA_ARGS__);                    \
-        if(_________res_____) return value;                          \
-    }
-
-// get array size
-#define ARRAY_SIZE(a) sizeof(a) / sizeof(a[0])
-// ceate packed enums, unions, structs etc...
-#define PACKED __attribute__((__packed__))
 
 #endif // AVHELPERDEFINE_H_

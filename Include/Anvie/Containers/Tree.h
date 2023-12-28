@@ -25,6 +25,7 @@
 
 #include <Anvie/Containers/Vector.h>
 #include <Anvie/Containers/Common.h>
+#include <Anvie/Error.h>
 
 typedef struct Tree Tree;
 typedef struct TreeNode TreeNode;
@@ -49,10 +50,10 @@ typedef struct TreeNode TreeNode;
  * @c node_parent member is there to help traversing up the tree.
  * */
 struct TreeNode {
-    void*     data;             /**< Data held by this tree node. */
+    void*   data;             /**< Data held by this tree node. */
     Size      size;             /**< Size of this node. This is total number of nodes attached, not just children nodes. */
     Size      height;           /**< Height of this given node. */
-    Vector*   children;     /**< Vector<TreeNode> containing children of this node. */
+    Vector*   children;         /**< Vector<TreeNode> containing children of this node. */
     Tree*     tree_parent;      /**< Super duper parent of this tree. This is parent of all tree nodes in itself. */
     TreeNode* node_parent;      /**< Absolute parent of this tree node. This is just above this node in heirarchy. */
 };
@@ -61,7 +62,7 @@ struct TreeNode {
 
 void tree_node_create_copy(void* dst, void* src, void* node);
 void tree_node_destroy_copy(void* copy, void* node);
-DEF_STRUCT_VECTOR_INTERFACE(tree_node, TreeNode, tree_node_create_copy, tree_node_destroy_copy);
+DEF_STRUCT_VECTOR_INTERFACE(tree_node, TreeNode, TreeNode, tree_node_create_copy, tree_node_destroy_copy);
 
 Size tree_node_size(TreeNode* node);
 Size tree_node_height(TreeNode* node);
@@ -124,16 +125,14 @@ FORCE_INLINE Tree* tree_create (
     CreateElementCopyCallback create_copy,
     DestroyElementCopyCallback destroy_copy
 ) {
-    RETURN_VALUE_IF_FAIL(element_size, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(element_size, NULL, ERR_INVALID_ARGUMENTS);
 
     Bool b1 = create_copy != NULL;
     Bool b2 = destroy_copy != NULL;
-    RETURN_VALUE_IF_FAIL(!(b1 ^ b2), NULL,
-                         "Either both copy constructor and destructor should be NULL, "
-                         "or both should be non NULL at the same time!");
+    ERR_RETURN_VALUE_IF_FAIL(!(b1 ^ b2), NULL, ERR_INVALID_ARGUMENTS);
 
     Tree* tree = NEW(Tree);
-    RETURN_VALUE_IF_FAIL(tree, NULL, ERR_OUT_OF_MEMORY);
+    ERR_RETURN_VALUE_IF_FAIL(tree, NULL, ERR_OUT_OF_MEMORY);
 
     tree->element_size = element_size;
     tree->create_copy  = create_copy;
@@ -212,9 +211,9 @@ FORCE_INLINE TreeNode* tree_peek(Tree* node, Size idx) {
  * @return @c TreeNode object new created child node on success.
  * NULL otherwise.
  * */
-#define TREE_PUSH(place)                                               \
+#define TREE_PUSH(place)                                                \
     FORCE_INLINE TreeNode* tree_push_##place(Tree* tree, void* data, void* udata) { \
-        return tree_node_push_##place(TO_TREE_NODE(tree), data, udata);       \
+        return tree_node_push_##place(TO_TREE_NODE(tree), data, udata); \
     }
 TREE_PUSH(front)
 TREE_PUSH(back)
@@ -328,7 +327,7 @@ DEF_INTEGER_TREE_INTERFACE(i64, Int64);
 DEF_INTEGER_TREE_INTERFACE(f32, Float32);
 DEF_INTEGER_TREE_INTERFACE(f64, Float64);
 
-DEF_INTEGER_TREE_INTERFACE_WITH_COPY_AND_DESTROY(string, String, string_create_copy, string_destroy_copy);
+DEF_INTEGER_TREE_INTERFACE_WITH_COPY_AND_DESTROY(zstr, ZString, zstr_create_copy, zstr_destroy_copy);
 DEF_INTEGER_TREE_INTERFACE(voidptr, void*);
 
 // define interface to contain vector of vectors

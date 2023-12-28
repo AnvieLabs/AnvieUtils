@@ -25,7 +25,38 @@
 IMPORT_UNIT_TEST(IntegerVector)
 IMPORT_UNIT_TEST(StructVector)
 
+#include "Containers/ImportUnitTests.h"
+
+/* start running tests */
 BEGIN_UNIT_TESTS()
+
     UNIT_TEST(IntegerVector)
     UNIT_TEST(StructVector)
+
+    /* bitvector tests */
+    UNIT_TEST(bitvec_create)
+    UNIT_TEST(bitvec_clone)
+    UNIT_TEST(bitvec_set_equal)
+    UNIT_TEST(bitvec_reserve)
+    UNIT_TEST(bitvec_resize)
+    UNIT_TEST(bitvec_push)
+    UNIT_TEST(bitvec_pop)
+    UNIT_TEST(bitvec_set)
+    UNIT_TEST(bitvec_clear)
+    UNIT_TEST(bitvec_set_all)
+    UNIT_TEST(bitvec_clear_all)
+    UNIT_TEST(bitvec_set_range)
+    UNIT_TEST(bitvec_clear_range)
+    UNIT_TEST(bitvec_peek)
+    UNIT_TEST(bitvec_xor)
+    UNIT_TEST(bitvec_and)
+    UNIT_TEST(bitvec_or)
+    UNIT_TEST(bitvec_xnor)
+    UNIT_TEST(bitvec_nand)
+    UNIT_TEST(bitvec_nor)
+    UNIT_TEST(bitvec_shl)
+    UNIT_TEST(bitvec_shr)
+    UNIT_TEST(bitvec_not)
+    UNIT_TEST(bitvec_cmpeq)
+
 END_UNIT_TESTS()

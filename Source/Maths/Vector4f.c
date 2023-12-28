@@ -1,5 +1,7 @@
 #include <Anvie/Maths/Vector4f.h>
 #include <Anvie/HelperDefines.h>
+#include <Anvie/Error.h>
+
 #include <string.h>
 #include <math.h>
 
@@ -10,7 +12,7 @@
  * */
 inline Vector4f* vector_4f_create(Float32 x, Float32 y, Float32 z, Float32 t) {
     Vector4f* vec = NEW(Vector4f);
-    RETURN_VALUE_IF_FAIL(vec, NULL, ERR_OUT_OF_MEMORY);
+    ERR_RETURN_VALUE_IF_FAIL(vec, NULL, ERR_OUT_OF_MEMORY);
 
     vec->x = x;
     vec->y = y;
@@ -26,7 +28,7 @@ inline Vector4f* vector_4f_create(Float32 x, Float32 y, Float32 z, Float32 t) {
  * @param vec
  * */
 void vector_4f_destroy(Vector4f* vec) {
-    RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
     FREE(vec);
 }
 
@@ -38,7 +40,7 @@ void vector_4f_destroy(Vector4f* vec) {
  * */
 inline Vector4f* vector_4f_create_copy(Vector4f* vec) {
     Vector4f* copy_vec = vector_4f_create(vec->x, vec->y, vec->z, vec->t);
-    RETURN_VALUE_IF_FAIL(copy_vec, NULL, "Failed to create copy of given vector\n");
+    ERR_RETURN_VALUE_IF_FAIL(copy_vec, NULL, ERR_INVALID_OBJECT);
     return copy_vec;
 }
 
@@ -49,7 +51,7 @@ inline Vector4f* vector_4f_create_copy(Vector4f* vec) {
  * */
 inline Vector4f* vector_4f_origin() {
     Vector4f* vec = vector_4f_create(0, 0, 0, 0);
-    RETURN_VALUE_IF_FAIL(vec, NULL, "Failed to create Origin Vector4f\n");
+    ERR_RETURN_VALUE_IF_FAIL(vec, NULL, ERR_INVALID_OBJECT);
     return vec;
 }
 
@@ -60,7 +62,7 @@ inline Vector4f* vector_4f_origin() {
  * */
 Vector4f* vector_4f_x_axis() {
     Vector4f* vec = vector_4f_create(1, 0, 0, 0);
-    RETURN_VALUE_IF_FAIL(vec, NULL, "Failed to create X Axis Vector4f\n");
+    ERR_RETURN_VALUE_IF_FAIL(vec, NULL, ERR_INVALID_OBJECT);
     return vec;
 }
 
@@ -71,7 +73,7 @@ Vector4f* vector_4f_x_axis() {
  * */
 Vector4f* vector_4f_y_axis() {
     Vector4f* vec = vector_4f_create(0, 1, 0, 0);
-    RETURN_VALUE_IF_FAIL(vec, NULL, "Failed to create Y Axis Vector4f\n");
+    ERR_RETURN_VALUE_IF_FAIL(vec, NULL, ERR_INVALID_OBJECT);
     return vec;
 }
 
@@ -82,7 +84,7 @@ Vector4f* vector_4f_y_axis() {
  * */
 Vector4f* vector_4f_z_axis() {
     Vector4f* vec = vector_4f_create(0, 0, 1, 0);
-    RETURN_VALUE_IF_FAIL(vec, NULL, "Failed to create Z Axis Vector4f\n");
+    ERR_RETURN_VALUE_IF_FAIL(vec, NULL, ERR_INVALID_OBJECT);
     return vec;
 }
 
@@ -93,7 +95,7 @@ Vector4f* vector_4f_z_axis() {
  * */
 Vector4f* vector_4f_t_axis() {
     Vector4f* vec = vector_4f_create(0, 0, 0, 1);
-    RETURN_VALUE_IF_FAIL(vec, NULL, "Failed to create T Axis Vector4f\n");
+    ERR_RETURN_VALUE_IF_FAIL(vec, NULL, ERR_INVALID_OBJECT);
     return vec;
 }
 
@@ -106,10 +108,10 @@ Vector4f* vector_4f_t_axis() {
  * @return Vector4f* on success, NULL otherwise.
  * */
 Vector4f* vector_4f_add(Vector4f* vec1, Vector4f* vec2) {
-    RETURN_VALUE_IF_FAIL(vec1 && vec2, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(vec1 && vec2, NULL, ERR_INVALID_ARGUMENTS);
 
     Vector4f* new_vec = vector_4f_origin();
-    RETURN_VALUE_IF_FAIL(new_vec, NULL, "Failed to create new vector for storing result\n");
+    ERR_RETURN_VALUE_IF_FAIL(new_vec, NULL, ERR_INVALID_OBJECT);
 
 #define V1(k) vec1->k
 #define V2(k) vec2->k
@@ -136,10 +138,10 @@ Vector4f* vector_4f_add(Vector4f* vec1, Vector4f* vec2) {
  * @return Vector4f* on success, NULL otherwise.
  * */
 Vector4f* vector_4f_sub(Vector4f* vec1, Vector4f* vec2) {
-    RETURN_VALUE_IF_FAIL(vec1 && vec2, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(vec1 && vec2, NULL, ERR_INVALID_ARGUMENTS);
 
     Vector4f* new_vec = vector_4f_origin();
-    RETURN_VALUE_IF_FAIL(new_vec, NULL, "Failed to create new vector for storing result\n");
+    ERR_RETURN_VALUE_IF_FAIL(new_vec, NULL, ERR_INVALID_OBJECT);
 
 #define V1(k) vec1->k
 #define V2(k) vec2->k
@@ -166,10 +168,10 @@ Vector4f* vector_4f_sub(Vector4f* vec1, Vector4f* vec2) {
  * @return Vector4f* on success, NULL otherwise.
  * */
 Vector4f* vector_4f_scale(Vector4f* vec, Float32 scale) {
-    RETURN_VALUE_IF_FAIL(vec, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(vec, NULL, ERR_INVALID_ARGUMENTS);
 
     Vector4f* new_vec = vector_4f_origin();
-    RETURN_VALUE_IF_FAIL(new_vec, NULL, "Failed to create new vector for storing result\n");
+    ERR_RETURN_VALUE_IF_FAIL(new_vec, NULL, ERR_INVALID_OBJECT);
 
 #define V(k) vec->k
 #define VN(k) new_vec->k
@@ -193,7 +195,7 @@ Vector4f* vector_4f_scale(Vector4f* vec, Float32 scale) {
  * @return Result of dot product.
  * */
 Float32 vector_4f_dot(Vector4f* vec1, Vector4f* vec2) {
-    RETURN_VALUE_IF_FAIL(vec1 && vec2, 0, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(vec1 && vec2, 0, ERR_INVALID_ARGUMENTS);
 
 #define V1(k) vec1->k
 #define V2(k) vec2->k
@@ -211,7 +213,7 @@ Float32 vector_4f_dot(Vector4f* vec1, Vector4f* vec2) {
  * @return Float32
  * */
 inline Float32 vector_4f_compute_norm(Vector4f* vec) {
-    RETURN_VALUE_IF_FAIL(vec, 0, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(vec, 0, ERR_INVALID_ARGUMENTS);
 
 #define V(k) vec->k
     return sqrtf(V(x)*V(x) + V(y)*V(y) + V(z)*V(z) + V(t)*V(t));
@@ -224,7 +226,7 @@ inline Float32 vector_4f_compute_norm(Vector4f* vec) {
  * @param vec
  * */
 void vector_4f_normalize(Vector4f* vec) {
-    RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
 
 #define V(k) vec->k
 

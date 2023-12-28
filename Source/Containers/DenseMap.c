@@ -23,6 +23,8 @@
 
 #include <Anvie/Containers/DenseMap.h>
 #include <Anvie/HelperDefines.h>
+#include <Anvie/Error.h>
+#include <Anvie/BitManipulation.h>
 #include <string.h>
 
 #define MDATA_OCCUPANCY_MASK (1 << 7)
@@ -39,9 +41,8 @@ typedef struct CallbackData {
 } CallbackData;
 void create_dmi_copy(DenseMapItem* dst, DenseMapItem* src,  CallbackData* clbk_data);
 void destroy_dmi_copy(DenseMapItem* copy, CallbackData* clbk_data);
-DEF_STRUCT_VECTOR_INTERFACE(dmi, DenseMapItem, create_dmi_copy, destroy_dmi_copy);
+DEF_STRUCT_VECTOR_INTERFACE(dmi, Dmi_, DenseMapItem, create_dmi_copy, destroy_dmi_copy);
 
-static FORCE_INLINE Size compute_next_power_of_two(Size n);
 static inline DenseMapItem* insert_into_dense_map_directly(DenseMap* map, DenseMapItem* dmi, void* udata);
 
 /**
@@ -65,32 +66,28 @@ DenseMap* dense_map_create(
     Bool                       is_multimap,
     Float32                    max_load_factor
 ) {
-    RETURN_VALUE_IF_FAIL(hash && data_size && key_size, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(hash && data_size && key_size, NULL, ERR_INVALID_ARGUMENTS);
 
     // both must be null or non null at the same time
     Bool b1 = create_data_copy != NULL;
     Bool b2 = destroy_data_copy != NULL;
-    RETURN_VALUE_IF_FAIL(!(b1 ^ b2), NULL,
-                         "Either both data copy constructor and destructor should be NULL, "
-                         "or both should be non NULL at the same time!");
+    ERR_RETURN_VALUE_IF_FAIL(!(b1 ^ b2), NULL, ERR_INVALID_ARGUMENTS);
 
     // both must be null or non null at the same time
     b1 = create_key_copy != NULL;
     b2 = destroy_key_copy != NULL;
-    RETURN_VALUE_IF_FAIL(!(b1 ^ b2), NULL,
-                         "Either both key copy constructor and destructor should be NULL, "
-                         "or both should be non NULL at the same time!");
+    ERR_RETURN_VALUE_IF_FAIL(!(b1 ^ b2), NULL, ERR_INVALID_ARGUMENTS);
 
     // create vector to store DenseMapItem entries for the DenseMap.
     Vector* dmi_vec = dmi_vector_create();
-    RETURN_VALUE_IF_FAIL(dmi_vec, NULL, "Failed to create Vector<DenseMapItem>\n");
+    ERR_RETURN_VALUE_IF_FAIL(dmi_vec, NULL, ERR_INVALID_OBJECT);
     dmi_vector_resize(dmi_vec, DENSE_MAP_INITIAL_SIZE);
 
     // create vector to store metadata about each entry in the DenseMap.
     Vector* mdata_vec = u8_vector_create();
     if(!mdata_vec) {
         dmi_vector_destroy(dmi_vec, NULL);
-        ERR(__FUNCTION__, "Failed to create Vector<Uint8>\n");
+        ERR(__FUNCTION__, ERRMSG(ERR_INVALID_OBJECT));
         return NULL;
     }
     u8_vector_resize(mdata_vec, DENSE_MAP_INITIAL_SIZE);
@@ -99,7 +96,7 @@ DenseMap* dense_map_create(
     if(!pl_vec) {
         dmi_vector_destroy(dmi_vec, NULL);
         u8_vector_destroy(mdata_vec, NULL);
-        ERR(__FUNCTION__, "Failed to create Vector<Uint8>\n");
+        ERR(__FUNCTION__, ERRMSG(ERR_INVALID_OBJECT));
         return NULL;
     }
     u8_vector_resize(pl_vec, DENSE_MAP_INITIAL_SIZE);
@@ -110,7 +107,7 @@ DenseMap* dense_map_create(
         dmi_vector_destroy(dmi_vec, NULL);
         u8_vector_destroy(mdata_vec, NULL);
         u8_vector_destroy(pl_vec, NULL);
-        ERR(__FUNCTION__, ERR_OUT_OF_MEMORY);
+        ERR(__FUNCTION__, ERRMSG(ERR_OUT_OF_MEMORY));
         return NULL;
     }
 
@@ -140,7 +137,7 @@ DenseMap* dense_map_create(
  * of this @c DenseMap.
  * */
 void dense_map_destroy(DenseMap* map, void* udata) {
-    RETURN_IF_FAIL(map, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(map, ERR_INVALID_ARGUMENTS);
 
     if(map->map) {
         CallbackData clbk_data = {
@@ -189,24 +186,24 @@ void dense_map_destroy(DenseMap* map, void* udata) {
  * Since the whole @c DenseMap will be rehashed, we need this user data as well.
  * */
 void dense_map_resize(DenseMap* map, Size size, void* udata) {
-    RETURN_IF_FAIL(map, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(map, ERR_INVALID_ARGUMENTS);
     if(size <= map->item_count) {
         return;
     }
 
     // when we reach a size greater than or equal to given size and  that's also a power of 2, then we break.
-    Size sz = compute_next_power_of_two(size);
+    Size sz = GET_NEXT_POWER_OF_TWO(size);
 
     // create vector to store DenseMapItem entries for the DenseMap.
     Vector* dmi_vec = dmi_vector_create();
-    RETURN_IF_FAIL(dmi_vec,  "Failed to create Vector<DenseMapItem>\n");
+    ERR_RETURN_IF_FAIL(dmi_vec,  ERR_INVALID_OBJECT);
     dmi_vector_resize(dmi_vec, sz);
 
     // create vector to store metadata about each entry in the DenseMap.
     Vector* mdata_vec = u8_vector_create();
     if(!mdata_vec) {
         dmi_vector_destroy(dmi_vec, NULL);
-        ERR(__FUNCTION__, "Failed to create Vector<Uint8>\n");
+        ERR(__FUNCTION__, ERRMSG(ERR_INVALID_OBJECT));
         return;
     }
     u8_vector_resize(mdata_vec, sz);
@@ -216,7 +213,7 @@ void dense_map_resize(DenseMap* map, Size size, void* udata) {
     if(!psl_vec) {
         dmi_vector_destroy(dmi_vec, NULL);
         u8_vector_destroy(mdata_vec, NULL);
-        ERR(__FUNCTION__, "Failed to create Vector<Uint8>\n");
+        ERR(__FUNCTION__, ERRMSG(ERR_INVALID_OBJECT));
         return;
     }
     u8_vector_resize(psl_vec, sz);
@@ -263,7 +260,7 @@ void dense_map_resize(DenseMap* map, Size size, void* udata) {
  * @return Pointer to new inserted @c DenseMapItem in @c DenseMap.
  * */
 DenseMapItem* dense_map_insert(DenseMap* map, void* key, void* value, void* udata) {
-    RETURN_VALUE_IF_FAIL(map, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(map, NULL, ERR_INVALID_ARGUMENTS);
 
     Float32 load_factor = ((Float32)map->item_count + 1)/((Float32)map->map->length);
     if(load_factor > map->max_load_factor) {
@@ -300,7 +297,7 @@ DenseMapItem* dense_map_insert(DenseMap* map, void* key, void* value, void* udat
     DenseMapItem* inserted_item = insert_into_dense_map_directly(map, &this_dmi, udata);
     if(!inserted_item) {
         destroy_dmi_copy(&this_dmi, &clbk_data);
-        ERR(__FUNCTION__, "Failed to insert into DenseMap.\n");
+        ERR(__FUNCTION__, ERRMSG(ERR_OPERATION_FAILED));
         return NULL;
     }
 
@@ -315,7 +312,7 @@ DenseMapItem* dense_map_insert(DenseMap* map, void* key, void* value, void* udat
  * @return Pointer to first @c DenseMapItem* with equivalent or matching key, else @c NULL.
  * */
 DenseMapItem* dense_map_search(DenseMap* map, void* key, void* udata) {
-    RETURN_VALUE_IF_FAIL(map, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(map, NULL, ERR_INVALID_ARGUMENTS);
 
     Size len_wrap_mask = map->map->length - 1;
     Size hash = map->hash(key, udata);
@@ -351,7 +348,7 @@ DenseMapItem* dense_map_search(DenseMap* map, void* key, void* udata) {
  * `destroy_dmi_copy`.
  * */
 void dense_map_delete(DenseMap* map, void* key, void* udata) {
-    RETURN_IF_FAIL(map, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(map, ERR_INVALID_ARGUMENTS);
 
     CallbackData clbk_data = {
         .udata = udata,
@@ -381,13 +378,13 @@ void dense_map_delete(DenseMap* map, void* key, void* udata) {
         DenseMap* hmap = clbk_data->map;                                \
         if(hmap->create_##n##_copy) {                                   \
             (d)->n = ALLOCATE(Uint8, hmap->n##_size);                   \
-            RETURN_IF_FAIL((d)->n, ERR_OUT_OF_MEMORY);                  \
+            ERR_RETURN_IF_FAIL((d)->n, ERR_OUT_OF_MEMORY);                  \
             hmap->create_##n##_copy((d)->n, (s)->n, clbk_data->udata);  \
         } else if(hmap->n##_size <= 8) {                                \
             (d)->n = (s)->n;                                            \
         } else  {                                                       \
             (d)->n = ALLOCATE(Uint8, hmap->n##_size);                   \
-            RETURN_IF_FAIL((d)->n, ERR_OUT_OF_MEMORY);                  \
+            ERR_RETURN_IF_FAIL((d)->n, ERR_OUT_OF_MEMORY);                  \
             if((s)->n) memcpy((d)->n, (s)->n, hmap->n##_size);          \
         }                                                               \
     } while(0)
@@ -416,7 +413,7 @@ void dense_map_delete(DenseMap* map, void* key, void* udata) {
  * @param clbk_data Callback data passed to copy constructor
  * */
 void create_dmi_copy(DenseMapItem* dst, DenseMapItem* src, CallbackData* clbk_data){
-    RETURN_IF_FAIL(dst && clbk_data, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(dst && clbk_data, ERR_INVALID_ARGUMENTS);
 
     CREATE_COPY(dst, src, data);
     CREATE_COPY(dst, src, key);
@@ -428,7 +425,7 @@ void create_dmi_copy(DenseMapItem* dst, DenseMapItem* src, CallbackData* clbk_da
  * @param clbk_data Callback data
  * */
 void destroy_dmi_copy(DenseMapItem* copy, CallbackData* clbk_data) {
-    RETURN_IF_FAIL(copy && clbk_data, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(copy && clbk_data, ERR_INVALID_ARGUMENTS);
 
     DESTROY_COPY(copy, data);
     DESTROY_COPY(copy, key);
@@ -482,7 +479,7 @@ void destroy_dmi_copy(DenseMapItem* copy, CallbackData* clbk_data) {
  * by the given @c DenseMap.
  * */
 static inline DenseMapItem* insert_into_dense_map_directly(DenseMap* map, DenseMapItem* dmi, void* udata) {
-    RETURN_VALUE_IF_FAIL(map && dmi, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(map && dmi, NULL, ERR_INVALID_ARGUMENTS);
 
     DenseMapItem this_dmi = *dmi;
     Size hash = map->hash(dmi->key, udata);
@@ -536,21 +533,4 @@ static inline DenseMapItem* insert_into_dense_map_directly(DenseMap* map, DenseM
     // finally return the stored item
     map->item_count++;
     return dmi_vector_peek(map->map, iter);
-}
-
-
-/**
- * Compute next power of two compared to given number n in constant time.
- * @param n
- * @return 2^(floor(log(n)) + 1),
- * */
-static FORCE_INLINE Size compute_next_power_of_two(Size n) {
-    n--; // Decrease n by 1 to handle cases where n is already a power of 2
-    n |= n >> 1;
-    n |= n >> 2;
-    n |= n >> 4;
-    n |= n >> 8;
-    n |= n >> 16;
-    n |= n >> 32;
-    return n + 1; // Increment the result by 1 to get the next power of 2
 }

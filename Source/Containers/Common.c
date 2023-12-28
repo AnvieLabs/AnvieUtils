@@ -22,18 +22,29 @@
 
 #include <Anvie/Containers/Common.h>
 #include <Anvie/HelperDefines.h>
-
+#include <Anvie/BitManipulation.h>
 #include <string.h>
+
+/**
+ * @brief Prints a string value.
+ * @param x Pointer to the string to be printed.
+ * @param idx Index (unused in this implementation).
+ * @param udata User data (unused in this implementation).
+ */
+void print_zstr(ZString x, Size idx, void* udata) {
+    UNUSED(idx && udata);
+    if(x) printf("%s ,", (ZString)x);
+}
 
 /**
  * Copy constructor for strings
  * @param to Pointer where new created string will be stored
- * @param data String to be copied
+ * @param data ZString to be copied
  * @param udata Unused here
  * */
-void string_create_copy(void* dst, void* src, void* udata) {
+void zstr_create_copy(ZString* dst, ZString src, void* udata) {
     UNUSED(udata);
-    if(dst && src) *(String*)dst = strdup((String)src);
+    if(dst && src) *dst = strdup((ZString)src);
 }
 
 /**
@@ -41,9 +52,9 @@ void string_create_copy(void* dst, void* src, void* udata) {
  * @param copy Pointer to copy of string to be destroyed.
  * @param udata Unused here
  * */
-void string_destroy_copy(void* copy, void* udata){
+void zstr_destroy_copy(ZString* copy, void* udata){
     UNUSED(udata);
-    if(copy) FREE(*(String*)copy);
+    if(copy) FREE(*copy);
 }
 
 /**
@@ -98,7 +109,7 @@ void print_i64(void* x, Size idx, void* udata) {
  */
 void print_u8(void* x, Size idx, void* udata) {
     UNUSED(idx && udata);
-    printf("%u, ", (Uint32)(Uint64)x);
+    printf("%u, ", TO_UINT8(x));
 }
 
 /**
@@ -109,7 +120,7 @@ void print_u8(void* x, Size idx, void* udata) {
  */
 void print_u16(void* x, Size idx, void* udata) {
     UNUSED(idx && udata);
-    printf("%u, ", (Uint32)(Uint64)x);
+    printf("%u, ", TO_UINT16(x));
 }
 
 /**
@@ -120,7 +131,7 @@ void print_u16(void* x, Size idx, void* udata) {
  */
 void print_u32(void* x, Size idx, void* udata) {
     UNUSED(idx && udata);
-    printf("%u, ", (Uint32)(Uint64)x);
+    printf("%u, ", TO_UINT32(x));
 }
 
 /**
@@ -131,18 +142,7 @@ void print_u32(void* x, Size idx, void* udata) {
  */
 void print_u64(void* x, Size idx, void* udata) {
     UNUSED(idx && udata);
-    printf("%lu, ", (Uint64)x);
-}
-
-/**
- * @brief Prints a string value.
- * @param x Pointer to the string to be printed.
- * @param idx Index (unused in this implementation).
- * @param udata User data (unused in this implementation).
- */
-void print_string(void* x, Size idx, void* udata) {
-    UNUSED(idx && udata);
-    printf("%s ,", (String)x);
+    printf("%lu, ", TO_UINT64(x));
 }
 
 /**
@@ -153,7 +153,7 @@ void print_string(void* x, Size idx, void* udata) {
  */
 Uint64 hash_u8(Uint64 val, void* udata) {
     UNUSED(udata);
-    return val % UINT64_MAX;
+    return val & UINT8_MAX;
 }
 
 /**
@@ -164,7 +164,7 @@ Uint64 hash_u8(Uint64 val, void* udata) {
  */
 Uint64 hash_u16(Uint64 val, void* udata) {
     UNUSED(udata);
-    return val % UINT64_MAX;
+    return val & UINT16_MAX;
 }
 
 /**
@@ -175,7 +175,7 @@ Uint64 hash_u16(Uint64 val, void* udata) {
  */
 Uint64 hash_u32(Uint64 val, void* udata) {
     UNUSED(udata);
-    return val % UINT64_MAX;
+    return val & UINT32_MAX;
 }
 
 /**
@@ -186,7 +186,7 @@ Uint64 hash_u32(Uint64 val, void* udata) {
  */
 Uint64 hash_u64(Uint64 val, void* udata) {
     UNUSED(udata);
-    return val % UINT64_MAX;
+    return val & UINT64_MAX;
 }
 
 /**
@@ -195,7 +195,7 @@ Uint64 hash_u64(Uint64 val, void* udata) {
  * @param udata User data (unused in this implementation).
  * @return The hashed value.
  */
-Uint64 hash_string(String val, void* udata) {
+Uint64 hash_string(ZString val, void* udata) {
     UNUSED(udata);
     Uint64 hash = 0;
     int i = 0;
@@ -215,7 +215,7 @@ Uint64 hash_string(String val, void* udata) {
  */
 Int32 compare_u8(Uint64 v1, Uint64 v2, void* udata) {
     UNUSED(udata);
-    return (Int32)(v1 - v2);
+    return TO_INT32(v1 - v2);
 }
 
 /**
@@ -227,7 +227,7 @@ Int32 compare_u8(Uint64 v1, Uint64 v2, void* udata) {
  */
 Int32 compare_u16(Uint64 v1, Uint64 v2, void* udata) {
     UNUSED(udata);
-    return (Int32)(v1 - v2);
+    return TO_INT32(v1 - v2);
 }
 
 /**
@@ -239,7 +239,7 @@ Int32 compare_u16(Uint64 v1, Uint64 v2, void* udata) {
  */
 Int32 compare_u32(Uint64 v1, Uint64 v2, void* udata) {
     UNUSED(udata);
-    return (Int32)(v1 - v2);
+    return TO_INT32(v1 - v2);
 }
 
 /**

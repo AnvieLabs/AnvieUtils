@@ -29,6 +29,8 @@
 #define ANVIE_UTILS_CONTAINER_BIT_VECTOR_H
 
 #include <Anvie/Types.h>
+#include <Anvie/Containers/Common.h>
+#include <Anvie/BitManipulation.h>
 
 /**
  * BitVector stores multiple boolean values in a single byte.
@@ -41,43 +43,68 @@ typedef struct BitVector {
     Uint8* data;                /**< Array to store boolean values. */
 } BitVector;
 
-BitVector* bitvector_create();
-void       bitvector_destroy(BitVector* bv);
-BitVector* bitvector_clone(BitVector* bv);
-void       bitvector_set_equal(BitVector* dstbv, BitVector* srcbv);
+/* the returned value depends on what is expected when length is not 8bit aligned */
+#define    bitvec_get_length_in_bytes(bv) (bv ? DIV8(bv->length) : 0)
+/* the returned value depends on what is expected when capacity is not 8bit aligned */
+#define    bitvec_get_capacity_in_bytes(bv) (bv ? DIV8(bv->capacity) : 0)
+
+BitVector* bitvec_create();
+void       bitvec_destroy(BitVector* bv);
+BitVector* bitvec_clone(BitVector* bv);
+void       bitvec_set_equal(BitVector* dstbv, BitVector* srcbv);
 
 /* resize/reserve operation */
-void       bitvector_reserve(BitVector* bv, Size numbools);
-void       bitvector_resize(BitVector* bv, Size numbools);
+void       bitvec_reserve(BitVector* bv, Size numbools);
+void       bitvec_resize(BitVector* bv, Size numbools);
 
 /* set/remove operation */
-void       bitvector_push_back(BitVector* bv, Bool val);
-Bool       bitvector_pop_back(BitVector* bv);
-void       bitvector_set(BitVector* bv, Size index);
-void       bitvector_clear(BitVector* bv, Size index);
-void       bitvector_set_all(BitVector* bv);
-void       bitvector_clear_all(BitVector* bv);
-void       bitvector_set_range(BitVector* bv, Size range_begin, Size range_size);
-void       bitvector_clear_range(BitVector* bv, Size range_begin, Size range_size);
+void       bitvec_push(BitVector* bv, Bool val);
+Bool       bitvec_pop(BitVector* bv);
+void       bitvec_set(BitVector* bv, Size index);
+void       bitvec_clear(BitVector* bv, Size index);
+void       bitvec_set_all(BitVector* bv);
+void       bitvec_clear_all(BitVector* bv);
+void       bitvec_set_range(BitVector* bv, Size range_begin, Size range_size);
+void       bitvec_clear_range(BitVector* bv, Size range_begin, Size range_size);
 
 /* get operation */
-Bool       bitvector_peek(BitVector* bv, Size index);
+Bool       bitvec_peek(BitVector* bv, Size index);
 
 /* logical operations */
 /* binary operations */
-BitVector* bitvector_xor(BitVector* bv1, BitVector* bv2);
-BitVector* bitvector_and(BitVector* bv1, BitVector* bv2);
-BitVector* bitvector_or(BitVector* bv1, BitVector* bv2);
-BitVector* bitvector_xnor(BitVector* bv1, BitVector* bv2);
-BitVector* bitvector_nand(BitVector* bv1, BitVector* bv2);
-BitVector* bitvector_nor(BitVector* bv1, BitVector* bv2);
-BitVector* bitvector_shl(BitVector* bv, Size index);
-BitVector* bitvector_shr(BitVector* bv, Size index);
+BitVector* bitvec_xor(BitVector* bv1, BitVector* bv2);
+BitVector* bitvec_and(BitVector* bv1, BitVector* bv2);
+BitVector* bitvec_or(BitVector* bv1, BitVector* bv2);
+BitVector* bitvec_xnor(BitVector* bv1, BitVector* bv2);
+BitVector* bitvec_nand(BitVector* bv1, BitVector* bv2);
+BitVector* bitvec_nor(BitVector* bv1, BitVector* bv2);
+BitVector* bitvec_shl(BitVector* bv, Size index);
+BitVector* bitvec_shr(BitVector* bv, Size index);
 /* unary operation */
-BitVector* bitvector_not(BitVector* bv);
+BitVector* bitvec_not(BitVector* bv);
+
+/* TODO: Will implement these later, writing tests take too much time,
+ * I also need to improve and implement tests for other containers.
+ * Will implemenent these when I feel the need for these or when I want to.
+ * For, now it's just a reminder.
+ * */
+/* binary inline operation */
+/* void       bitvec_xor_inline(BitVector* bv1, BitVector* bv2); */
+/* void       bitvec_and_inline(BitVector* bv1, BitVector* bv2); */
+/* void       bitvec_or_inline(BitVector* bv1, BitVector* bv2); */
+/* void       bitvec_xnor_inline(BitVector* bv1, BitVector* bv2); */
+/* void       bitvec_nand_inline(BitVector* bv1, BitVector* bv2); */
+/* void       bitvec_nor_inline(BitVector* bv1, BitVector* bv2); */
+/* void       bitvec_shl_inline(BitVector* bv, Size index); */
+/* void       bitvec_shr_inline(BitVector* bv, Size index); */
+/* unary operation */
+/* void       bitvec_not_inline(BitVector* bv); */
 
 /* comparision operation */
-Bool       bitvector_cmpeq(BitVector* bv1, BitVector* bv2);
+Bool       bitvec_cmpeq(BitVector* bv1, BitVector* bv2);
+
+/* misc operations */
+/* TODO: BitVector* bitvec_reverse(BitVector* bv); */
 
 /**
  * @c BitVector does not need le, lt, ge, gt comparisions,

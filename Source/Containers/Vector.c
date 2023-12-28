@@ -22,6 +22,7 @@
 
 #include <Anvie/Containers/Vector.h>
 #include <Anvie/HelperDefines.h>
+#include <Anvie/Error.h>
 #include <string.h>
 
 /**
@@ -51,23 +52,21 @@ Vector* vector_create(Size element_size,
                             CreateElementCopyCallback create_copy,
                             DestroyElementCopyCallback destroy_copy)
 {
-    RETURN_VALUE_IF_FAIL(element_size, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(element_size, NULL, ERR_INVALID_ARGUMENTS);
 
     // both must be null or non null at the same time
     Bool b1 = create_copy != NULL;
     Bool b2 = destroy_copy != NULL;
-    RETURN_VALUE_IF_FAIL(!(b1 ^ b2), NULL,
-                         "Either both copy constructor and destructor should be NULL, "
-                         "or both should be non NULL at the same time!");
+    ERR_RETURN_VALUE_IF_FAIL(!(b1 ^ b2), NULL, ERR_INVALID_ARGUMENTS);
 
     // create a new dyn array object
     Vector* vec = NEW(Vector);
-    RETURN_VALUE_IF_FAIL(vec, NULL, ERR_OUT_OF_MEMORY);
+    ERR_RETURN_VALUE_IF_FAIL(vec, NULL, ERR_OUT_OF_MEMORY);
 
     // allocate initial memory
     vec->data = ALLOCATE(Uint8, VECTOR_INIT_ELEMENT_COUNT * element_size);
     if(!vec->data) {
-        WARN_IF(True, ERR_OUT_OF_MEMORY);
+        ERR(__FUNCTION__, ERRFMT, ERRMSG(ERR_OUT_OF_MEMORY));
         FREE(vec);
         return NULL;
     }
@@ -85,7 +84,7 @@ Vector* vector_create(Size element_size,
  * @param udata User data to be passed to callback functions.
  * */
 void vector_destroy(Vector* vec, void* udata) {
-    RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
 
     // destroy all object copies if possible and memset whole array!
     if(vec->length != 0) {
@@ -109,10 +108,10 @@ void vector_destroy(Vector* vec, void* udata) {
  * @param udata User data to be passed to callback functions.
  * */
 Vector* vector_clone(Vector* vec, void* udata) {
-    RETURN_VALUE_IF_FAIL(vec, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(vec, NULL, ERR_INVALID_ARGUMENTS);
 
     Vector* vec_clone = NEW(Vector);
-    RETURN_VALUE_IF_FAIL(vec_clone, NULL, ERR_OUT_OF_MEMORY);
+    ERR_RETURN_VALUE_IF_FAIL(vec_clone, NULL, ERR_OUT_OF_MEMORY);
 
     // create copy of given vector
     // this is the copy constructor used in vector of vectors
@@ -127,10 +126,10 @@ Vector* vector_clone(Vector* vec, void* udata) {
  * @param new_size New capacity of this dyn array.
  * */
 inline void vector_resize(Vector* vec, Size new_size) {
-    RETURN_IF_FAIL(vec && new_size, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec && new_size, ERR_INVALID_ARGUMENTS);
 
     void* temp = realloc(vec->data, new_size * vec->element_size);
-    RETURN_IF_FAIL(temp, ERR_OUT_OF_MEMORY);
+    ERR_RETURN_IF_FAIL(temp, ERR_OUT_OF_MEMORY);
 
     // memset to make make new area nullified
     // ref : https://stackoverflow.com/a/32732502
@@ -149,7 +148,7 @@ inline void vector_resize(Vector* vec, Size new_size) {
  * @param capacity
  * */
 inline void vector_reserve(Vector* vec, Size capacity) {
-    RETURN_IF_FAIL(vec && capacity, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec && capacity, ERR_INVALID_ARGUMENTS);
     vector_resize(vec, capacity);
     vec->length = 0;
 }
@@ -162,7 +161,7 @@ inline void vector_reserve(Vector* vec, Size capacity) {
  * @param udata User data to be passed to callback functions.
  * */
 inline void vector_clear(Vector* vec, void* udata) {
-    RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
 
     // destroy element copies if we need to
     if(vec->destroy_copy) {
@@ -182,7 +181,7 @@ inline void vector_clear(Vector* vec, void* udata) {
  * @param size
  * */
 Vector* vector_get_subvector(Vector* vec, Size start, Size size, void* udata) {
-    RETURN_VALUE_IF_FAIL(vec && size, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(vec && size, NULL, ERR_INVALID_ARGUMENTS);
 
     Vector* new_vec = vector_create(vec->element_size, vec->create_copy, vec->destroy_copy);
     for(Size s = start; s < size; s++) {
@@ -208,7 +207,7 @@ Vector* vector_get_subvector(Vector* vec, Size start, Size size, void* udata) {
  * */
 inline void vector_move(Vector* vec, Size to, Size from, void* udata) {
     if(to == from) return;
-    RETURN_IF_FAIL(vec && (to < vec->capacity) && (from < vec->length), ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec && (to < vec->capacity) && (from < vec->length), ERR_INVALID_ARGUMENTS);
 
     // we need to destroy element if it's being overwritten to
     if((to < vec->length) && vec->destroy_copy) {
@@ -232,7 +231,7 @@ inline void vector_move(Vector* vec, Size to, Size from, void* udata) {
  * @param udata User data to be passed to callback functions.
  * */
 inline void vector_copy(Vector* vec, Size to, Size from, void* udata) {
-    RETURN_IF_FAIL(vec && (to < vec->capacity) && (from < vec->length) && (to != from), ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec && (to < vec->capacity) && (from < vec->length) && (to != from), ERR_INVALID_ARGUMENTS);
 
     // use copy constructor whenever possible
     if(vec->create_copy) {
@@ -263,7 +262,7 @@ inline void vector_copy(Vector* vec, Size to, Size from, void* udata) {
  * @param udata User data to be passed to callback functions.
  * */
 inline void vector_overwrite(Vector* vec, Size pos, void* data, void* udata) {
-    RETURN_IF_FAIL(vec && (pos < vec->capacity), ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec && (pos < vec->capacity), ERR_INVALID_ARGUMENTS);
 
     if(vec->create_copy) {
         void* elem = vector_address_at(vec, pos);
@@ -305,7 +304,7 @@ inline void vector_overwrite(Vector* vec, Size pos, void* data, void* udata) {
  * @param udata User data to be passed to callback functions.
  * */
 inline void vector_insert(Vector* vec, void *data, Size pos, void* udata) {
-    RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
 
     // resize array if insert position is more than capacity
     if(pos >= vec->capacity) {
@@ -317,7 +316,7 @@ inline void vector_insert(Vector* vec, void *data, Size pos, void* udata) {
 
         // reallocate if we need to
         void* temp = realloc(vec->data, new_capacity * vector_element_size(vec));
-        RETURN_IF_FAIL(temp, ERR_OUT_OF_MEMORY);
+        ERR_RETURN_IF_FAIL(temp, ERR_OUT_OF_MEMORY);
         vec->data = temp;
         vec->capacity = new_capacity;
         vec->length = pos;
@@ -327,7 +326,7 @@ inline void vector_insert(Vector* vec, void *data, Size pos, void* udata) {
     if(vec->length >= vec->capacity) {
         Size new_size = vec->capacity * (vec->resize_factor + 1);
         void* temp = realloc(vec->data, new_size * vector_element_size(vec));
-        RETURN_IF_FAIL(temp, ERR_OUT_OF_MEMORY);
+        ERR_RETURN_IF_FAIL(temp, ERR_OUT_OF_MEMORY);
         vec->data = temp;
         vec->capacity = new_size;
     }
@@ -385,8 +384,8 @@ inline void vector_insert(Vector* vec, void *data, Size pos, void* udata) {
  * @param udata User data to be passed to callback functions.
  * */
 inline void vector_delete(Vector* vec, Size pos, void* udata) {
-    RETURN_IF_FAIL(vec && (pos < vec->length), ERR_INVALID_ARGUMENTS);
-    RETURN_IF_FAIL(vec->length, ERR_CONTAINER_UNDERFLOW);
+    ERR_RETURN_IF_FAIL(vec && (pos < vec->length), ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec->length, ERR_CONTAINER_UNDERFLOW);
 
     // destroy element at position if possible
     if(vec->destroy_copy) {
@@ -413,8 +412,8 @@ inline void vector_delete(Vector* vec, Size pos, void* udata) {
  * @param pos Position of element to be removed.
  * */
 inline void* vector_remove(Vector* vec, Size pos) {
-    RETURN_VALUE_IF_FAIL(vec && (pos < vec->length), NULL, ERR_INVALID_ARGUMENTS);
-    RETURN_VALUE_IF_FAIL(vec->length, NULL, ERR_CONTAINER_UNDERFLOW);
+    ERR_RETURN_VALUE_IF_FAIL(vec && (pos < vec->length), NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(vec->length, NULL, ERR_CONTAINER_UNDERFLOW);
 
     // create a copy of element out of vector
     // here we can just return the copy that vector has,
@@ -427,7 +426,7 @@ inline void* vector_remove(Vector* vec, Size pos) {
     case 1 : elem = (void*)(Uint64) vector_at(vec, Uint8, pos); break;
     default :
         elem = ALLOCATE(Uint8, vec->element_size);
-        RETURN_VALUE_IF_FAIL(elem, NULL, ERR_OUT_OF_MEMORY);
+        ERR_RETURN_VALUE_IF_FAIL(elem, NULL, ERR_OUT_OF_MEMORY);
         memcpy(elem, vector_address_at(vec, pos), vec->element_size);
     }
 
@@ -463,7 +462,7 @@ inline void* vector_remove(Vector* vec, Size pos) {
  * @param udata User data to be passed to callback functions.
  * */
 inline void vector_insert_fast(Vector* vec, void* data, Size pos, void* udata) {
-    RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
 
     // resize array if insert position is more than capacity
     if(pos >= vec->capacity) {
@@ -475,7 +474,7 @@ inline void vector_insert_fast(Vector* vec, void* data, Size pos, void* udata) {
 
         // reallocate if we need to
         void* temp = realloc(vec->data, new_capacity * vector_element_size(vec));
-        RETURN_IF_FAIL(temp, ERR_OUT_OF_MEMORY);
+        ERR_RETURN_IF_FAIL(temp, ERR_OUT_OF_MEMORY);
         vec->data = temp;
         vec->capacity = new_capacity;
         vec->length = pos;
@@ -485,7 +484,7 @@ inline void vector_insert_fast(Vector* vec, void* data, Size pos, void* udata) {
     if(vec->length >= vec->capacity) {
         Size new_size = vec->capacity * (vec->resize_factor + 1);
         void* temp = realloc(vec->data, new_size * vector_element_size(vec));
-        RETURN_IF_FAIL(temp, ERR_OUT_OF_MEMORY);
+        ERR_RETURN_IF_FAIL(temp, ERR_OUT_OF_MEMORY);
         vec->data = temp;
         vec->capacity = new_size;
     }
@@ -524,8 +523,8 @@ inline void vector_insert_fast(Vector* vec, void* data, Size pos, void* udata) {
  * @param udata User data to be passed to callback functions.
  * */
 inline void vector_delete_fast(Vector* vec, Size pos, void* udata) {
-    RETURN_IF_FAIL(vec && (pos < vec->length), ERR_INVALID_ARGUMENTS);
-    RETURN_IF_FAIL(vec->length, ERR_CONTAINER_UNDERFLOW);
+    ERR_RETURN_IF_FAIL(vec && (pos < vec->length), ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec->length, ERR_CONTAINER_UNDERFLOW);
 
     // if position is not the last element then we just move last value to
     // position that needs to be deleted
@@ -546,8 +545,8 @@ inline void vector_delete_fast(Vector* vec, Size pos, void* udata) {
  * @param pos Position of element to be removed
  * */
 inline void* vector_remove_fast(Vector* vec, Size pos) {
-    RETURN_VALUE_IF_FAIL(vec && (pos < vec->length), NULL, ERR_INVALID_ARGUMENTS);
-    RETURN_VALUE_IF_FAIL(vec->length, NULL, ERR_CONTAINER_UNDERFLOW);
+    ERR_RETURN_VALUE_IF_FAIL(vec && (pos < vec->length), NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(vec->length, NULL, ERR_CONTAINER_UNDERFLOW);
 
     // create element copy without copy constructor
     void* elem = NULL;
@@ -558,7 +557,7 @@ inline void* vector_remove_fast(Vector* vec, Size pos) {
         case 1 : elem = (void*)(Uint64) vector_at(vec, Uint8, pos); break;
         default :
             elem = ALLOCATE(Uint8, vec->element_size);
-            RETURN_VALUE_IF_FAIL(elem, NULL, ERR_OUT_OF_MEMORY);
+            ERR_RETURN_VALUE_IF_FAIL(elem, NULL, ERR_OUT_OF_MEMORY);
             memcpy(elem, vector_address_at(vec, pos), vec->element_size);
     }
 
@@ -575,7 +574,7 @@ inline void* vector_remove_fast(Vector* vec, Size pos) {
  * @param udata User data to be passed to callback functions.
  * */
 void vector_push_front(Vector* vec, void* data, void* udata) {
-    RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
     vector_insert(vec, data, 0, udata);
 }
 
@@ -587,7 +586,7 @@ void vector_push_front(Vector* vec, void* data, void* udata) {
  * @return Removed element.
  * */
 void* vector_pop_front(Vector* vec) {
-    RETURN_VALUE_IF_FAIL(vec && vec->length, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(vec && vec->length, NULL, ERR_INVALID_ARGUMENTS);
     return vector_remove(vec, 0);
 }
 
@@ -598,7 +597,7 @@ void* vector_pop_front(Vector* vec) {
  * @param udata User data to be passed to callback functions.
  * */
 void vector_push_front_fast(Vector* vec, void* data, void* udata) {
-    RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
     vector_insert_fast(vec, data, 0, udata);
 }
 
@@ -610,7 +609,7 @@ void vector_push_front_fast(Vector* vec, void* data, void* udata) {
  * @return Removed element.
  * */
 void* vector_pop_front_fast(Vector* vec) {
-    RETURN_VALUE_IF_FAIL(vec, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(vec, NULL, ERR_INVALID_ARGUMENTS);
     return vector_remove_fast(vec, 0);
 }
 
@@ -622,7 +621,7 @@ void* vector_pop_front_fast(Vector* vec) {
  * @param udata User data to be passed to callback functions.
  * */
 void vector_push_back(Vector* vec, void* data, void* udata) {
-    RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec, ERR_INVALID_ARGUMENTS);
     vector_insert_fast(vec, data, vec->length, udata);
 }
 
@@ -633,7 +632,7 @@ void vector_push_back(Vector* vec, void* data, void* udata) {
  * @return Removed element.
  * */
 inline void* vector_pop_back(Vector* vec) {
-    RETURN_VALUE_IF_FAIL(vec && vec->length, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(vec && vec->length, NULL, ERR_INVALID_ARGUMENTS);
     return vector_remove_fast(vec, vec->length - 1);
 }
 
@@ -647,7 +646,7 @@ inline void* vector_pop_back(Vector* vec) {
  * @return Mutable reference or direct value stored at given position.
  * */
 inline void* vector_peek(Vector* vec, Size pos) {
-    RETURN_VALUE_IF_FAIL(vec, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(vec, NULL, ERR_INVALID_ARGUMENTS);
     if(pos >= vec->length) return NULL;
     switch(vec->element_size) {
         case 8: return (void*)vector_at(vec, Uint64, pos); break;
@@ -664,7 +663,7 @@ inline void* vector_peek(Vector* vec, Size pos) {
  * @return Reference of element at front
  * */
 void* vector_front(Vector* vec) {
-    RETURN_VALUE_IF_FAIL(vec, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(vec, NULL, ERR_INVALID_ARGUMENTS);
     return vector_peek(vec, 0);
 }
 
@@ -674,7 +673,7 @@ void* vector_front(Vector* vec) {
  * @return Reference to element at back
  * */
 inline void* vector_back(Vector* vec) {
-    RETURN_VALUE_IF_FAIL(vec, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(vec, NULL, ERR_INVALID_ARGUMENTS);
     return vector_peek(vec, vec->length-1);
 }
 
@@ -684,7 +683,7 @@ inline void* vector_back(Vector* vec) {
  * @param printer Function to print each element.
  * */
 void vector_print(Vector* vec, PrintElementCallback printer, void* udata) {
-    RETURN_IF_FAIL(vec && printer, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec && printer, ERR_INVALID_ARGUMENTS);
 
     switch(vec->element_size) {
         case 8 :
@@ -717,8 +716,8 @@ void vector_print(Vector* vec, PrintElementCallback printer, void* udata) {
  * @param udata User data to be passed to callback functions.
  * */
 void vector_merge(Vector* vec, Vector* vec_other, void* udata) {
-    RETURN_IF_FAIL(vec && vec_other, ERR_INVALID_ARGUMENTS);
-    RETURN_IF_FAIL(vec->element_size == vec_other->element_size, "Arrays of different element sizes cannot be merged\n");
+    ERR_RETURN_IF_FAIL(vec && vec_other, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec->element_size == vec_other->element_size, ERR_TYPE_MISMATCH);
 
     for(Size s = 0; s < vec_other->length; s++) {
         vector_push_back(vec, vector_peek(vec_other, s), udata);
@@ -733,11 +732,11 @@ void vector_merge(Vector* vec, Vector* vec_other, void* udata) {
  * @return New Vector object containing filtered elements on success, NULL otherwise.
  * */
 Vector* vector_filter(Vector* vec, FilterElementCallback filter, void* udata) {
-    RETURN_VALUE_IF_FAIL(vec && filter, NULL, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(vec && filter, NULL, ERR_INVALID_ARGUMENTS);
 
     // create new vector for containing filtered vectors
     Vector* filtered_vec = vector_create(vec->element_size, vec->create_copy, vec->destroy_copy);
-    RETURN_VALUE_IF_FAIL(filtered_vec, NULL, "Failed to create new filtered vector\n");
+    ERR_RETURN_VALUE_IF_FAIL(filtered_vec, NULL, ERR_INVALID_OBJECT);
 
     // filter elements
     for(Size i = 0; i < vec->length; i++) {
@@ -756,21 +755,21 @@ Vector* vector_filter(Vector* vec, FilterElementCallback filter, void* udata) {
  * @param p2 Position of second element
  * */
 inline void vector_swap(Vector* vec, Size p1, Size p2) {
-    RETURN_IF_FAIL(vec && (p1 < vec->length || p2 < vec->length), ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec && (p1 < vec->length || p2 < vec->length), ERR_INVALID_ARGUMENTS);
 
     // define to keep less repetitions
-#define SWAINT(type, i1, i2) {                                        \
-        type t = vector_at(vec, type, p1);                        \
-        vector_at(vec, type, p1) = vector_at(vec, type, p2); \
-        vector_at(vec, type, p2) = t;                             \
+#define SWAPINT(type, i1, i2) {                                         \
+        type t = vector_at(vec, type, p1);                              \
+        vector_at(vec, type, p1) = vector_at(vec, type, p2);            \
+        vector_at(vec, type, p2) = t;                                   \
         return;                                                         \
     }
 
     switch(vec->element_size) {
-        case 8: SWAINT(Uint64, p1, p2);
-        case 4: SWAINT(Uint32, p1, p2);
-        case 2: SWAINT(Uint16, p1, p2);
-        case 1: SWAINT(Uint8,  p1, p2);
+        case 8: SWAPINT(Uint64, p1, p2);
+        case 4: SWAPINT(Uint32, p1, p2);
+        case 2: SWAPINT(Uint16, p1, p2);
+        case 1: SWAPINT(Uint8,  p1, p2);
         default: {
             Byte temp[vec->element_size];
             memcpy(temp, vector_address_at(vec, p1), vec->element_size);
@@ -790,7 +789,7 @@ inline void vector_swap(Vector* vec, Size p1, Size p2) {
  * @param udata User data to be passed to callback functions.
  * */
 void vector_sort(Vector* vec, CompareElementCallback cmp, void* udata) {
-    RETURN_IF_FAIL(vec && cmp, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec && cmp, ERR_INVALID_ARGUMENTS);
     vector_insertion_sort(vec, cmp, udata);
 }
 
@@ -806,7 +805,7 @@ void vector_sort(Vector* vec, CompareElementCallback cmp, void* udata) {
  * @param udata User data to be passed to callback functions.
  * */
 Bool vector_check_sorted(Vector* vec, CompareElementCallback compare, void* udata) {
-    RETURN_VALUE_IF_FAIL(vec && compare, False, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_VALUE_IF_FAIL(vec && compare, False, ERR_INVALID_ARGUMENTS);
     for(Size s = 1; s < vec->length; s++) {
         if(compare(vector_peek(vec, s), vector_peek(vec, s-1), udata) < 0) {
             return False;
@@ -826,7 +825,7 @@ Bool vector_check_sorted(Vector* vec, CompareElementCallback compare, void* udat
  * @param udata User data to be passed to callback functions.
  * */
 void vector_insertion_sort(Vector* vec, CompareElementCallback compare, void* udata) {
-    RETURN_IF_FAIL(vec && compare, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec && compare, ERR_INVALID_ARGUMENTS);
 
     for(Size s = 1; s < vec->length; s++) {
         Size m = s;
@@ -843,7 +842,7 @@ void vector_insertion_sort(Vector* vec, CompareElementCallback compare, void* ud
  * @param udata User data to be passed to callback functions.
  * */
 void vector_bubble_sort(Vector* vec, CompareElementCallback compare, void* udata) {
-    RETURN_IF_FAIL(vec && compare, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec && compare, ERR_INVALID_ARGUMENTS);
 
     Bool b_swapped;
     for (Size i = 0; i < vec->length; i++) {
@@ -901,7 +900,7 @@ static inline void merge_sort_merge(Vector* vec, CompareElementCallback compare,
  * */
 static inline void merge_sort_sort(Vector* vec, CompareElementCallback compare, Size start, Size size, void* udata) {
     if(size < 2) return;
-    RETURN_IF_FAIL(vec && compare && (start + size) <= vec->length, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec && compare && (start + size) <= vec->length, ERR_INVALID_ARGUMENTS);
 
     if((size == 2) && (compare(vector_peek(vec, start+1), vector_peek(vec, start), udata) > 0)) {
         vector_swap(vec, start, start+1);
@@ -925,7 +924,7 @@ static inline void merge_sort_sort(Vector* vec, CompareElementCallback compare, 
  * @param udata User data to be passed to callback functions.
  * */
 void vector_merge_sort(Vector* vec, CompareElementCallback compare, void* udata) {
-    RETURN_IF_FAIL(vec && compare, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(vec && compare, ERR_INVALID_ARGUMENTS);
     merge_sort_sort(vec, compare, 0, vec->length, udata);
 }
 
@@ -938,14 +937,14 @@ void vector_merge_sort(Vector* vec, CompareElementCallback compare, void* udata)
  * @param src Vector* containing vector data to be copied.
  * */
 void vector_create_copy(void* dst, void* src, void* udata) {
-    RETURN_IF_FAIL(dst && src, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(dst && src, ERR_INVALID_ARGUMENTS);
 
     Vector* vec_dst = (Vector*)(dst);
     Vector* vec_src = (Vector*)(src);
 
     // allocate space for storing array
     vec_dst->data = ALLOCATE(Uint8, vec_src->element_size * vec_src->length);
-    RETURN_IF_FAIL(vec_dst->data, ERR_OUT_OF_MEMORY);
+    ERR_RETURN_IF_FAIL(vec_dst->data, ERR_OUT_OF_MEMORY);
 
     // initialize vector with basic data
     // note how length and capacity are initialized
@@ -969,7 +968,7 @@ void vector_create_copy(void* dst, void* src, void* udata) {
  * @param copy Copy of Vector* created using vector_create_copy().
  * */
 void vector_destroy_copy(void* copy, void* udata) {
-    RETURN_IF_FAIL(copy, ERR_INVALID_ARGUMENTS);
+    ERR_RETURN_IF_FAIL(copy, ERR_INVALID_ARGUMENTS);
 
     Vector* vec_copy = (Vector*)copy;
 

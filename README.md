@@ -8,7 +8,7 @@ Utility library for Anvie. This provides, basic helper defines, tests, container
 |------------------------|----------|------------------------------|---------------|
 | Container/Vector       | Yes      | Yes                          | Yes           |
 | Container/Tree         | No       | No                           | No            |
-| Container/StringBuffer | No       | No                           | No            |
+| Container/String | No       | No                           | No            |
 | Maths/Vector2f         | No       | Yes                          | Yes           |
 | Maths/Vector3f         | No       | Yes                          | Yes           |
 | Maths/Vector4f         | No       | Yes                          | Yes           |

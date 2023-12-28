@@ -28,7 +28,9 @@
 
 #define DEF_INTEGER_TREE_INTERFACE_WITH_COPY_AND_DESTROY(prefix, type, copy, destroy) \
     FORCE_INLINE Tree* prefix##_tree_create() {                         \
-        return tree_create(sizeof(type), copy, destroy);                \
+        return tree_create(sizeof(type),                                \
+                           (CreateElementCopyCallback)(void*)copy,      \
+                           (DestroyElementCopyCallback)(void*)destroy); \
     }                                                                   \
                                                                         \
     FORCE_INLINE Size prefix##_tree_size(Tree* node) {                  \
