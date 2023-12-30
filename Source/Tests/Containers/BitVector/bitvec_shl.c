@@ -23,7 +23,7 @@
 #include <Anvie/Containers/BitVector.h>
 #include <Anvie/Test/UnitTest.h>
 #include <Anvie/Error.h>
-#include <Anvie/BitManipulation.h>
+#include <Anvie/Bit/Bit.h>
 
 #include "drop_in_replacements.h"
 #include "helpers.h"
@@ -61,10 +61,10 @@ TEST_FN Bool Shl_WHEN_LENGTH_IS_NOT_8BIT_ALIGNED() {
 
     Size oc = bv->capacity;
     bv->length = 13;
-    Uint8 m1 = CREATE_MASK8(0, 0, 0, 0, 0, 1, 1, 1);
-    Uint8 m2 = CREATE_MASK8(1, 1, 1, 1, 1, 0, 0, 0); /* total 13 bits */
+    Uint8 m1 = CREATE_MASK8(1, 1, 1, 0, 0, 0, 0, 0);
+    Uint8 m2 = CREATE_MASK8(0, 0, 0, 1, 1, 1, 1, 1); /* total 13 bits */
     bv->data[0] = m1;
-    bv->data[1] = m1;
+    bv->data[1] = m2;
 
     /* shift left 13 bits */
     Size shlsz = 5;
@@ -73,14 +73,14 @@ TEST_FN Bool Shl_WHEN_LENGTH_IS_NOT_8BIT_ALIGNED() {
 
     /* test bvres */
     TEST_DATA_PTR(bvres->data);
-    TEST_LENGTH_EQ(bvres->length, oc);
+    TEST_LENGTH_EQ(bvres->length, bv->length - shlsz);
     TEST_CAPACITY_GE(bvres->capacity, oc);
     TEST_CONTENTS(bvres->data[0] == 0xff); /* after shifting all bits are flagged in first byte */
     TEST_CONTENTS(is_memory_filled_with_byte(bvres->data + 1, DIV8(bvres->capacity) - 1, 0));
 
     /* test bv */
     TEST_DATA_PTR(bv->data)
-    TEST_LENGTH_EQ(bv->length, oc);
+    TEST_LENGTH_EQ(bv->length, 13);
     TEST_CAPACITY_EQ(bv->capacity, oc);
     TEST_CONTENTS((bv->data[0] == m1) && (bv->data[1] == m2));
     TEST_CONTENTS(is_memory_filled_with_byte(bv->data + 2, DIV8(bv->capacity) - 2, 0));
@@ -109,10 +109,10 @@ TEST_FN Bool Shl_WHEN_LENGTH_IS_CAPACITY() {
 
     /* test bvres */
     TEST_DATA_PTR(bvres->data);
-    TEST_LENGTH_EQ(bvres->length, oc);
-    TEST_CAPACITY_GE(bvres->capacity, oc);
-    TEST_CONTENTS(is_memory_filled_with_byte(bvres->data, xffsz - shlsz, 0xff));
-    TEST_CONTENTS(is_memory_filled_with_byte(bvres->data + xffsz - shlsz, shlsz, 0));
+    TEST_LENGTH_EQ(bvres->length, bv->length - shllen);
+    TEST_CAPACITY_GE(bvres->capacity, bv->length - shllen);
+    TEST_CONTENTS(is_memory_filled_with_byte(bvres->data, xffsz, 0xff));
+    TEST_CONTENTS(is_memory_filled_with_byte(bvres->data + xffsz, shlsz, 0));
 
     /* test bv */
     TEST_DATA_PTR(bv->data)

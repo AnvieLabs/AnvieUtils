@@ -1,6 +1,6 @@
 /**
- * @file helpers.h
- * @date Tue, 26th December, 2023
+ * @file Bit.h
+ * @date Fri, 29th December, 2023
  * @author Siddharth Mishra (admin@brightprogrammer.in)
  * @copyright Copyright 2023 Siddharth Mishra
  * @copyright Copyright 2023 Anvie Labs
@@ -17,28 +17,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @brief Helper functions for easy testing of bitvector.
+ * @brief Includes all bitwise manipulation hacks and tricks in one single header
  * */
 
-#include <Anvie/Containers/BitVector.h>
-#include <Anvie/Error.h>
-#include <Anvie/Bit/Bit.h>
+#ifndef ANVIE_UTILS_BIT_BIT_H
+#define ANVIE_UTILS_BIT_BIT_H
 
-/**
- * Compare whether memory of bitvec is completely filled with
- * given value.
- * @param data
- * @param sz
- * @param v Value to compare with
- * */
-static FORCE_INLINE Bool is_memory_filled_with_byte(Uint8* data, Size sz, Uint8 v) {
-    ERR_RETURN_VALUE_IF_FAIL(data, False, ERR_INVALID_ARGUMENTS);
+#include <Anvie/Bit/Operators.h>
+#include <Anvie/Bit/Align.h>
+#include <Anvie/Bit/Arithmetic.h>
+#include <Anvie/Bit/Mask.h>
 
-    for(Size s = 0; s < sz; s++) {
-        if(data[s] != v) {
-            return False;
-        }
-    }
-
-    return True;
-}
+#endif // ANVIE_UTILS_BIT_BIT_H

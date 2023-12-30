@@ -23,7 +23,7 @@
 #include <Anvie/Containers/BitVector.h>
 #include <Anvie/Test/UnitTest.h>
 #include <Anvie/Error.h>
-#include <Anvie/BitManipulation.h>
+#include <Anvie/Bit/Bit.h>
 
 #include "helpers.h"
 
@@ -113,7 +113,7 @@ TEST_FN Bool ClearAll_CLEAR_LARGE_WHEN_LENGTH_IS_NOT_8BIT_ALIGNED() {
     TEST_LENGTH_EQ(bv->length, len);
     TEST_CAPACITY_GE(bv->capacity, len);
     TEST_CONTENTS(is_memory_filled_with_byte(bv->data, DIV8(len), 0x00));
-    TEST_CONTENTS(bv->data[DIV8(len) + 1] = NOT(MASK_LO(MOD8(len))));
+    TEST_CONTENTS(bv->data[DIV8(len) + 1] = NOT(MASK8_LO(MOD8(len))));
     TEST_CONTENTS(is_memory_filled_with_byte(bv->data + DIV8(len) + 2, DIV8(oc-len) - 2, 0xff));
 
     DO_BEFORE_EXIT(

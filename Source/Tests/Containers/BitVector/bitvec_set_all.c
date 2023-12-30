@@ -23,7 +23,7 @@
 #include <Anvie/Containers/BitVector.h>
 #include <Anvie/Test/UnitTest.h>
 #include <Anvie/Error.h>
-#include <Anvie/BitManipulation.h>
+#include <Anvie/Bit/Bit.h>
 
 #include "helpers.h"
 
@@ -107,7 +107,7 @@ TEST_FN Bool SetAll_SET_LARGE_WHEN_LENGTH_IS_NOT_8BIT_ALIGNED() {
     TEST_LENGTH_EQ(bv->length, len);
     TEST_CAPACITY_GE(bv->capacity, len);
     TEST_CONTENTS(is_memory_filled_with_byte(bv->data, DIV8(len), 0xff))
-    TEST_CONTENTS(bv->data[DIV8(len)] = MASK_LO(MOD8(len)));
+    TEST_CONTENTS(bv->data[DIV8(len)] = MASK8_LO(MOD8(len)));
 
     DO_BEFORE_EXIT(
         bitvec_destroy(bv);
@@ -121,15 +121,16 @@ TEST_FN Bool SetAll_WHEN_LENGTH_GREATER_THAN_CAPACITY() {
     /* the test might fail here, this is completely implementation dependent
      * because user is not supposed to alter the length and capacity on their
      * own without using the interface provided for interaction witht he bv */
-    Size sz = bv->capacity + 11;
-    bv->length = sz;
+    Size len = bv->capacity + 11;
+    Size sz = DIV8(len);
+    bv->length = len;
     bitvec_set_all(bv);
 
     TEST_DATA_PTR(bv->data);
-    TEST_LENGTH_EQ(bv->length, sz);
-    TEST_CAPACITY_GE(bv->capacity, sz);
-    TEST_CONTENTS(is_memory_filled_with_byte(bv->data, DIV8(sz), 0xff))
-    TEST_CONTENTS(bv->data[DIV8(sz)] == MASK_LO(MOD8(sz)));
+    TEST_LENGTH_EQ(bv->length, len);
+    TEST_CAPACITY_GE(bv->capacity, len);
+    TEST_CONTENTS(is_memory_filled_with_byte(bv->data, sz, 0xff))
+    TEST_CONTENTS(bv->data[sz] == MASK8_LO(MOD8(len)));
 
     DO_BEFORE_EXIT(
         bitvec_destroy(bv);

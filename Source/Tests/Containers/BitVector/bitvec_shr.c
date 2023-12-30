@@ -23,7 +23,7 @@
 #include <Anvie/Containers/BitVector.h>
 #include <Anvie/Test/UnitTest.h>
 #include <Anvie/Error.h>
-#include <Anvie/BitManipulation.h>
+#include <Anvie/Bit/Bit.h>
 
 #include "drop_in_replacements.h"
 #include "helpers.h"
@@ -40,8 +40,8 @@ TEST_FN Bool Shr_WHEN_SIZE_IS_ZERO() {
     TEST_OBJECT(bvres);
 
     TEST_DATA_PTR(bvres->data);
-    TEST_LENGTH_EQ(bvres->length, shrlen);
-    TEST_CAPACITY_GE(bvres->capacity, shrlen);
+    TEST_LENGTH_EQ(bvres->length, bv->length + shrlen);
+    TEST_CAPACITY_EQ(bvres->capacity, oc);
     TEST_CONTENTS(is_memory_filled_with_byte(bvres->data, DIV8(bvres->capacity), 0));
 
     TEST_DATA_PTR(bv->data)
@@ -61,10 +61,10 @@ TEST_FN Bool Shr_WHEN_LENGTH_IS_NOT_8BIT_ALIGNED() {
 
     Size oc = bv->capacity;
     bv->length = 13;
-    Uint8 m1 = CREATE_MASK8(0, 0, 0, 0, 0, 1, 1, 1);
-    Uint8 m2 = CREATE_MASK8(1, 1, 1, 1, 1, 0, 0, 0); /* total 13 bits */
+    Uint8 m1 = CREATE_MASK8(1, 1, 1, 0, 0, 0, 0, 0);
+    Uint8 m2 = CREATE_MASK8(0, 0, 0, 1, 1, 1, 1, 1); /* total 13 bits */
     bv->data[0] = m1;
-    bv->data[1] = m1;
+    bv->data[1] = m2;
 
     /* shift right 3 bits */
     Size shrsz = 3;
@@ -75,14 +75,14 @@ TEST_FN Bool Shr_WHEN_LENGTH_IS_NOT_8BIT_ALIGNED() {
 
     /* test bvres */
     TEST_DATA_PTR(bvres->data);
-    TEST_LENGTH_EQ(bvres->length, oc);
-    TEST_CAPACITY_GE(bvres->capacity, oc);
+    TEST_LENGTH_EQ(bvres->length, bv->length + shrsz);
+    TEST_CAPACITY_EQ(bvres->capacity, oc);
     TEST_CONTENTS((bvres->data[0] == 0x00) && (bvres->data[1] == 0xff));
     TEST_CONTENTS(is_memory_filled_with_byte(bvres->data + 2, DIV8(bvres->capacity) - 2, 0));
 
     /* test bv */
     TEST_DATA_PTR(bv->data)
-    TEST_LENGTH_EQ(bv->length, oc);
+    TEST_LENGTH_EQ(bv->length, 13);
     TEST_CAPACITY_EQ(bv->capacity, oc);
     TEST_CONTENTS((bv->data[0] == m1) && (bv->data[1] == m2));
     TEST_CONTENTS(is_memory_filled_with_byte(bv->data + 2, DIV8(bv->capacity) - 2, 0));
@@ -111,10 +111,10 @@ TEST_FN Bool Shr_WHEN_LENGTH_IS_CAPACITY() {
 
     /* test bvres */
     TEST_DATA_PTR(bvres->data);
-    TEST_LENGTH_EQ(bvres->length, oc);
-    TEST_CAPACITY_GE(bvres->capacity, oc);
-    TEST_CONTENTS(is_memory_filled_with_byte(bvres->data, xffsz - shrsz, 0xff));
-    TEST_CONTENTS(is_memory_filled_with_byte(bvres->data + xffsz - shrsz, shrsz, 0));
+    TEST_LENGTH_EQ(bvres->length, bv->length + shrlen);
+    TEST_CAPACITY_GE(bvres->capacity, bv->length + shrlen);
+    TEST_CONTENTS(is_memory_filled_with_byte(bvres->data, shrsz, 0x00));
+    TEST_CONTENTS(is_memory_filled_with_byte(bvres->data+shrsz, xffsz, 0xff));
 
     /* test bv */
     TEST_DATA_PTR(bv->data)

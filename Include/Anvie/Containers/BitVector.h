@@ -30,7 +30,7 @@
 
 #include <Anvie/Types.h>
 #include <Anvie/Containers/Common.h>
-#include <Anvie/BitManipulation.h>
+#include <Anvie/Bit/Bit.h>
 
 /**
  * BitVector stores multiple boolean values in a single byte.
@@ -43,10 +43,21 @@ typedef struct BitVector {
     Uint8* data;                /**< Array to store boolean values. */
 } BitVector;
 
-/* the returned value depends on what is expected when length is not 8bit aligned */
-#define    bitvec_get_length_in_bytes(bv) (bv ? DIV8(bv->length) : 0)
-/* the returned value depends on what is expected when capacity is not 8bit aligned */
-#define    bitvec_get_capacity_in_bytes(bv) (bv ? DIV8(bv->capacity) : 0)
+/**
+ * Instead of comparing with NULL always, this will probably
+ * look more neat and easy to read.
+ * */
+#define INVALID_BITVECTOR ((BitVector*)0)
+
+/* to be used when it's uncertain whether bv is a valid pointer or not */
+#define    bitvec_length(bv) ((bv) ? bv->length : 0)
+#define    bitvec_capacity(bv) ((bv) ? bv->capacity : 0)
+#define    bitvec_data(bv) ((bv) ? bv->data : INVALID_VOID_PTR)
+
+/** the returned value depends on what is expected when length is not 8bit aligned */
+#define    bitvec_get_length_in_bytes(bv) ((bv) ? DIV8(bv->length) : 0)
+/** capacity is always 8 bit aligned, this will be exact value */
+#define    bitvec_get_capacity_in_bytes(bv) ((bv) ? DIV8(bv->capacity) : 0)
 
 BitVector* bitvec_create();
 void       bitvec_destroy(BitVector* bv);

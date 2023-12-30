@@ -23,7 +23,7 @@
 #include <Anvie/Containers/BitVector.h>
 #include <Anvie/Test/UnitTest.h>
 #include <Anvie/Error.h>
-#include <Anvie/BitManipulation.h>
+#include <Anvie/Bit/Bit.h>
 
 TEST_FN Bool Pop_CHECK_REDUNDANCY() {
     BitVector* bv = bitvec_create();

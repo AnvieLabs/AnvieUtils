@@ -22,7 +22,7 @@
 
 #include <Anvie/Containers/Common.h>
 #include <Anvie/HelperDefines.h>
-#include <Anvie/BitManipulation.h>
+#include <Anvie/Bit/Bit.h>
 #include <string.h>
 
 /**

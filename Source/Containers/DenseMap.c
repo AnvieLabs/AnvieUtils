@@ -24,7 +24,7 @@
 #include <Anvie/Containers/DenseMap.h>
 #include <Anvie/HelperDefines.h>
 #include <Anvie/Error.h>
-#include <Anvie/BitManipulation.h>
+#include <Anvie/Bit/Bit.h>
 #include <string.h>
 
 #define MDATA_OCCUPANCY_MASK (1 << 7)
@@ -192,7 +192,7 @@ void dense_map_resize(DenseMap* map, Size size, void* udata) {
     }
 
     // when we reach a size greater than or equal to given size and  that's also a power of 2, then we break.
-    Size sz = GET_NEXT_POWER_OF_TWO(size);
+    Size sz = NEXT_POW2(size);
 
     // create vector to store DenseMapItem entries for the DenseMap.
     Vector* dmi_vec = dmi_vector_create();

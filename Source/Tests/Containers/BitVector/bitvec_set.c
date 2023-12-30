@@ -23,7 +23,7 @@
 #include <Anvie/Containers/BitVector.h>
 #include <Anvie/Test/UnitTest.h>
 #include <Anvie/Error.h>
-#include <Anvie/BitManipulation.h>
+#include <Anvie/Bit/Bit.h>
 
 #include "helpers.h"
 
@@ -102,7 +102,7 @@ TEST_FN Bool Set_MULTIPLE_AND_CROSS_CAPACITY() {
     for(Size s = 0; s < DIV8(sz); s++) {
         TEST_CONTENTS(bv->data[s] == 0xff);
     }
-    TEST_CONTENTS(bv->data[DIV8(sz)] == MASK_LO(MOD8(sz)));
+    TEST_CONTENTS(bv->data[DIV8(sz)] == MASK8_LO(MOD8(sz)));
 
     DO_BEFORE_EXIT(
         bitvec_destroy(bv);

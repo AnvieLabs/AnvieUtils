@@ -23,7 +23,7 @@
 #include <Anvie/Containers/BitVector.h>
 #include <Anvie/Test/UnitTest.h>
 #include <Anvie/Error.h>
-#include <Anvie/BitManipulation.h>
+#include <Anvie/Bit/Bit.h>
 
 #include "drop_in_replacements.h"
 #include "helpers.h"
@@ -40,19 +40,19 @@ TEST_FN Bool Xor_WHEN_LENGTH_IS_NOT_ALIGED_TO_8BIT() {
     Uint8 m21 = CREATE_MASK8(0, 1, 0, 0, 1, 0, 0, 1);
     Uint8 m22 = CREATE_MASK8(0, 1, 0, 0, 0, 0, 0, 0);
 
-    Size sz = 13;
-    resizebv(bv1, sz);
+    Size len = 13;
+    resizebv(bv1, len);
     bv1->data[0] = m11;
     bv1->data[1] = m12;
-    resizebv(bv2, sz);
-    bv2->data[1] = m21;
+    resizebv(bv2, len);
+    bv2->data[0] = m21;
     bv2->data[1] = m22;
 
     BitVector* bvres = bitvec_xor(bv1, bv2);
 
     TEST_OBJECT(bvres);
     TEST_DATA_PTR(bvres->data && bv1->data && bv2->data);
-    TEST_LENGTH_EQ(bvres->length, bv1->length);
+    TEST_LENGTH_EQ(bvres->length, len);
     TEST_LENGTH_EQ(bvres->capacity, bv1->capacity);
 
     /* test bv1 */
@@ -77,25 +77,20 @@ TEST_FN Bool Xor_WHEN_LENGTH_IS_ZERO() {
     BitVector* bv2 = bitvec_create();
     TEST_OBJECT(bv1 && bv2);
 
-    memset(bv1->data, 0xab, DIV8(bv1->capacity));
-    memset(bv2->data, 0xcd, DIV8(bv2->capacity));
+    /* length of both bitvectors are still zero */
+    memset(bv1->data, 0xab, bitvec_get_capacity_in_bytes(bv1));
+    memset(bv2->data, 0xcd, bitvec_get_capacity_in_bytes(bv2));
 
+    /* xor should be just redundant here */
     BitVector* bvres = bitvec_xor(bv1, bv2);
     TEST_OBJECT(bvres);
 
     TEST_DATA_PTR(bvres->data && bv1->data && bv2->data);
-    TEST_LENGTH_EQ(bvres->length, bv1->length);
-    TEST_LENGTH_EQ(bvres->capacity, bv1->capacity);
-
-    for(Size s = 0; s < DIV8(bv1->capacity); s++) {
-        TEST_CONTENTS(bv1->data[s] == 0xab);
-    }
-    for(Size s = 0; s < DIV8(bv2->capacity); s++) {
-        TEST_CONTENTS(bv2->data[s] == 0xcd);
-    }
-    for(Size s = 0; s < DIV8(bvres->capacity); s++) {
-        TEST_CONTENTS(bvres->data[s] == 0x00);
-    }
+    TEST_LENGTH_EQ(bvres->length, 0);
+    TEST_LENGTH_GE(bvres->capacity, MAX(bv1->length, bv2->length));
+    TEST_CONTENTS(is_memory_filled_with_byte(bv1->data, bitvec_get_capacity_in_bytes(bv1), 0xab))
+    TEST_CONTENTS(is_memory_filled_with_byte(bv2->data, bitvec_get_capacity_in_bytes(bv2), 0xcd))
+    TEST_CONTENTS(is_memory_filled_with_byte(bvres->data, bitvec_get_capacity_in_bytes(bvres), 0x00))
 
     DO_BEFORE_EXIT(
         if(bv1) bitvec_destroy(bv1);
@@ -109,29 +104,37 @@ TEST_FN Bool Xor_WHEN_LENGTH_IS_NON_ZERO_NOT_EQUAL() {
     BitVector* bv2 = bitvec_create();
     TEST_OBJECT(bv1 && bv2);
 
-    Size sz1 = 32, sz2 = DIV2(sz1);
-    bv1->length = sz1; /* make unequal sizes */
-    bv2->length = sz2;
-    memset(bv1->data, 0xaa, DIV8(sz1)); /* set some data to check later */
+    Size len1 = 32, len2 = DIV2(len1);
+    Size sz1 = DIV8(len1); Size sz2 = DIV8(len2);
+    bv1->length = len1; /* make unequal sizes */
+    bv2->length = len2;
+    memset(bv1->data, 0xa0, sz1); /* set some data to check later */
+    memset(bv2->data, 0x0a, sz2); /* set some data to check later */
 
-    /* xor if 16 bit value with 32 bit value, where one is 0xaaaaaaaa and other is 0x0000 */
+    /* xor of 16 bit value with 32 bit value, where one is 0xaaaaaaaa and other is 0x0000 */
     BitVector* bvres = bitvec_xor(bv1, bv2);
 
     TEST_OBJECT(bvres);
     TEST_DATA_PTR(bvres->data && bv1->data && bv2->data);
-    TEST_LENGTH_EQ(bv1->length, sz1);
-    TEST_LENGTH_EQ(bv2->length, sz2);
+    TEST_LENGTH_EQ(bv1->length, len1);
+    TEST_LENGTH_EQ(bv2->length, len2);
+    /* length of resulting vector is maxm out of lengths of two source vectors */
     TEST_LENGTH_EQ(bvres->length, MAX(bv1->length, bv2->length));
+    /* capacity of resulting vector is maxm out of lengths of two source vectors */
     TEST_LENGTH_EQ(bvres->capacity, MAX(bv1->capacity, bv2->capacity));
 
     /* check bv1 */
-    TEST_CONTENTS(is_memory_filled_with_byte(bv1->data, DIV8(sz1), 0xaa));
-    TEST_CONTENTS(is_memory_filled_with_byte(bv1->data + DIV8(sz1), DIV8(bv1->capacity - sz1), 0x00));
+    TEST_CONTENTS(is_memory_filled_with_byte(bv1->data, sz1, 0xa0));
+    TEST_CONTENTS(is_memory_filled_with_byte(bv1->data + sz1, bitvec_get_capacity_in_bytes(bv1) - sz1, 0x00));
     /* check bv2 */
-    TEST_CONTENTS(is_memory_filled_with_byte(bv2->data, DIV8(bv2->capacity), 0x00));
+    TEST_CONTENTS(is_memory_filled_with_byte(bv2->data, sz2, 0x0a));
+    TEST_CONTENTS(is_memory_filled_with_byte(bv2->data + sz2, bitvec_get_capacity_in_bytes(bv2) - sz2, 0x00));
     /* test bvres */
-    TEST_CONTENTS(is_memory_filled_with_byte(bvres->data, DIV8(sz2), XOR(0xaa, 0x00))); /* 0xaa */
-    TEST_CONTENTS(is_memory_filled_with_byte(bvres->data + DIV8(sz2), DIV8(bvres->capacity - sz2), 0x00));
+    Size minsz = MIN(sz1, sz2);
+    Size maxsz = MAX(sz1, sz2);
+    TEST_CONTENTS(is_memory_filled_with_byte(bvres->data, minsz, XOR(0xa0, 0x0a))); /* 0xaa */
+    TEST_CONTENTS(is_memory_filled_with_byte(bvres->data + minsz, maxsz - minsz, XOR(0xa0, 0x00))); /* 0xa0 */
+    TEST_CONTENTS(is_memory_filled_with_byte(bvres->data + maxsz, bitvec_get_capacity_in_bytes(bvres) - maxsz, 0x00));
 
     DO_BEFORE_EXIT(
         if(bv1) bitvec_destroy(bv1);
@@ -145,11 +148,12 @@ TEST_FN Bool Xor_WHEN_LENGTH_IS_EQUAL() {
     BitVector* bv2 = bitvec_create();
     TEST_OBJECT(bv1 && bv2);
 
-    Size sz = 32;
-    bv1->length = sz;
-    bv2->length = sz;
-    memset(bv1->data, 0xa0, DIV8(sz));
-    memset(bv2->data, 0x0a, DIV8(sz));
+    Size len = 32;
+    Size sz = DIV8(len);
+    bv1->length = len;
+    bv2->length = len;
+    memset(bv1->data, 0xa0, sz);
+    memset(bv2->data, 0x0a, sz);
 
     /* xor if 16 bit value with 32 bit value, both containing same data */
     BitVector* bvres = bitvec_xor(bv1, bv2);
@@ -160,14 +164,14 @@ TEST_FN Bool Xor_WHEN_LENGTH_IS_EQUAL() {
     TEST_LENGTH_EQ(bvres->capacity, MAX(bv1->capacity, bv2->capacity));
 
     /* check bv1 */
-    TEST_CONTENTS(is_memory_filled_with_byte(bv1->data, DIV8(sz), 0xa0));
-    TEST_CONTENTS(is_memory_filled_with_byte(bv1->data + DIV8(sz), DIV8(bv1->capacity - sz), 0x00));
+    TEST_CONTENTS(is_memory_filled_with_byte(bv1->data, sz, 0xa0));
+    TEST_CONTENTS(is_memory_filled_with_byte(bv1->data + sz, bitvec_get_capacity_in_bytes(bv1) - sz, 0x00));
     /* check bv2 */
-    TEST_CONTENTS(is_memory_filled_with_byte(bv2->data, DIV8(sz), 0x0a));
-    TEST_CONTENTS(is_memory_filled_with_byte(bv2->data + DIV8(sz), DIV8(bv2->capacity - sz), 0x00));
+    TEST_CONTENTS(is_memory_filled_with_byte(bv2->data, sz, 0x0a));
+    TEST_CONTENTS(is_memory_filled_with_byte(bv2->data + sz, bitvec_get_capacity_in_bytes(bv2) - sz, 0x00));
     /* test bvres */
-    TEST_CONTENTS(is_memory_filled_with_byte(bvres->data, DIV8(sz), XOR(0xa0, 0x0a))); /* 0xaa */
-    TEST_CONTENTS(is_memory_filled_with_byte(bvres->data + DIV8(sz), DIV8(bvres->capacity - sz), 0x00));
+    TEST_CONTENTS(is_memory_filled_with_byte(bvres->data, sz, XOR(0xa0, 0x0a))); /* 0xaa */
+    TEST_CONTENTS(is_memory_filled_with_byte(bvres->data + sz, bitvec_get_capacity_in_bytes(bvres) - sz, 0x00));
 
     DO_BEFORE_EXIT(
         if(bv1) bitvec_destroy(bv1);

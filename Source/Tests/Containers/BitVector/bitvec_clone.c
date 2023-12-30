@@ -22,7 +22,7 @@
 
 #include <Anvie/Containers/BitVector.h>
 #include <Anvie/Test/UnitTest.h>
-#include <Anvie/BitManipulation.h>
+#include <Anvie/Bit/Bit.h>
 
 TEST_FN Bool Clone() {
     BitVector* bv = bitvec_create();

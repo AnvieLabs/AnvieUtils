@@ -4,18 +4,18 @@ Utility library for Anvie. This provides, basic helper defines, tests, container
 
 ### Current Support
 
-| Utility Name           | Has Test | Actively in use in AnvieLabs | Has been used |
-|------------------------|----------|------------------------------|---------------|
-| Container/Vector       | Yes      | Yes                          | Yes           |
-| Container/Tree         | No       | No                           | No            |
-| Container/String | No       | No                           | No            |
-| Maths/Vector2f         | No       | Yes                          | Yes           |
-| Maths/Vector3f         | No       | Yes                          | Yes           |
-| Maths/Vector4f         | No       | Yes                          | Yes           |
-| Maths/Matrix4f         | No       | Yes                          | Yes           |
-| Container/DenseMap     | No       | No                           | No            |
-| Container/SparseMap    | No       | No                           | No            |
-| Container/BitVector    | No       | No                           | No            |
+| Utility Name        | Has Test | Actively in use in AnvieLabs | Has been used |
+|---------------------|----------|------------------------------|---------------|
+| Container/Vector    | Yes      | Yes                          | Yes           |
+| Container/Tree      | No       | No                           | No            |
+| Container/String    | No       | No                           | No            |
+| Maths/Vector2f      | No       | Yes                          | Yes           |
+| Maths/Vector3f      | No       | Yes                          | Yes           |
+| Maths/Vector4f      | No       | Yes                          | Yes           |
+| Maths/Matrix4f      | No       | Yes                          | Yes           |
+| Container/DenseMap  | No       | No                           | No            |
+| Container/SparseMap | No       | No                           | No            |
+| Container/BitVector | Yes      | No                           | No            |
 
 ### TODO
 

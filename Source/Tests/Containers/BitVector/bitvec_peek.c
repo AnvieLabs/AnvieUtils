@@ -23,7 +23,7 @@
 #include <Anvie/Containers/BitVector.h>
 #include <Anvie/Test/UnitTest.h>
 #include <Anvie/Error.h>
-#include <Anvie/BitManipulation.h>
+#include <Anvie/Bit/Bit.h>
 
 #include "drop_in_replacements.h"
 #include "helpers.h"
@@ -72,7 +72,8 @@ TEST_FN Bool Peek_AT_DIFFERENT_INDICES_IN_SAME_BYTE() {
     TEST_LENGTH_EQ(bv->length, oc);
     TEST_CAPACITY_EQ(bv->capacity, oc);
     TEST_CONTENTS(is_memory_filled_with_byte(bv->data, bidx, 0x00) == True);
-    /* skip `bidx+1`th byte */
+    /* skip the byte at index `bidx` */
+    /* continue from byte at index bidx+1 */
     TEST_CONTENTS(is_memory_filled_with_byte(bv->data + bidx + 1, DIV8(bv->capacity) - bidx - 1, 0x00) == True);
 
     DO_BEFORE_EXIT(

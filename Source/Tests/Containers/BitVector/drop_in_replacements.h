@@ -27,7 +27,7 @@
 #define ANVIE_UTILS_TESTS_CONTAINERS_BITVECTOR_DROP_IN_REPLACEMENTS_H
 
 #include <Anvie/Containers/BitVector.h>
-#include <Anvie/BitManipulation.h>
+#include <Anvie/Bit/Bit.h>
 #include <Anvie/Error.h>
 
 /**

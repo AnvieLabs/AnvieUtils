@@ -23,7 +23,7 @@
 #include <Anvie/Containers/BitVector.h>
 #include <Anvie/Test/UnitTest.h>
 #include <Anvie/Error.h>
-#include <Anvie/BitManipulation.h>
+#include <Anvie/Bit/Bit.h>
 
 TEST_FN Bool Push_ONE_BY_ONE() {
     BitVector* bv = bitvec_create();
@@ -128,7 +128,7 @@ TEST_FN Bool Push_MANY_AT_ONCE_AND_CROSS_CAPACITY() {
         for(Size s = 0; s < DIV8(psz); s++) {
             TEST_CONTENTS(bv->data[DIV8(s)] == 0xff);
         }
-        TEST_CONTENTS(bv->data[DIV8(psz)] == MASK_LO(rem));
+        TEST_CONTENTS(bv->data[DIV8(psz)] == MASK8_LO(rem));
         TEST_CONTENTS(bv->data[DIV8(psz) + 1] == 0x00);
 
         /* reset contents */
