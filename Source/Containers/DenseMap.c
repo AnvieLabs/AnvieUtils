@@ -87,7 +87,7 @@ DenseMap* dense_map_create(
     Vector* mdata_vec = u8_vector_create();
     if(!mdata_vec) {
         dmi_vector_destroy(dmi_vec, NULL);
-        ERR(__FUNCTION__, ERRMSG(ERR_INVALID_OBJECT));
+        ERR(__FUNCTION__, ERRFMT, ERRMSG(ERR_INVALID_OBJECT));
         return NULL;
     }
     u8_vector_resize(mdata_vec, DENSE_MAP_INITIAL_SIZE);
@@ -96,7 +96,7 @@ DenseMap* dense_map_create(
     if(!pl_vec) {
         dmi_vector_destroy(dmi_vec, NULL);
         u8_vector_destroy(mdata_vec, NULL);
-        ERR(__FUNCTION__, ERRMSG(ERR_INVALID_OBJECT));
+        ERR(__FUNCTION__, ERRFMT, ERRMSG(ERR_INVALID_OBJECT));
         return NULL;
     }
     u8_vector_resize(pl_vec, DENSE_MAP_INITIAL_SIZE);
@@ -107,7 +107,7 @@ DenseMap* dense_map_create(
         dmi_vector_destroy(dmi_vec, NULL);
         u8_vector_destroy(mdata_vec, NULL);
         u8_vector_destroy(pl_vec, NULL);
-        ERR(__FUNCTION__, ERRMSG(ERR_OUT_OF_MEMORY));
+        ERR(__FUNCTION__, ERRFMT, ERRMSG(ERR_OUT_OF_MEMORY));
         return NULL;
     }
 
@@ -203,7 +203,7 @@ void dense_map_resize(DenseMap* map, Size size, void* udata) {
     Vector* mdata_vec = u8_vector_create();
     if(!mdata_vec) {
         dmi_vector_destroy(dmi_vec, NULL);
-        ERR(__FUNCTION__, ERRMSG(ERR_INVALID_OBJECT));
+        ERR(__FUNCTION__, ERRFMT, ERRMSG(ERR_INVALID_OBJECT));
         return;
     }
     u8_vector_resize(mdata_vec, sz);
@@ -213,7 +213,7 @@ void dense_map_resize(DenseMap* map, Size size, void* udata) {
     if(!psl_vec) {
         dmi_vector_destroy(dmi_vec, NULL);
         u8_vector_destroy(mdata_vec, NULL);
-        ERR(__FUNCTION__, ERRMSG(ERR_INVALID_OBJECT));
+        ERR(__FUNCTION__, ERRFMT, ERRMSG(ERR_INVALID_OBJECT));
         return;
     }
     u8_vector_resize(psl_vec, sz);
@@ -297,7 +297,7 @@ DenseMapItem* dense_map_insert(DenseMap* map, void* key, void* value, void* udat
     DenseMapItem* inserted_item = insert_into_dense_map_directly(map, &this_dmi, udata);
     if(!inserted_item) {
         destroy_dmi_copy(&this_dmi, &clbk_data);
-        ERR(__FUNCTION__, ERRMSG(ERR_OPERATION_FAILED));
+        ERR(__FUNCTION__, ERRFMT, ERRMSG(ERR_OPERATION_FAILED));
         return NULL;
     }
 

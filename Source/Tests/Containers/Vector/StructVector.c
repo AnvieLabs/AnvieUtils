@@ -61,7 +61,7 @@ void __ZStringEntry_CreateCopy___(ZStringEntry* dst, ZStringEntry* src, ZStringD
 
     if(src->name && src->len) {
         dst->name = strdup(src->name);
-        FATAL_IF(!dst->name, ERRMSG(ERR_OUT_OF_MEMORY));
+        FATAL_IF(!dst->name, ERRFMT, ERRMSG(ERR_OUT_OF_MEMORY));
         dst->len = src->len;
     }
 
@@ -438,12 +438,12 @@ TEST_FN Bool PushBack() {
     }
 
     if(vec->length != TEST_DATA_SIZE) {
-        DBG(__FUNCTION__, ERRMSG(ERR_INVALID_LENGTH));
+        DBG(__FUNCTION__, ERRFMT, ERRMSG(ERR_INVALID_LENGTH));
         res = False;
     }
 
     if(vec->capacity < vec->length) {
-        DBG(__FUNCTION__, ERRMSG(ERR_INVALID_CAPACITY));
+        DBG(__FUNCTION__, ERRFMT, ERRMSG(ERR_INVALID_CAPACITY));
         res = False;
     }
 
@@ -452,7 +452,7 @@ TEST_FN Bool PushBack() {
         ZStringEntry* ref = se_vector_peek(vec, iter);
 
         if(!CompareZString(ref, &entry) || (ref->name == entry.name)) {
-            DBG(__FUNCTION__, ERRMSG(ERR_INVALID_CONTENTS));
+            DBG(__FUNCTION__, ERRFMT, ERRMSG(ERR_INVALID_CONTENTS));
             res = False;
         }
 
@@ -488,7 +488,7 @@ TEST_FN Bool PopBack() {
         ZStringEntry* ref = se_vector_pop_back(vec);
 
         if(!CompareZString(ref, &entry) || (ref->name == entry.name)) {
-            DBG(__FUNCTION__, ERRMSG(ERR_INVALID_CONTENTS));
+            DBG(__FUNCTION__, ERRFMT, ERRMSG(ERR_INVALID_CONTENTS));
             res = False;
         }
 
@@ -500,7 +500,7 @@ TEST_FN Bool PopBack() {
     }
 
     if(vec->length != 0) {
-        DBG(__FUNCTION__, ERRMSG(ERR_INVALID_LENGTH));
+        DBG(__FUNCTION__, ERRFMT, ERRMSG(ERR_INVALID_LENGTH));
         res = False;
     }
 
@@ -530,12 +530,12 @@ TEST_FN Bool PushFront() {
     }
 
     if(vec->length != TEST_DATA_SIZE) {
-        DBG(__FUNCTION__, ERRMSG(ERR_INVALID_LENGTH));
+        DBG(__FUNCTION__, ERRFMT, ERRMSG(ERR_INVALID_LENGTH));
         res = False;
     }
 
     if(vec->capacity < vec->length) {
-        DBG(__FUNCTION__, ERRMSG(ERR_INVALID_CAPACITY));
+        DBG(__FUNCTION__, ERRFMT, ERRMSG(ERR_INVALID_CAPACITY));
         res = False;
     }
 
@@ -544,7 +544,7 @@ TEST_FN Bool PushFront() {
         ZStringEntry* ref = se_vector_peek(vec, iter);
 
         if(!CompareZString(ref, &entry) || (ref->name == entry.name)) {
-            DBG(__FUNCTION__, ERRMSG(ERR_INVALID_CONTENTS));
+            DBG(__FUNCTION__, ERRFMT, ERRMSG(ERR_INVALID_CONTENTS));
             res = False;
         }
 
@@ -592,7 +592,7 @@ TEST_FN Bool PopFront() {
     }
 
     if(vec->length != 0) {
-        DBG(__FUNCTION__, ERRMSG(ERR_INVALID_LENGTH));
+        DBG(__FUNCTION__, ERRFMT, ERRMSG(ERR_INVALID_LENGTH));
         res = False;
     }
 
@@ -663,7 +663,7 @@ TEST_FN Bool Filter() {
     SE_Vector* vec_g5 = se_vector_filter(vec, element_filter, &sd);
     if(!vec_g5){
         vector_destroy(vec, &sd);
-        DBG(__FUNCTION__, ERRMSG(ERR_OPERATION_FAILED));
+        DBG(__FUNCTION__, ERRFMT, ERRMSG(ERR_OPERATION_FAILED));
         return False;
     }
 
