@@ -50,12 +50,12 @@ typedef struct TreeNode TreeNode;
  * @c node_parent member is there to help traversing up the tree.
  * */
 struct TreeNode {
-    void*   data;             /**< Data held by this tree node. */
-    Size      size;             /**< Size of this node. This is total number of nodes attached, not just children nodes. */
-    Size      height;           /**< Height of this given node. */
-    Vector*   children;         /**< Vector<TreeNode> containing children of this node. */
-    Tree*     tree_parent;      /**< Super duper parent of this tree. This is parent of all tree nodes in itself. */
-    TreeNode* node_parent;      /**< Absolute parent of this tree node. This is just above this node in heirarchy. */
+    void*                   data; /**< Data held by this tree node. */
+    Size                    size; /**< Size of this node. This is total number of nodes attached, not just children nodes. */
+    Size                    height; /**< Height of this given node. */
+    struct TreeNode_Vector* children; /**< Vector<TreeNode> containing children of this node. */
+    Tree*                   tree_parent; /**< Super duper parent of this tree. This is parent of all tree nodes in itself. */
+    TreeNode*               node_parent; /**< Absolute parent of this tree node. This is just above this node in heirarchy. */
 };
 #define TO_TREE_NODE(x) ((TreeNode*)(x))
 #define TREE_PARENT(node) (node->tree_parent ? node->tree_parent : TO_TREE(node))

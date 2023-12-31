@@ -24,8 +24,8 @@
 #ifndef ANVIE_UTILS_CONTAINERS_DENSE_MAP_H
 #define ANVIE_UTILS_CONTAINERS_DENSE_MAP_H
 
-#include "Vector.h"
-#include "Common.h"
+#include <Anvie/Containers/Vector.h>
+#include <Anvie/Containers/Common.h>
 
 /**
  * Represents a single item in the hash table.
@@ -42,6 +42,12 @@ typedef struct DenseMapItem {
     void* key; /**< To find position in sparse_map : `pos = hash(key) % length`*/
     void* data; /**< Data stored in this hash item. This is always a separate copy from what's provided by user. */
 } DenseMapItem;
+
+/* create vector to store dense map items */
+typedef struct Dmi_CallbackData Dmi_CallbackData;
+void create_dmi_copy(DenseMapItem* dst, DenseMapItem* src,  Dmi_CallbackData* clbk_data);
+void destroy_dmi_copy(DenseMapItem* copy, Dmi_CallbackData* clbk_data);
+DEF_STRUCT_VECTOR_INTERFACE(dmi, Dmi, DenseMapItem, create_dmi_copy, destroy_dmi_copy);
 
 /**
  * Analogous to @c std::unordered_map or @c std::unordered_multimap in CPP.
@@ -95,9 +101,9 @@ typedef struct DenseMap {
     Bool                       is_multimap; /**< True when contains multiple items with same key. False otherwise. */
     Float32                    max_load_factor; /**< Maximum load factor tolerance before we resize the hash table. */
     Size                       item_count; /**< Total number of slots filled in the hash table. */
-    Vector*                    probe_len; /**< Vector<Uint8> to store probing length for each corresponding item in the map. */
-    Vector*                    metadata; /**< Vector<Uint8> to store metadata about each corresponding element in map. */
-    Vector*                    map; /**< Vector<DenseMapItem> A vector to store all elements in the map. */
+    U8_Vector*                 probe_len; /**< Vector<Uint8> to store probing length for each corresponding item in the map. */
+    U8_Vector*                 metadata; /**< Vector<Uint8> to store metadata about each corresponding element in map. */
+    Dmi_Vector*                map; /**< Vector<DenseMapItem> A vector to store all elements in the map. */
 } DenseMap;
 
 DenseMap* dense_map_create(
@@ -118,7 +124,7 @@ DenseMapItem* dense_map_insert(DenseMap* map, void* key, void* value, void* udat
 DenseMapItem* dense_map_search(DenseMap* map, void* key, void* udata);
 void          dense_map_delete(DenseMap* map, void* key, void* udata);
 
-#include "Interface/DenseMap.h"
+#include <Anvie/Containers/Interface/DenseMap.h>
 
 /*                                      prefix  prefix   hash     ktype  kcompare    dtype */
 DEF_INTEGER_INTEGER_DENSE_MAP_INTERFACE(u8_u8,  U8_U8_,  hash_u8, Uint8, compare_u8, Uint8);

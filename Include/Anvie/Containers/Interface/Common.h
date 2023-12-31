@@ -31,7 +31,7 @@
     typedef void (*Create##typename##CopyCallback)(type* dst, type src, void* udata); \
     typedef void (*Destroy##typename##CopyCallback)(type* copy, void* udata); \
     typedef void (*Print##typename##Callback)(type element, Size pos, void* udata); \
-    typedef Bool (*Filter##typename##Callback)(type element, void* udata);  \
+    typedef Bool (*Filter##typename##Callback)(type element, void* udata); \
     typedef Int32 (*Compare##typename##Callback)(type p1, type p2, void* udata); \
     typedef Size (*Hash##typename##Callback)(type key, void* udata)
 

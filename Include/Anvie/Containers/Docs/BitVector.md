@@ -41,3 +41,11 @@ Yep, you don't require those as well, since boolean values don't require copy co
 - `bitvec_shr(BitVector* bv, Size index)`: Shifts right the BitVector by a specified index.
 - `bitvec_not(BitVector* bv)`: Performs a NOT operation on the BitVector.
 - `bitvec_cmpeq(BitVector* bv1, BitVector* bv2)`: Compares two BitVectors for equality.
+
+<p align="center" style="font-size: small; line-height: 1.2;">
+    Author: Siddharth Mishra<br>
+    Writing Date: 31st December, 2023<br>
+    Last Modified: 1st January, 2024<br>
+    License: Apache 2.0 License<br> <br>
+    Copyright (c) 2023 AnvieLabs, Siddharth Mishra
+</p>

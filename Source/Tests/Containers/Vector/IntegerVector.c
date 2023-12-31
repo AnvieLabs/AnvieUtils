@@ -43,7 +43,7 @@ void PrintU64(void* value, Size pos, void* udata) {
  * and destory_copy() are not null or nonnull at the same time.
  * */
 TEST_FN Bool Create1() {
-    U8_Vector* vec = vector_create(sizeof(Uint8), NULL, NULL);
+    Vector* vec = vector_create(sizeof(Uint8), NULL, NULL);
     ERR_RETURN_VALUE_IF_FAIL(vec, False, ERR_INVALID_OBJECT);
     vector_destroy(vec, NULL);
     return True;
@@ -55,7 +55,7 @@ TEST_FN Bool Create1() {
  * and destory_copy() are not null or nonnull at the same time.
  * */
 TEST_FN Bool Create2() {
-    U16_Vector* vec = vector_create(sizeof(Uint16), (CreateElementCopyCallback)1, (DestroyElementCopyCallback)1);
+    Vector* vec = vector_create(sizeof(Uint16), (CreateElementCopyCallback)1, (DestroyElementCopyCallback)1);
     ERR_RETURN_VALUE_IF_FAIL(vec, False, ERR_INVALID_OBJECT);
     vector_destroy(vec, NULL);
     return True;
@@ -67,7 +67,7 @@ TEST_FN Bool Create2() {
  * and destory_copy() are not null or nonnull at the same time.
  * */
 TEST_FN Bool Create3() {
-    U32_Vector* vec = vector_create(sizeof(Uint32), NULL, (DestroyElementCopyCallback)1);
+    Vector* vec = vector_create(sizeof(Uint32), NULL, (DestroyElementCopyCallback)1);
     ERR_RETURN_VALUE_IF_FAIL(!vec, False, ERR_UNEXPECTED);
     if(vec) vector_destroy(vec, NULL);
     return True;
@@ -79,7 +79,7 @@ TEST_FN Bool Create3() {
  * and destory_copy() are not null or nonnull at the same time.
  * */
 TEST_FN Bool Create4() {
-    U64_Vector* vec = vector_create(sizeof(Uint64), (CreateElementCopyCallback)1, NULL);
+    Vector* vec = vector_create(sizeof(Uint64), (CreateElementCopyCallback)1, NULL);
     ERR_RETURN_VALUE_IF_FAIL(!vec, False, ERR_UNEXPECTED);
     if(vec) vector_destroy(vec, NULL);
     return True;
@@ -95,7 +95,7 @@ TEST_FN Bool Insert() {
     Bool res = True;
     U64_Vector* vec = u64_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        u32_vector_insert(vec, iter, iter, NULL);
+        u64_vector_insert(vec, iter, iter, NULL);
 
         if(vec->capacity < vec->length) {
             DBG(__FUNCTION__, "VECTOR CAPACITY CANNOT BE LESS THAN VECTOR LENGTH\n");
@@ -228,7 +228,7 @@ TEST_FN Bool DeleteFast() {
     Bool res = True;
 
     // first create vector with some valid data
-    U32_Vector* vec = u64_vector_create();
+    U64_Vector* vec = u64_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
         u64_vector_insert_fast(vec, iter, iter, NULL);
     }
@@ -324,7 +324,7 @@ TEST_FN Bool PopBack() {
     // first create vector with some valid data
     U32_Vector* vec = u32_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        u64_vector_push_back(vec, iter, NULL);
+        u32_vector_push_back(vec, iter, NULL);
     }
 
     // delete all elements and check size
@@ -433,15 +433,15 @@ TEST_FN Bool Merge() {
     FREE(s);
 
     // merge
-    vector_merge(vec1, vec2, NULL);
+    zstr_vector_merge(vec1, vec2, NULL);
 
     Bool res = True;
-    if(strcmp(vector_peek(vec1, 2), vector_peek(vec2, 0)) != 0) {
+    if(strcmp(zstr_vector_peek(vec1, 2), zstr_vector_peek(vec2, 0)) != 0) {
         ERR(__FUNCTION__, "MERGE OPERATION IS INVALID! ELEMENTS DON'T MATCH!\n");
         res = False;
     }
 
-    if(strcmp(vector_peek(vec1, 3), vector_peek(vec2, 1)) != 0) {
+    if(strcmp(zstr_vector_peek(vec1, 3), zstr_vector_peek(vec2, 1)) != 0) {
         ERR(__FUNCTION__, "MERGE OPERATION IS INVALID! ELEMENTS DON'T MATCH!\n");
         res = False;
     }
@@ -453,11 +453,10 @@ TEST_FN Bool Merge() {
     return res;
 }
 
-static inline Bool element_filter(void* x, void* udata) {
-    Int32 v = (Int32)(Int64)x;
+static inline Bool element_filter(Int32 x, void* udata) {
     Bool g0 = (Bool)(Int64)udata;
 
-    return g0 && v > 0;
+    return g0 && x > 0;
 }
 
 TEST_FN Bool Filter() {
@@ -471,15 +470,15 @@ TEST_FN Bool Filter() {
     // all elements greater than 0 and less than equal to zero are filtered
     I32_Vector* vec_g0 = i32_vector_filter(vec, element_filter, (void*)True);
     if(!vec_g0){
-        vector_destroy(vec, NULL);
+        i32_vector_destroy(vec, NULL);
         DBG(__FUNCTION__, "FAILED TO FILTER ELEMENTS (vec_g0)\n");
         return False;
     }
 
     I32_Vector* vec_le0 = i32_vector_filter(vec, element_filter, (void*)False);
     if(!vec_le0){
-        vector_destroy(vec, NULL);
-        vector_destroy(vec_g0, NULL);
+        i32_vector_destroy(vec, NULL);
+        i32_vector_destroy(vec_g0, NULL);
         DBG(__FUNCTION__, "FAILED TO FILTER ELEMENTS (vec_le0)\n");
         return False;
     }
@@ -527,7 +526,7 @@ TEST_FN Bool Swap() {
     return True;
 }
 
-static Int32 compare_i32(void* x, void* y, void* udata) {
+Int32 compare_i32(Int32 x, Int32 y, void* udata) {
     UNUSED(udata);
     Int32 vx = (Int32)(Int64)x;
     Int32 vy = (Int32)(Int64)y;
@@ -553,14 +552,14 @@ static void my_print_i32(void* x, Size s, void* udata) {
             }                                                           \
                                                                         \
             Size start = chrono_get_time_as_microseconds();             \
-            vector_##sort_type##_sort(vec, compare_i32, NULL);          \
+            i32_vector_##sort_type##_sort(vec, compare_i32, NULL);          \
             Size stop = chrono_get_time_as_microseconds();              \
             avg_time += stop - start;                                   \
-            vector_print(vec, my_print_i32, NULL); newline();           \
-            vector_clear(vec, NULL);                                    \
+            i32_vector_print(vec, my_print_i32, NULL); newline();       \
+            i32_vector_clear(vec, NULL);                                \
         }                                                               \
         OK(#TestName, "Average test time for %zu iterations of %zu array size is %f ms\n", iter_count, arr_size, avg_time/iter_count/1000); \
-        ERR_RETURN_VALUE_IF_FAIL(vector_check_sorted(vec, compare_i32, NULL), False, ERR_OPERATION_FAILED); \
+        ERR_RETURN_VALUE_IF_FAIL(i32_vector_check_sorted(vec, compare_i32, NULL), False, ERR_OPERATION_FAILED); \
                                                                         \
         i32_vector_destroy(vec, NULL);                                  \
         return True;                                                    \

@@ -91,7 +91,7 @@ void __ZStringEntry_DestroyCopy___(ZStringEntry* copy, ZStringData* udata) {
     copy->name = NULL;
 }
 
-DEF_STRUCT_VECTOR_INTERFACE(se, SE_, ZStringEntry, __ZStringEntry_CreateCopy___, __ZStringEntry_DestroyCopy___);
+DEF_STRUCT_VECTOR_INTERFACE(zse, Zse, ZStringEntry, __ZStringEntry_CreateCopy___, __ZStringEntry_DestroyCopy___);
 
 static inline Bool CompareZString(ZStringEntry* s1, ZStringEntry* s2) {
     ERR_RETURN_VALUE_IF_FAIL(s1 && s2, False, ERR_INVALID_ARGUMENTS);
@@ -104,7 +104,7 @@ static inline Bool CompareZString(ZStringEntry* s1, ZStringEntry* s2) {
  * and destory_copy() are not null or nonnull at the same time.
  * */
 TEST_FN Bool Create1() {
-    SE_Vector* vec = vector_create(sizeof(ZStringEntry), NULL, NULL);
+    Vector* vec = vector_create(sizeof(ZStringEntry), NULL, NULL);
     ERR_RETURN_VALUE_IF_FAIL(vec, False, ERR_INVALID_OBJECT);
     ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
     vector_destroy(vec, &sd);
@@ -117,7 +117,7 @@ TEST_FN Bool Create1() {
  * and destory_copy() are not null or nonnull at the same time.
  * */
 TEST_FN Bool Create2() {
-    SE_Vector* vec = vector_create(
+    Vector* vec = vector_create(
         sizeof(ZStringEntry),
         (CreateElementCopyCallback)(__ZStringEntry_CreateCopy___),
         (DestroyElementCopyCallback)(__ZStringEntry_DestroyCopy___)
@@ -134,7 +134,7 @@ TEST_FN Bool Create2() {
  * and destory_copy() are not null or nonnull at the same time.
  * */
 TEST_FN Bool Create3() {
-    SE_Vector* vec = vector_create(sizeof(ZStringEntry), NULL, (DestroyElementCopyCallback)(__ZStringEntry_DestroyCopy___));
+    Vector* vec = vector_create(sizeof(ZStringEntry), NULL, (DestroyElementCopyCallback)(__ZStringEntry_DestroyCopy___));
     ERR_RETURN_VALUE_IF_FAIL(!vec, False, ERR_UNEXPECTED);
     ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
     if(vec) vector_destroy(vec, &sd); // we don't actually need to destroy, but still...
@@ -147,7 +147,7 @@ TEST_FN Bool Create3() {
  * and destory_copy() are not null or nonnull at the same time.
  * */
 TEST_FN Bool Create4() {
-    SE_Vector* vec = vector_create(sizeof(ZStringEntry), (CreateElementCopyCallback)(__ZStringEntry_CreateCopy___), NULL);
+    Vector* vec = vector_create(sizeof(ZStringEntry), (CreateElementCopyCallback)(__ZStringEntry_CreateCopy___), NULL);
     ERR_RETURN_VALUE_IF_FAIL(!vec, False, ERR_UNEXPECTED);
     ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
     if(vec) vector_destroy(vec, &sd); // we don't actually need to destroy, but still...
@@ -168,9 +168,9 @@ TEST_FN Bool Insert() {
     ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
-    SE_Vector* vec = se_vector_create();
+    Zse_Vector* vec = zse_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        se_vector_insert(vec, &entry, iter, &sd);
+        zse_vector_insert(vec, &entry, iter, &sd);
     }
 
     if(vec->length != TEST_DATA_SIZE) {
@@ -185,7 +185,7 @@ TEST_FN Bool Insert() {
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        ZStringEntry* ref = se_vector_peek(vec, iter);
+        ZStringEntry* ref = zse_vector_peek(vec, iter);
 
         if(ref->name == entry.name) {
             DBG(__FUNCTION__, "BOTH STRINGS MUST NOT POINT TO SAME ADDRESS\n");
@@ -200,7 +200,7 @@ TEST_FN Bool Insert() {
         if(!res) break;
     }
 
-    se_vector_destroy(vec, &sd);
+    zse_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -219,14 +219,14 @@ TEST_FN Bool Delete() {
 
     Bool res = True;
     // first create vector with some valid data
-    SE_Vector* vec = se_vector_create();
+    Zse_Vector* vec = zse_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        se_vector_insert(vec, &entry, iter, &sd);
+        zse_vector_insert(vec, &entry, iter, &sd);
     }
 
     // delete all elements and check size
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        se_vector_delete(vec, rand() % vec->length, &sd);
+        zse_vector_delete(vec, rand() % vec->length, &sd);
 
         if(vec->length != (TEST_DATA_SIZE - iter - 1)) {
             DBG(__FUNCTION__, "VECTOR LENGTH AFTER DELETING EXPECTED TO BE \"%zu\", FOUND \"%zu\"\n", TEST_DATA_SIZE - iter - 1, vec->length);
@@ -240,7 +240,7 @@ TEST_FN Bool Delete() {
         res = False;
     }
 
-    se_vector_destroy(vec, &sd);
+    zse_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -258,14 +258,14 @@ TEST_FN Bool Remove() {
     ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
-    SE_Vector* vec = se_vector_create();
+    Zse_Vector* vec = zse_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        se_vector_insert(vec, &entry, iter, &sd);
+        zse_vector_insert(vec, &entry, iter, &sd);
     }
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        ZStringEntry* ref = se_vector_remove(vec, 0);
+        ZStringEntry* ref = zse_vector_remove(vec, 0);
 
         if(!CompareZString(ref, &entry)) {
             DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
@@ -284,7 +284,7 @@ TEST_FN Bool Remove() {
         if(!res) break;
     }
 
-    se_vector_destroy(vec, &sd);
+    zse_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -302,9 +302,9 @@ TEST_FN Bool InsertFast() {
     ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
-    SE_Vector* vec = se_vector_create();
+    Zse_Vector* vec = zse_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        se_vector_insert_fast(vec, &entry, iter, &sd);
+        zse_vector_insert_fast(vec, &entry, iter, &sd);
     }
 
     if(vec->length != TEST_DATA_SIZE) {
@@ -319,7 +319,7 @@ TEST_FN Bool InsertFast() {
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        ZStringEntry* ref = se_vector_peek(vec, iter);
+        ZStringEntry* ref = zse_vector_peek(vec, iter);
 
         if(!CompareZString(ref, &entry)) {
             DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
@@ -334,7 +334,7 @@ TEST_FN Bool InsertFast() {
         if(!res) break;
     }
 
-    se_vector_destroy(vec, &sd);
+    zse_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -353,14 +353,14 @@ TEST_FN Bool DeleteFast() {
 
     Bool res = True;
     // first create vector with some valid data
-    SE_Vector* vec = se_vector_create();
+    Zse_Vector* vec = zse_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        se_vector_insert_fast(vec, &entry, iter, &sd);
+        zse_vector_insert_fast(vec, &entry, iter, &sd);
     }
 
     // delete all elements and check size
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        se_vector_delete_fast(vec, rand() % vec->length, &sd);
+        zse_vector_delete_fast(vec, rand() % vec->length, &sd);
 
         if(vec->length != (TEST_DATA_SIZE - iter - 1)) {
             DBG(__FUNCTION__, "VECTOR LENGTH AFTER DELETING EXPECTED TO BE \"%zu\", FOUND \"%zu\"\n", TEST_DATA_SIZE - iter - 1, vec->length);
@@ -375,7 +375,7 @@ TEST_FN Bool DeleteFast() {
 
     }
 
-    se_vector_destroy(vec, &sd);
+    zse_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -393,14 +393,14 @@ TEST_FN Bool RemoveFast() {
     ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
-    SE_Vector* vec = se_vector_create();
+    Zse_Vector* vec = zse_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        se_vector_insert_fast(vec, &entry, iter, &sd);
+        zse_vector_insert_fast(vec, &entry, iter, &sd);
     }
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        ZStringEntry* ref = se_vector_remove_fast(vec, 0);
+        ZStringEntry* ref = zse_vector_remove_fast(vec, 0);
         if(!CompareZString(ref, &entry) || (ref->name == entry.name)) {
             DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
             res = False;
@@ -413,7 +413,7 @@ TEST_FN Bool RemoveFast() {
         if(!res) break;
     }
 
-    se_vector_destroy(vec, &sd);
+    zse_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -432,9 +432,9 @@ TEST_FN Bool PushBack() {
     ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
-    SE_Vector* vec = se_vector_create();
+    Zse_Vector* vec = zse_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        se_vector_push_back(vec, &entry, &sd);
+        zse_vector_push_back(vec, &entry, &sd);
     }
 
     if(vec->length != TEST_DATA_SIZE) {
@@ -449,7 +449,7 @@ TEST_FN Bool PushBack() {
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        ZStringEntry* ref = se_vector_peek(vec, iter);
+        ZStringEntry* ref = zse_vector_peek(vec, iter);
 
         if(!CompareZString(ref, &entry) || (ref->name == entry.name)) {
             DBG(__FUNCTION__, ERRFMT, ERRMSG(ERR_INVALID_CONTENTS));
@@ -459,7 +459,7 @@ TEST_FN Bool PushBack() {
         if(!res) break;
     }
 
-    se_vector_destroy(vec, &sd);
+    zse_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -478,14 +478,14 @@ TEST_FN Bool PopBack() {
 
     Bool res = True;
     // first create vector with some valid data
-    SE_Vector* vec = se_vector_create();
+    Zse_Vector* vec = zse_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        se_vector_push_back(vec, &entry, &sd);
+        zse_vector_push_back(vec, &entry, &sd);
     }
 
     // delete all elements and check size
     for(Size iter = TEST_DATA_SIZE; iter; iter--) {
-        ZStringEntry* ref = se_vector_pop_back(vec);
+        ZStringEntry* ref = zse_vector_pop_back(vec);
 
         if(!CompareZString(ref, &entry) || (ref->name == entry.name)) {
             DBG(__FUNCTION__, ERRFMT, ERRMSG(ERR_INVALID_CONTENTS));
@@ -504,7 +504,7 @@ TEST_FN Bool PopBack() {
         res = False;
     }
 
-    se_vector_destroy(vec, &sd);
+    zse_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -523,10 +523,10 @@ TEST_FN Bool PushFront() {
     ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
 
     Bool res = True;
-    SE_Vector* vec = se_vector_create();
+    Zse_Vector* vec = zse_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
         // insert array backwards
-        se_vector_push_front(vec, &entry, &sd);
+        zse_vector_push_front(vec, &entry, &sd);
     }
 
     if(vec->length != TEST_DATA_SIZE) {
@@ -541,7 +541,7 @@ TEST_FN Bool PushFront() {
 
     // check whether data is correct or incorrect
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        ZStringEntry* ref = se_vector_peek(vec, iter);
+        ZStringEntry* ref = zse_vector_peek(vec, iter);
 
         if(!CompareZString(ref, &entry) || (ref->name == entry.name)) {
             DBG(__FUNCTION__, ERRFMT, ERRMSG(ERR_INVALID_CONTENTS));
@@ -551,7 +551,7 @@ TEST_FN Bool PushFront() {
         if(!res) break;
     }
 
-    se_vector_destroy(vec, &sd);
+    zse_vector_destroy(vec, &sd);
     return res;
 }
 
@@ -570,14 +570,14 @@ TEST_FN Bool PopFront() {
 
     Bool res = True;
     // first create vector with some valid data
-    SE_Vector* vec = se_vector_create();
+    Zse_Vector* vec = zse_vector_create();
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        se_vector_push_back(vec, &entry, &sd);
+        zse_vector_push_back(vec, &entry, &sd);
     }
 
     // delete all elements and check size
     for(Size iter = 0; iter < TEST_DATA_SIZE; iter++) {
-        ZStringEntry* ref = se_vector_pop_front(vec);
+        ZStringEntry* ref = zse_vector_pop_front(vec);
 
         if(!CompareZString(ref, &entry) || (ref->name == entry.name)) {
             DBG(__FUNCTION__, "INVALID COPY FOUND IN STRUCT ARRAY AT INDEX \"%zu\"\n", iter);
@@ -596,15 +596,15 @@ TEST_FN Bool PopFront() {
         res = False;
     }
 
-    se_vector_destroy(vec, &sd);
+    zse_vector_destroy(vec, &sd);
     return res;
 }
 
 TEST_FN Bool Merge() {
     strid = 0;
 
-    SE_Vector* vec1 = se_vector_create();
-    SE_Vector* vec2 = se_vector_create();
+    Zse_Vector* vec1 = zse_vector_create();
+    Zse_Vector* vec2 = zse_vector_create();
 
     ZStringEntry se;
     ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
@@ -612,42 +612,41 @@ TEST_FN Bool Merge() {
     // prepare data
     // vec1
     se_init(&se, "Siddharth");
-    se_vector_push_back(vec1, &se, &sd);
+    zse_vector_push_back(vec1, &se, &sd);
 
     se_init(&se, "Mishra");
-    se_vector_push_back(vec1, &se, &sd);
+    zse_vector_push_back(vec1, &se, &sd);
 
     // vec2
     se_init(&se, "is");
-    se_vector_push_back(vec2, &se, &sd);
+    zse_vector_push_back(vec2, &se, &sd);
 
     se_init(&se, "@brightprogrammer");
-    se_vector_push_back(vec2, &se, &sd);
+    zse_vector_push_back(vec2, &se, &sd);
 
     // merge
-    se_vector_merge(vec1, vec2, &sd);
+    zse_vector_merge(vec1, vec2, &sd);
 
     // check merge
-    ERR_RETURN_VALUE_IF_FAIL(!strcmp(se_vector_peek(vec1, 2)->name, se_vector_peek(vec2, 0)->name), False, ERR_OPERATION_FAILED);
-    ERR_RETURN_VALUE_IF_FAIL(!strcmp(se_vector_peek(vec1, 3)->name, se_vector_peek(vec2, 1)->name), False, ERR_OPERATION_FAILED);
+    ERR_RETURN_VALUE_IF_FAIL(!strcmp(zse_vector_peek(vec1, 2)->name, zse_vector_peek(vec2, 0)->name), False, ERR_OPERATION_FAILED);
+    ERR_RETURN_VALUE_IF_FAIL(!strcmp(zse_vector_peek(vec1, 3)->name, zse_vector_peek(vec2, 1)->name), False, ERR_OPERATION_FAILED);
 
-    se_vector_destroy(vec1, &sd);
-    se_vector_destroy(vec2, &sd);
+    zse_vector_destroy(vec1, &sd);
+    zse_vector_destroy(vec2, &sd);
 
     return True;
 }
 
-static inline Bool element_filter(void* x, void* udata) {
-    ZStringEntry* v = (ZStringEntry*)x;
+static inline Bool element_filter(ZStringEntry* x, void* udata) {
     Size sz_limit = (Size)udata;
 
-    return strlen(v->name) > sz_limit;
+    return strlen(x->name) > sz_limit;
 }
 
 TEST_FN Bool Filter() {
     strid = 0;
 
-    SE_Vector* vec = se_vector_create();
+    Zse_Vector* vec = zse_vector_create();
     char str[11] = {0};
     ZStringEntry se;
     ZStringData sd = {.create = CREATE_DATA, .compare = COMPARE_DATA, .destroy = DESTROY_DATA};
@@ -656,24 +655,24 @@ TEST_FN Bool Filter() {
     for(int i = 0; i < 10; i++) {
         str[i] = 'a';
         se_init(&se, str);
-        se_vector_push_back(vec, &se, &sd);
+        zse_vector_push_back(vec, &se, &sd);
     }
 
     // all elements greater than 0 and less than equal to zero are filtered
-    SE_Vector* vec_g5 = se_vector_filter(vec, element_filter, &sd);
+    Zse_Vector* vec_g5 = zse_vector_filter(vec, element_filter, &sd);
     if(!vec_g5){
-        vector_destroy(vec, &sd);
+        zse_vector_destroy(vec, &sd);
         DBG(__FUNCTION__, ERRFMT, ERRMSG(ERR_OPERATION_FAILED));
         return False;
     }
 
     // check length of all elements in vec_g5 are greater than 5
     for(Size s = 0; s < vec_g5->length; s++) {
-        ERR_RETURN_VALUE_IF_FAIL(strlen(se_vector_peek(vec_g5, s)->name) > 5, False, ERR_INVALID_CONTENTS);
+        ERR_RETURN_VALUE_IF_FAIL(strlen(zse_vector_peek(vec_g5, s)->name) > 5, False, ERR_INVALID_CONTENTS);
     }
 
-    se_vector_destroy(vec, &sd);
-    se_vector_destroy(vec_g5, &sd);
+    zse_vector_destroy(vec, &sd);
+    zse_vector_destroy(vec_g5, &sd);
 
     return True;
 }

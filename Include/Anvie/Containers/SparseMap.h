@@ -26,9 +26,9 @@
 #ifndef ANVIE_UTILS_CONTAINERS_SPARSE_MAP_H
 #define ANVIE_UTILS_CONTAINERS_SPARSE_MAP_H
 
-#include "BitVector.h"
-#include "Vector.h"
-#include "Common.h"
+#include <Anvie/Containers/BitVector.h>
+#include <Anvie/Containers/Vector.h>
+#include <Anvie/Containers/Common.h>
 
 /**
  * Represents a single item in the hash table.
@@ -43,10 +43,16 @@
  * */
 typedef struct SparseMapItem SparseMapItem;
 struct SparseMapItem {
-    void* key; /**< To find position in sparse_map : `pos = hash(key) % length`*/
-    void* data; /**< Data stored in this hash item. This is always a separate copy from what's provided by user. */
-    SparseMapItem* next; /*< Point to next item in this bucket. If this is the last entry, then this ponts to NULL. */
+    void*          key;         /**< To find position in sparse_map : `pos = hash(key) % length`*/
+    void*          data;        /**< Data stored in this hash item. This is always a separate copy from what's provided by user. */
+    SparseMapItem* next;        /*< Point to next item in this bucket. If this is the last entry, then this ponts to NULL. */
 };
+
+/* create vector to store sparse map items */
+typedef struct Smi_CallbackData Smi_CallbackData;
+void create_smi_copy(SparseMapItem* dst, SparseMapItem* src,  Smi_CallbackData* clbk_data);
+void destroy_smi_copy(SparseMapItem* copy, Smi_CallbackData* clbk_data);
+DEF_STRUCT_VECTOR_INTERFACE(smi, Smi, SparseMapItem, create_smi_copy, destroy_smi_copy);
 
 /**
  * @brief Analogous to @c std::unordered_map or @c std::unordered_multimap in CPP.
@@ -97,7 +103,7 @@ typedef struct SparseMap {
     Size                       max_item_count; /**< Maximum load factor tolerance before we resize the hash table. */
     Size                       item_count; /**< Total number of elements in the hash table. */
     BitVector*                 occupancy; /**< BitVector to store whether a particular bucket is empty or occupied. */
-    Vector*                    map; /**< Vector<SparseMapItem> A vector to store all elements in the map. */
+    Smi_Vector*                map; /**< Vector<SparseMapItem> A vector to store all elements in the map. */
 } SparseMap;
 
 SparseMap* sparse_map_create(
@@ -118,46 +124,45 @@ SparseMapItem* sparse_map_insert(SparseMap* map, void* key, void* value, void* u
 SparseMapItem* sparse_map_search(SparseMap* map, void* key, void* udata);
 void           sparse_map_delete(SparseMap* map, void* key, void* udata);
 
-#include "Interface/SparseMap.h"
+#include <Anvie/Containers/Interface/SparseMap.h>
 
-/*                                      prefix  prefix   hash     ktype  kcompare    dtype */
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u8_u8,  U8_U8_,  hash_u8, Uint8, compare_u8, Uint8);
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u8_u16, U8_U16_, hash_u8, Uint8, compare_u8, Uint16);
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u8_u32, U8_U32_, hash_u8, Uint8, compare_u8, Uint32);
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u8_u64, U8_U64_, hash_u8, Uint8, compare_u8, Uint64);
-
-/*                                      prefix   prefix    hash      ktype   kcompare     dtype */
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u16_u8,  U16_U8_,  hash_u16, Uint16, compare_u16, Uint8);
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u16_u16, U16_U16_, hash_u16, Uint16, compare_u16, Uint16);
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u16_u32, U16_U32_, hash_u16, Uint16, compare_u16, Uint32);
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u16_u64, U16_U64_, hash_u16, Uint16, compare_u16, Uint64);
+/*                                      prefix   prefix   hash     ktype  kcompare    dtype */
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u8_u8,  U8, U8,  hash_u8, Uint8, compare_u8, Uint8);
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u8_u16, U8, U16, hash_u8, Uint8, compare_u8, Uint16);
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u8_u32, U8, U32, hash_u8, Uint8, compare_u8, Uint32);
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u8_u64, U8, U64, hash_u8, Uint8, compare_u8, Uint64);
 
 /*                                      prefix   prefix    hash      ktype   kcompare     dtype */
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u32_u8,  U32_U8_,  hash_u32, Uint32, compare_u32, Uint8);
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u32_u16, U32_U16_, hash_u32, Uint32, compare_u32, Uint16);
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u32_u32, U32_U32_, hash_u32, Uint32, compare_u32, Uint32);
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u32_u64, U32_U64_, hash_u32, Uint32, compare_u32, Uint64);
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u16_u8,  U16, U8,  hash_u16, Uint16, compare_u16, Uint8)
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u16_u16, U16, U16, hash_u16, Uint16, compare_u16, Uint16)
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u16_u32, U16, U32, hash_u16, Uint16, compare_u16, Uint32)
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u16_u64, U16, U64, hash_u16, Uint16, compare_u16, Uint64)
 
 /*                                      prefix   prefix    hash      ktype   kcompare     dtype */
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u64_u8,  U64_U8_,  hash_u64, Uint64, compare_u64, Uint8);
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u64_u16, U64_U16_, hash_u64, Uint64, compare_u64, Uint16);
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u64_u32, U64_U32_, hash_u64, Uint64, compare_u64, Uint32);
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u64_u64, U64_U64_, hash_u64, Uint64, compare_u64, Uint64);
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u32_u8,  U32, U8,  hash_u32, Uint32, compare_u32, Uint8)
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u32_u16, U32, U16, hash_u32, Uint32, compare_u32, Uint16)
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u32_u32, U32, U32, hash_u32, Uint32, compare_u32, Uint32)
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u32_u64, U32, U64, hash_u32, Uint32, compare_u32, Uint64)
+
+/*                                      prefix   prefix    hash      ktype   kcompare     dtype */
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u64_u8,  U64, U8,  hash_u64, Uint64, compare_u64, Uint8)
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u64_u16, U64, U16, hash_u64, Uint64, compare_u64, Uint16)
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u64_u32, U64, U32, hash_u64, Uint64, compare_u64, Uint32)
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE(u64_u64, U64, U64, hash_u64, Uint64, compare_u64, Uint64)
 
 /*                                                             prefix    prefix     hash          ktype    kcreate              kdestroy              kcompare         dtype   dcreate  ddestroy  is_multimap  max_load_factor */
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(zstr_u8,  ZStr_U8_,  hash_zstr, ZString, zstr_create_copy, zstr_destroy_copy, compare_zstr, Uint8 , NULL,    NULL,     True,        SPARSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(zstr_u16, ZStr_U16_, hash_zstr, ZString, zstr_create_copy, zstr_destroy_copy, compare_zstr, Uint16, NULL,    NULL,     True,        SPARSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(zstr_u32, ZStr_U32_, hash_zstr, ZString, zstr_create_copy, zstr_destroy_copy, compare_zstr, Uint32, NULL,    NULL,     True,        SPARSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(zstr_u64, ZStr_U64_, hash_zstr, ZString, zstr_create_copy, zstr_destroy_copy, compare_zstr, Uint64, NULL,    NULL,     True,        SPARSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(zstr_u8,  ZStr, U8,  hash_zstr, ZString, zstr_create_copy, zstr_destroy_copy, compare_zstr, Uint8 , NULL,    NULL,     True,        SPARSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(zstr_u16, ZStr, U16, hash_zstr, ZString, zstr_create_copy, zstr_destroy_copy, compare_zstr, Uint16, NULL,    NULL,     True,        SPARSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(zstr_u32, ZStr, U32, hash_zstr, ZString, zstr_create_copy, zstr_destroy_copy, compare_zstr, Uint32, NULL,    NULL,     True,        SPARSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(zstr_u64, ZStr, U64, hash_zstr, ZString, zstr_create_copy, zstr_destroy_copy, compare_zstr, Uint64, NULL,    NULL,     True,        SPARSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
 
 /*                                                             prefix    prefix     hash      ktype   kcreate  kdestroy  kcompare     dtype   dcreate             ddestroy             is_multimap  max_load_factor */
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(u8_zstr,  U8_ZStr_,  hash_u8 , Uint8 , NULL,    NULL,     compare_u8 , ZString, zstr_create_copy, zstr_destroy_copy, True,        SPARSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(u16_zstr, U16_ZStr_, hash_u16, Uint16, NULL,    NULL,     compare_u16, ZString, zstr_create_copy, zstr_destroy_copy, True,        SPARSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(u32_zstr, U32_ZStr_, hash_u32, Uint32, NULL,    NULL,     compare_u32, ZString, zstr_create_copy, zstr_destroy_copy, True,        SPARSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(u64_zstr, U64_ZStr_, hash_u64, Uint64, NULL,    NULL,     compare_u64, ZString, zstr_create_copy, zstr_destroy_copy, True,        SPARSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(u8_zstr,  U8, ZStr,  hash_u8 , Uint8 , NULL,    NULL,     compare_u8 , ZString, zstr_create_copy, zstr_destroy_copy, True,        SPARSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(u16_zstr, U16, ZStr, hash_u16, Uint16, NULL,    NULL,     compare_u16, ZString, zstr_create_copy, zstr_destroy_copy, True,        SPARSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(u32_zstr, U32, ZStr, hash_u32, Uint32, NULL,    NULL,     compare_u32, ZString, zstr_create_copy, zstr_destroy_copy, True,        SPARSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(u64_zstr, U64, ZStr, hash_u64, Uint64, NULL,    NULL,     compare_u64, ZString, zstr_create_copy, zstr_destroy_copy, True,        SPARSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
 
 /*                                                             prefix     prefix     hash       ktype    kcreate           kdestroy           kcompare      dtype    dcreate           ddestroy           is_multimap  max_load_factor */
-DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(zstr_zstr, ZStr_ZStr, hash_zstr, ZString, zstr_create_copy, zstr_destroy_copy, compare_zstr, ZString, zstr_create_copy, zstr_destroy_copy, True,        SPARSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
-
+DEF_INTEGER_INTEGER_SPARSE_MAP_INTERFACE_WITH_COPY_AND_DESTROY(zstr_zstr, ZStr, ZStr, hash_zstr, ZString, zstr_create_copy, zstr_destroy_copy, compare_zstr, ZString, zstr_create_copy, zstr_destroy_copy, True, SPARSE_MAP_DEFAULT_LOAD_FACTOR_TOLERANCE);
 
 #endif // ANVIE_UTILS_CONTAINERS_SPARSE_MAP_H

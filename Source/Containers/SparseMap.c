@@ -26,6 +26,7 @@
 #include <Anvie/HelperDefines.h>
 #include <Anvie/Chrono/Time.h>
 #include <Anvie/Error.h>
+#include <Anvie/Bit/Bit.h>
 #include <string.h>
 
 #define SPARSE_MAP_INITIAL_SIZE 64
@@ -36,15 +37,11 @@ LinBlockAllocator* lba;
  * Callback data to be passed to copy constructor and copy destructor of
  * @c SparseMapItem.
  * */
-typedef struct CallbackData {
+typedef struct Smi_CallbackData {
     void*      udata;           /**< User data passed to callbacks. */
     SparseMap* map;             /**< @c SparseMap to which @c SparseMapItem will be inserted*/
-} CallbackData;
-void create_smi_copy(SparseMapItem* dst, SparseMapItem* src,  CallbackData* clbk_data);
-void destroy_smi_copy(SparseMapItem* copy, CallbackData* clbk_data);
-DEF_STRUCT_VECTOR_INTERFACE(smi, Smi_, SparseMapItem, create_smi_copy, destroy_smi_copy);
+} Smi_CallbackData;
 
-static FORCE_INLINE Size compute_next_power_of_two(Size n);
 static FORCE_INLINE SparseMapItem* insert_into_sparse_map_directly(SparseMap* map, SparseMapItem* item, void* udata);
 
 /**
@@ -139,7 +136,7 @@ void sparse_map_destroy(SparseMap* map, void* udata) {
     }
 
     if(map->map) {
-        CallbackData clbk_data = {
+        Smi_CallbackData clbk_data = {
             .udata = udata,
             .map   = map
         };
@@ -172,7 +169,7 @@ void sparse_map_resize(SparseMap* map, Size size, void* udata) {
     Float64 load_factor = (Float64)map->item_count/(Float64)map->max_item_count;
 
     // when we reach a size greater than or equal to given size and  that's also a power of 2, then we break.
-    Size sz = compute_next_power_of_two(size);
+    Size sz = NEXT_POW2(size);
 
     /* Create a ne bitvector to store data about occupancy of each slot. */
     BitVector* new_occupancy = bitvec_create();
@@ -180,7 +177,7 @@ void sparse_map_resize(SparseMap* map, Size size, void* udata) {
     bitvec_resize(new_occupancy, size);
 
     // create vector to store SparseMapItem entries for the SparseMap.
-    Vector* smi_vec = smi_vector_create();
+    Smi_Vector* smi_vec = smi_vector_create();
     if(!smi_vec) {
         bitvec_destroy(new_occupancy);
         ERR(__FUNCTION__, ERRFMT, ERRMSG(ERR_INVALID_OBJECT));
@@ -189,8 +186,8 @@ void sparse_map_resize(SparseMap* map, Size size, void* udata) {
     smi_vector_resize(smi_vec, sz);
 
     // store old map vector with different name
-    Vector*    old_smi_vec   = map->map;
-    BitVector* old_occupancy = map->occupancy;
+    Smi_Vector* old_smi_vec   = map->map;
+    BitVector*  old_occupancy = map->occupancy;
 
     // assign new, unhashed maps to this SparseMap
     map->map        = smi_vec;
@@ -245,7 +242,7 @@ SparseMapItem* sparse_map_insert(SparseMap* map, void* key, void* value, void* u
         sparse_map_resize(map, map->map->length * 2, udata);
     }
 
-    CallbackData clbk_data = {
+    Smi_CallbackData clbk_data = {
         .udata = udata,
         .map   = map
     };
@@ -321,7 +318,7 @@ void sparse_map_delete(SparseMap* map, void* key, void* udata) {
         return;
     }
 
-    CallbackData clbk_data = {
+    Smi_CallbackData clbk_data = {
         .udata = udata,
         .map   = map
     };
@@ -395,7 +392,7 @@ void sparse_map_delete(SparseMap* map, void* key, void* udata) {
  * @param src Pointer where original copy of @c SparseMapItem relies.
  * @param clbk_data Callback data passed to copy constructor
  * */
-void create_smi_copy(SparseMapItem* dst, SparseMapItem* src, CallbackData* clbk_data){
+void create_smi_copy(SparseMapItem* dst, SparseMapItem* src, Smi_CallbackData* clbk_data){
     ERR_RETURN_IF_FAIL(dst && clbk_data, ERR_INVALID_ARGUMENTS);
 
     CREATE_COPY(dst, src, data);
@@ -407,27 +404,11 @@ void create_smi_copy(SparseMapItem* dst, SparseMapItem* src, CallbackData* clbk_
  * @param copy Pointer to SparseMapItem copy to be destroyed
  * @param clbk_data Callback data
  * */
-void destroy_smi_copy(SparseMapItem* copy, CallbackData* clbk_data) {
+void destroy_smi_copy(SparseMapItem* copy, Smi_CallbackData* clbk_data) {
     ERR_RETURN_IF_FAIL(copy && clbk_data, ERR_INVALID_ARGUMENTS);
 
     DESTROY_COPY(copy, data);
     DESTROY_COPY(copy, key);
-}
-
-/**
- * Compute next power of two compared to given number n in constant time.
- * @param n
- * @return 2^(floor(log(n)) + 1),
- * */
-static FORCE_INLINE Size compute_next_power_of_two(Size n) {
-    n--; // Decrease n by 1 to handle cases where n is already a power of 2
-    n |= n >> 1;
-    n |= n >> 2;
-    n |= n >> 4;
-    n |= n >> 8;
-    n |= n >> 16;
-    n |= n >> 32;
-    return n + 1; // Increment the result by 1 to get the next power of 2
 }
 
 /**

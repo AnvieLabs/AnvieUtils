@@ -26,6 +26,7 @@ IMPORT_UNIT_TEST(IntegerVector)
 IMPORT_UNIT_TEST(StructVector)
 
 #include "Containers/ImportUnitTests.h"
+#include <Anvie/Containers/SparseMap.h>
 
 /* start running tests */
 BEGIN_UNIT_TESTS()

@@ -35,14 +35,10 @@
  * Callback data to be passed to copy constructor and copy destructor of
  * @c DenseMapItem.
  * */
-typedef struct CallbackData {
-    void*                     udata; /**< User data passed to callbacks. */
-    DenseMap*                 map; /**< @c DenseMap to which @c DenseMapItem will be inserted*/
-} CallbackData;
-void create_dmi_copy(DenseMapItem* dst, DenseMapItem* src,  CallbackData* clbk_data);
-void destroy_dmi_copy(DenseMapItem* copy, CallbackData* clbk_data);
-DEF_STRUCT_VECTOR_INTERFACE(dmi, Dmi_, DenseMapItem, create_dmi_copy, destroy_dmi_copy);
-
+struct Dmi_CallbackData {
+    void*     udata;            /**< User data passed to callbacks. */
+    DenseMap* map;              /**< @c DenseMap to which @c DenseMapItem will be inserted*/
+};
 static inline DenseMapItem* insert_into_dense_map_directly(DenseMap* map, DenseMapItem* dmi, void* udata);
 
 /**
@@ -79,12 +75,12 @@ DenseMap* dense_map_create(
     ERR_RETURN_VALUE_IF_FAIL(!(b1 ^ b2), NULL, ERR_INVALID_ARGUMENTS);
 
     // create vector to store DenseMapItem entries for the DenseMap.
-    Vector* dmi_vec = dmi_vector_create();
+    Dmi_Vector* dmi_vec = dmi_vector_create();
     ERR_RETURN_VALUE_IF_FAIL(dmi_vec, NULL, ERR_INVALID_OBJECT);
     dmi_vector_resize(dmi_vec, DENSE_MAP_INITIAL_SIZE);
 
     // create vector to store metadata about each entry in the DenseMap.
-    Vector* mdata_vec = u8_vector_create();
+    U8_Vector* mdata_vec = u8_vector_create();
     if(!mdata_vec) {
         dmi_vector_destroy(dmi_vec, NULL);
         ERR(__FUNCTION__, ERRFMT, ERRMSG(ERR_INVALID_OBJECT));
@@ -92,7 +88,7 @@ DenseMap* dense_map_create(
     }
     u8_vector_resize(mdata_vec, DENSE_MAP_INITIAL_SIZE);
 
-    Vector* pl_vec = u8_vector_create();
+    U8_Vector* pl_vec = u8_vector_create();
     if(!pl_vec) {
         dmi_vector_destroy(dmi_vec, NULL);
         u8_vector_destroy(mdata_vec, NULL);
@@ -140,7 +136,7 @@ void dense_map_destroy(DenseMap* map, void* udata) {
     ERR_RETURN_IF_FAIL(map, ERR_INVALID_ARGUMENTS);
 
     if(map->map) {
-        CallbackData clbk_data = {
+        Dmi_CallbackData clbk_data = {
             .udata = udata,
             .map   = map
         };
@@ -195,12 +191,12 @@ void dense_map_resize(DenseMap* map, Size size, void* udata) {
     Size sz = NEXT_POW2(size);
 
     // create vector to store DenseMapItem entries for the DenseMap.
-    Vector* dmi_vec = dmi_vector_create();
+    Dmi_Vector* dmi_vec = dmi_vector_create();
     ERR_RETURN_IF_FAIL(dmi_vec,  ERR_INVALID_OBJECT);
     dmi_vector_resize(dmi_vec, sz);
 
     // create vector to store metadata about each entry in the DenseMap.
-    Vector* mdata_vec = u8_vector_create();
+    U8_Vector* mdata_vec = u8_vector_create();
     if(!mdata_vec) {
         dmi_vector_destroy(dmi_vec, NULL);
         ERR(__FUNCTION__, ERRFMT, ERRMSG(ERR_INVALID_OBJECT));
@@ -209,7 +205,7 @@ void dense_map_resize(DenseMap* map, Size size, void* udata) {
     u8_vector_resize(mdata_vec, sz);
 
     // create vector to store probe sequence length
-    Vector* psl_vec = u8_vector_create();
+    U8_Vector* psl_vec = u8_vector_create();
     if(!psl_vec) {
         dmi_vector_destroy(dmi_vec, NULL);
         u8_vector_destroy(mdata_vec, NULL);
@@ -219,9 +215,9 @@ void dense_map_resize(DenseMap* map, Size size, void* udata) {
     u8_vector_resize(psl_vec, sz);
 
     // store old map vectors with different names
-    Vector* old_dmi_vec = map->map;
+    Dmi_Vector* old_dmi_vec = map->map;
 
-    Vector* old_mdata_vec = map->metadata;
+    U8_Vector* old_mdata_vec = map->metadata;
     u8_vector_destroy(map->probe_len, NULL);
 
     // assign new, unhashed maps to this DenseMap
@@ -268,7 +264,7 @@ DenseMapItem* dense_map_insert(DenseMap* map, void* key, void* value, void* udat
     }
 
     // set callback data and a temporary instance of DenseMapItem that we'll create copy of
-    CallbackData clbk_data = {
+    Dmi_CallbackData clbk_data = {
         .udata = udata,
         .map   = map
     };
@@ -350,7 +346,7 @@ DenseMapItem* dense_map_search(DenseMap* map, void* key, void* udata) {
 void dense_map_delete(DenseMap* map, void* key, void* udata) {
     ERR_RETURN_IF_FAIL(map, ERR_INVALID_ARGUMENTS);
 
-    CallbackData clbk_data = {
+    Dmi_CallbackData clbk_data = {
         .udata = udata,
         .map   = map
     };
@@ -412,7 +408,7 @@ void dense_map_delete(DenseMap* map, void* key, void* udata) {
  * @param src Pointer where original copy of @c DenseMapItem relies.
  * @param clbk_data Callback data passed to copy constructor
  * */
-void create_dmi_copy(DenseMapItem* dst, DenseMapItem* src, CallbackData* clbk_data){
+void create_dmi_copy(DenseMapItem* dst, DenseMapItem* src, Dmi_CallbackData* clbk_data){
     ERR_RETURN_IF_FAIL(dst && clbk_data, ERR_INVALID_ARGUMENTS);
 
     CREATE_COPY(dst, src, data);
@@ -424,7 +420,7 @@ void create_dmi_copy(DenseMapItem* dst, DenseMapItem* src, CallbackData* clbk_da
  * @param copy Pointer to DenseMapItem copy to be destroyed
  * @param clbk_data Callback data
  * */
-void destroy_dmi_copy(DenseMapItem* copy, CallbackData* clbk_data) {
+void destroy_dmi_copy(DenseMapItem* copy, Dmi_CallbackData* clbk_data) {
     ERR_RETURN_IF_FAIL(copy && clbk_data, ERR_INVALID_ARGUMENTS);
 
     DESTROY_COPY(copy, data);

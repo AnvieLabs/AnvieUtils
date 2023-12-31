@@ -115,3 +115,11 @@ Following are base function names of generic `Vector` container. You add a prefi
 - `vector_swap(vec, p1, p2)`: Swap elements at two positions.
 - `vector_sort(vec, compare, udata)`: Sort the vector.
 - `vector_check_sorted(vec, compare, udata)`: Check if the vector is sorted.
+
+<p align="center" style="font-size: small; line-height: 1.2;">
+    Author: Siddharth Mishra<br>
+    Writing Date: 31st December, 2023<br>
+    Last Modified: 1st January, 2024<br>
+    License: Apache 2.0 License<br> <br>
+    Copyright (c) 2023 AnvieLabs, Siddharth Mishra
+</p>
