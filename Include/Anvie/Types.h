@@ -51,10 +51,20 @@ typedef long Int64;
 #define INT64_MAX (9223372036854775807LL)
 
 typedef Int64 PtrDiff;
+typedef Int64 PtrDiff;
+typedef Int32 PtrDiff32;
 typedef Uint64 UintPtr;
+typedef Uint64 UintPtr64;
+typedef Uint32 UintPtr32;
 typedef Uint64 Size;
+typedef Uint64 Size64;
+typedef Uint32 Size32;
 typedef Uint64 Offset;
+typedef Uint64 Offset64;
+typedef Uint32 Offset32;
 typedef Uint64 Address;
+typedef Uint64 Address64;
+typedef Uint32 Address32;
 
 #define ADDRESS_MAX (~(UintPtr)0)
 #define OFFSET_MAX (~(UintPtr)0)

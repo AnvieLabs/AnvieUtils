@@ -163,26 +163,25 @@ void vector_merge_sort(Vector* vec, CompareElementCallback compare, void* udata)
 
 #include <Anvie/Containers/Interface/Vector.h>
 
-DEF_INTEGER_VECTOR_INTERFACE(u8,  U8_,  Uint8);
-DEF_INTEGER_VECTOR_INTERFACE(u16, U16_, Uint16);
-DEF_INTEGER_VECTOR_INTERFACE(u32, U32_, Uint32);
-DEF_INTEGER_VECTOR_INTERFACE(u64, U64_, Uint64);
+DEF_INTEGER_VECTOR_INTERFACE(u8,  U8,  Uint8);
+DEF_INTEGER_VECTOR_INTERFACE(u16, U16, Uint16);
+DEF_INTEGER_VECTOR_INTERFACE(u32, U32, Uint32);
+DEF_INTEGER_VECTOR_INTERFACE(u64, U64, Uint64);
 
-DEF_INTEGER_VECTOR_INTERFACE(i8,  I8_, Int8);
-DEF_INTEGER_VECTOR_INTERFACE(i16, I16_, Int16);
-DEF_INTEGER_VECTOR_INTERFACE(i32, I32_, Int32);
-DEF_INTEGER_VECTOR_INTERFACE(i64, I64_, Int64);
+DEF_INTEGER_VECTOR_INTERFACE(i8,  I8, Int8);
+DEF_INTEGER_VECTOR_INTERFACE(i16, I16, Int16);
+DEF_INTEGER_VECTOR_INTERFACE(i32, I32, Int32);
+DEF_INTEGER_VECTOR_INTERFACE(i64, I64, Int64);
 
-DEF_INTEGER_VECTOR_INTERFACE(f32, F32_, Float32);
-DEF_INTEGER_VECTOR_INTERFACE(f64, F64_, Float64);
+DEF_INTEGER_VECTOR_INTERFACE(f32, F32, Float32);
+DEF_INTEGER_VECTOR_INTERFACE(f64, F64, Float64);
 
-DEF_INTEGER_VECTOR_INTERFACE_WITH_COPY_AND_DESTROY(zstr, ZStr_, ZString, zstr_create_copy, zstr_destroy_copy);
-DEF_INTEGER_VECTOR_INTERFACE(voidptr, P_, void*);
+DEF_INTEGER_VECTOR_INTERFACE_WITH_COPY_AND_DESTROY(zstr, ZStr, ZString, zstr_create_copy, zstr_destroy_copy);
+DEF_INTEGER_VECTOR_INTERFACE(voidptr, VPtr, void*);
 
 // define interface to contain vector of vectors
 void vector_create_copy(void* dst, void* src, void* udata);
 void vector_destroy_copy(void* copy, void* udata);
-DEF_STRUCT_VECTOR_INTERFACE(vector, Vec_, Vector, vector_create_copy, vector_destroy_copy);
-DEF_INTEGER_VECTOR_INTERFACE(pvector, PVec_, Vector*);
+DEF_STRUCT_VECTOR_INTERFACE(vector, Vec, Vector, vector_create_copy, vector_destroy_copy);
 
 #endif // UTILS_VECTOR_H

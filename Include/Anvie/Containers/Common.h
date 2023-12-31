@@ -99,6 +99,7 @@ typedef Int32 (*CompareElementCallback)(void* p1, void* p2, void* udata);
  * */
 typedef Size (*HashCallback)(void* key, void* udata);
 
+/* solve this void* problem */
 void print_i8(void* x, Size idx, void* udata);
 void print_i16(void* x, Size idx, void* udata);
 void print_i32(void* x, Size idx, void* udata);
